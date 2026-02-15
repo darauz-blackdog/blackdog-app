@@ -53,7 +53,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                   ),
                 ],
               ),
-              child: const Icon(Icons.pets, size: 60, color: AppColors.secondary),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  color: AppColors.secondary,
+                ),
+              ),
             ),
             const SizedBox(height: 24),
             Text(

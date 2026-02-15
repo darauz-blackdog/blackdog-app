@@ -5,7 +5,14 @@
       "Bash(flutter --version:*)",
       "Bash(curl:*)",
       "Bash(flutter analyze:*)",
-      "Bash(flutter devices:*)"
+      "Bash(flutter devices:*)",
+      "Bash(npx @_davideast/stitch-mcp:*)",
+      "Bash(node -e \"\nconst fs = require\\(''fs''\\);\nconst data = JSON.parse\\(fs.readFileSync\\(''.claude.json'', ''utf8''\\)\\);\ndata.projects[''C:/Users/Diegu/blackdog-app''].mcpServers.stitch = {\n  type: ''stdio'',\n  command: ''npx'',\n  args: [''@_davideast/stitch-mcp'', ''proxy''],\n  env: { STITCH_API_KEY: ''AQ.Ab8RN6J7iDtoa2a74pEyIm9AG3tjsREWdjvUeGAQ2z6Nt6Vdvg'' }\n};\nfs.writeFileSync\\(''.claude.json'', JSON.stringify\\(data, null, 2\\)\\);\nconsole.log\\(''Updated successfully''\\);\n\")",
+      "mcp__stitch__list_projects",
+      "mcp__stitch__get_screen",
+      "WebFetch(domain:contribution.usercontent.google.com)",
+      "Bash(flutter run:*)",
+      "Bash(flutter attach:*)"
     ]
   }
 }

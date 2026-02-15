@@ -4,16 +4,35 @@ import 'package:google_fonts/google_fonts.dart';
 class AppColors {
   static const primary = Color(0xFFF7B104);       // Golden yellow
   static const primaryDark = Color(0xFFD49A03);
-  static const secondary = Color(0xFF1A1A2E);     // Dark navy
-  static const background = Color(0xFFF5F5F5);
+  static const secondary = Color(0xFF1A1A1A);     // Near-black
+  static const background = Color(0xFFFAFAFA);
   static const surface = Colors.white;
   static const error = Color(0xFFE53935);
   static const success = Color(0xFF43A047);
-  static const textPrimary = Color(0xFF1A1A2E);
+  static const textPrimary = Color(0xFF1A1A1A);
   static const textSecondary = Color(0xFF6B7280);
   static const textLight = Color(0xFF9CA3AF);
   static const border = Color(0xFFE5E7EB);
   static const divider = Color(0xFFF3F4F6);
+  static const grayMedium = Color(0xFFF3F4F6);   // Search bar bg
+}
+
+class AppShadows {
+  static List<BoxShadow> get soft => [
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.05),
+      blurRadius: 20,
+      spreadRadius: -2,
+      offset: const Offset(0, 4),
+    ),
+  ];
+
+  static List<BoxShadow> get glow => [
+    BoxShadow(
+      color: AppColors.primary.withValues(alpha: 0.3),
+      blurRadius: 15,
+    ),
+  ];
 }
 
 class AppTheme {
@@ -140,6 +159,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
         ),
         color: Colors.white,
       ),

@@ -9,6 +9,7 @@ import '../screens/catalog/catalog_screen.dart';
 import '../screens/catalog/product_detail_screen.dart';
 import '../screens/catalog/search_screen.dart';
 import '../screens/cart/cart_screen.dart';
+import '../screens/health/health_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/common/main_shell.dart';
 import '../providers/auth_provider.dart';
@@ -67,6 +68,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/cart',
             builder: (context, state) => const CartScreen(),
+          ),
+          GoRoute(
+            path: '/health',
+            builder: (context, state) => const HealthScreen(),
           ),
           GoRoute(
             path: '/profile',
