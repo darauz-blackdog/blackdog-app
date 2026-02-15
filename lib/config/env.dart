@@ -11,6 +11,6 @@ class Env {
   );
   static const apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:3002/api', // Android emulator → localhost
+    defaultValue: 'http://31.97.211.164:3002/api', // VPS production server
   );
 }
