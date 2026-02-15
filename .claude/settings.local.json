@@ -12,7 +12,8 @@
       "mcp__stitch__get_screen",
       "WebFetch(domain:contribution.usercontent.google.com)",
       "Bash(flutter run:*)",
-      "Bash(flutter attach:*)"
+      "Bash(flutter attach:*)",
+      "mcp__stitch__generate_screen_from_text"
     ]
   }
 }
