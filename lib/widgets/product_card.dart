@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -57,10 +58,20 @@ class ProductCard extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.all(8),
                         child: product.imageUrl != null
-                            ? Image.network(
-                                product.imageUrl!,
+                            ? CachedNetworkImage(
+                                imageUrl: product.imageUrl!,
                                 fit: BoxFit.contain,
-                                errorBuilder: (_, __, ___) =>
+                                placeholder: (_, __) => const Center(
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ),
+                                errorWidget: (_, __, ___) =>
                                     const _PlaceholderIcon(),
                               )
                             : const _PlaceholderIcon(),

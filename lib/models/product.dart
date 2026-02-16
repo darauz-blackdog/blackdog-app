@@ -9,6 +9,10 @@ class Product {
   final String? defaultCode;
   final String? description;
   final String? imageUrl;
+  final List<String> imageUrls;
+  final String? descriptionHtml;
+  final List<String> tags;
+  final String? handle;
   final bool isPublished;
 
   Product({
@@ -22,10 +26,15 @@ class Product {
     this.defaultCode,
     this.description,
     this.imageUrl,
+    this.imageUrls = const [],
+    this.descriptionHtml,
+    this.tags = const [],
+    this.handle,
     this.isPublished = true,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
+    final urls = (json['image_urls'] as List?)?.cast<String>() ?? [];
     return Product(
       id: json['id'] as int,
       name: json['name'] as String,
@@ -36,7 +45,11 @@ class Product {
       productType: json['product_type'] as String?,
       defaultCode: json['default_code'] as String?,
       description: json['description'] as String?,
-      imageUrl: json['image_url'] as String?,
+      imageUrl: json['image_url'] as String? ?? (urls.isNotEmpty ? urls.first : null),
+      imageUrls: urls,
+      descriptionHtml: json['description_html'] as String?,
+      tags: (json['tags'] as List?)?.cast<String>() ?? [],
+      handle: json['handle'] as String?,
       isPublished: json['is_published'] as bool? ?? true,
     );
   }
@@ -45,6 +58,23 @@ class Product {
   bool get hasDiscount => salePrice != null && salePrice! < listPrice;
   double get discountPercent =>
       hasDiscount ? ((listPrice - salePrice!) / listPrice * 100) : 0;
+
+  /// Strip HTML tags from descriptionHtml for plain text display
+  String? get descriptionPlain {
+    if (descriptionHtml == null) return description;
+    return descriptionHtml!
+        .replaceAll(RegExp(r'<br\s*/?>'), '\n')
+        .replaceAll(RegExp(r'</p>'), '\n')
+        .replaceAll(RegExp(r'<[^>]+>'), '')
+        .replaceAll(RegExp(r'&amp;'), '&')
+        .replaceAll(RegExp(r'&lt;'), '<')
+        .replaceAll(RegExp(r'&gt;'), '>')
+        .replaceAll(RegExp(r'&quot;'), '"')
+        .replaceAll(RegExp(r'&#39;'), "'")
+        .replaceAll(RegExp(r'&nbsp;'), ' ')
+        .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+        .trim();
+  }
 }
 
 class ProductDetail extends Product {
@@ -62,12 +92,17 @@ class ProductDetail extends Product {
     super.defaultCode,
     super.description,
     super.imageUrl,
+    super.imageUrls,
+    super.descriptionHtml,
+    super.tags,
+    super.handle,
     super.isPublished,
     required this.stockByBranch,
     required this.totalStock,
   });
 
   factory ProductDetail.fromJson(Map<String, dynamic> json) {
+    final urls = (json['image_urls'] as List?)?.cast<String>() ?? [];
     return ProductDetail(
       id: json['id'] as int,
       name: json['name'] as String,
@@ -78,7 +113,11 @@ class ProductDetail extends Product {
       productType: json['product_type'] as String?,
       defaultCode: json['default_code'] as String?,
       description: json['description'] as String?,
-      imageUrl: json['image_url'] as String?,
+      imageUrl: json['image_url'] as String? ?? (urls.isNotEmpty ? urls.first : null),
+      imageUrls: urls,
+      descriptionHtml: json['description_html'] as String?,
+      tags: (json['tags'] as List?)?.cast<String>() ?? [],
+      handle: json['handle'] as String?,
       isPublished: json['is_published'] as bool? ?? true,
       stockByBranch: (json['stock_by_branch'] as List? ?? [])
           .map((s) => StockByBranch.fromJson(s as Map<String, dynamic>))

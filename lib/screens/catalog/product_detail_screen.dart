@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,13 +6,20 @@ import 'package:go_router/go_router.dart';
 import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
 
-class ProductDetailScreen extends ConsumerWidget {
+class ProductDetailScreen extends ConsumerStatefulWidget {
   final int productId;
   const ProductDetailScreen({super.key, required this.productId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final product = ref.watch(productDetailProvider(productId));
+  ConsumerState<ProductDetailScreen> createState() => _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
+  int _currentImageIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final product = ref.watch(productDetailProvider(widget.productId));
 
     return Scaffold(
       appBar: AppBar(
@@ -28,37 +36,50 @@ class ProductDetailScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Product image placeholder
-              Container(
-                width: double.infinity,
-                height: 300,
-                color: AppColors.divider,
-                child: p.imageUrl != null
-                    ? Image.network(p.imageUrl!, fit: BoxFit.contain)
-                    : const Icon(Icons.image_outlined, size: 80, color: AppColors.textLight),
-              ),
+              // Image gallery
+              _buildImageGallery(p),
 
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Category
-                    if (p.categoryName != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          p.categoryName!.split(' / ').last,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.primaryDark,
-                                fontWeight: FontWeight.w500,
+                    // Category + Tags row
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        if (p.categoryName != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              p.categoryName!.split(' / ').last,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.primaryDark,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                            ),
+                          ),
+                        ...p.tags.take(5).map((tag) => Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.secondary.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(6),
                               ),
-                        ),
-                      ),
+                              child: Text(
+                                tag,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppColors.secondary,
+                                      fontSize: 11,
+                                    ),
+                              ),
+                            )),
+                      ],
+                    ),
                     const SizedBox(height: 12),
 
                     // Name
@@ -145,8 +166,13 @@ class ProductDetailScreen extends ConsumerWidget {
                         ),
                       ),
 
-                    // Description
-                    if (p.description != null) ...[
+                    // Description (prefer Shopify HTML → plain text, fallback to Odoo description)
+                    if (p.descriptionPlain != null && p.descriptionPlain!.isNotEmpty) ...[
+                      const SizedBox(height: 24),
+                      Text('Descripcion', style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: 8),
+                      Text(p.descriptionPlain!, style: Theme.of(context).textTheme.bodyMedium),
+                    ] else if (p.description != null) ...[
                       const SizedBox(height: 24),
                       Text('Descripcion', style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 8),
@@ -169,7 +195,7 @@ class ProductDetailScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               Text('Error al cargar producto'),
               TextButton(
-                onPressed: () => ref.invalidate(productDetailProvider(productId)),
+                onPressed: () => ref.invalidate(productDetailProvider(widget.productId)),
                 child: const Text('Reintentar'),
               ),
             ],
@@ -192,6 +218,77 @@ class ProductDetailScreen extends ConsumerWidget {
               )
             : null,
       ),
+    );
+  }
+
+  Widget _buildImageGallery(dynamic p) {
+    final images = p.imageUrls as List<String>;
+
+    if (images.isEmpty) {
+      return Container(
+        width: double.infinity,
+        height: 300,
+        color: AppColors.divider,
+        child: const Icon(Icons.image_outlined, size: 80, color: AppColors.textLight),
+      );
+    }
+
+    if (images.length == 1) {
+      return Container(
+        width: double.infinity,
+        height: 300,
+        color: Colors.white,
+        padding: const EdgeInsets.all(16),
+        child: CachedNetworkImage(
+          imageUrl: images.first,
+          fit: BoxFit.contain,
+          placeholder: (_, __) => const Center(child: CircularProgressIndicator()),
+          errorWidget: (_, __, ___) =>
+              const Icon(Icons.image_outlined, size: 80, color: AppColors.textLight),
+        ),
+      );
+    }
+
+    // Multiple images: PageView with indicators
+    return Column(
+      children: [
+        SizedBox(
+          height: 300,
+          child: PageView.builder(
+            itemCount: images.length,
+            onPageChanged: (i) => setState(() => _currentImageIndex = i),
+            itemBuilder: (context, index) => Container(
+              color: Colors.white,
+              padding: const EdgeInsets.all(16),
+              child: CachedNetworkImage(
+                imageUrl: images[index],
+                fit: BoxFit.contain,
+                placeholder: (_, __) => const Center(child: CircularProgressIndicator()),
+                errorWidget: (_, __, ___) =>
+                    const Icon(Icons.image_outlined, size: 80, color: AppColors.textLight),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Dot indicators
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            images.length,
+            (i) => Container(
+              width: i == _currentImageIndex ? 20 : 8,
+              height: 8,
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              decoration: BoxDecoration(
+                color: i == _currentImageIndex ? AppColors.primary : AppColors.textLight.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+      ],
     );
   }
 }
