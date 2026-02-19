@@ -23,14 +23,13 @@ class HomeScreen extends ConsumerWidget {
 
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
           // Glassmorphism header
           SliverAppBar(
             floating: true,
             snap: true,
-            backgroundColor: Colors.white.withOpacity(0.85), // Changed withValues to withOpacity
+            backgroundColor: Theme.of(context).colorScheme.surface.withOpacity(0.85),
             surfaceTintColor: Colors.transparent,
             elevation: 0,
             flexibleSpace: ClipRect(

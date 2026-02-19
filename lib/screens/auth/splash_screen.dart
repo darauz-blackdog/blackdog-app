@@ -72,7 +72,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Pet Shop Panama',
+              'Pet Shop Panamá',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: AppColors.secondary.withValues(alpha: 0.7),
                   ),

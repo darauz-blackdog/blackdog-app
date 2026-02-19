@@ -18,7 +18,7 @@ class HealthScreen extends StatelessWidget {
             Text('Salud de tu mascota',
                 style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 8),
-            Text('Proximamente',
+            Text('Próximamente',
                 style: Theme.of(context).textTheme.bodyMedium),
           ],
         ),

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,11 +14,64 @@ import '../screens/catalog/search_screen.dart';
 import '../screens/cart/cart_screen.dart';
 import '../screens/checkout/checkout_screen.dart';
 import '../screens/checkout/order_confirmation_screen.dart';
-import '../screens/branches/branches_screen.dart'; // Added
+import '../screens/branches/branches_screen.dart';
 import '../screens/profile/profile_screen.dart';
-import '../screens/home/home_screen.dart'; // Added
+import '../screens/home/home_screen.dart';
 import '../screens/common/main_shell.dart';
 import '../providers/auth_provider.dart';
+
+// M3 fade-through transition for smooth page changes
+CustomTransitionPage<void> _fadeThrough(GoRouterState state, Widget child) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 300),
+    reverseTransitionDuration: const Duration(milliseconds: 250),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final fadeIn = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+      );
+      final fadeOut = CurvedAnimation(
+        parent: secondaryAnimation,
+        curve: Curves.easeInCubic,
+      );
+      return FadeTransition(
+        opacity: fadeIn,
+        child: FadeTransition(
+          opacity: Tween<double>(begin: 1.0, end: 0.0).animate(fadeOut),
+          child: child,
+        ),
+      );
+    },
+  );
+}
+
+// M3 shared axis (vertical) transition for detail screens
+CustomTransitionPage<void> _sharedAxisY(GoRouterState state, Widget child) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 350),
+    reverseTransitionDuration: const Duration(milliseconds: 300),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curve = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+      );
+      return FadeTransition(
+        opacity: curve,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 0.08),
+            end: Offset.zero,
+          ).animate(curve),
+          child: child,
+        ),
+      );
+    },
+  );
+}
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
@@ -40,74 +94,92 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
-      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(
+        path: '/',
+        pageBuilder: (context, state) => _fadeThrough(state, const SplashScreen()),
+      ),
+      GoRoute(
+        path: '/login',
+        pageBuilder: (context, state) => _fadeThrough(state, const LoginScreen()),
+      ),
       GoRoute(
         path: '/register',
-        builder: (context, state) => const RegisterScreen(),
+        pageBuilder: (context, state) => _sharedAxisY(state, const RegisterScreen()),
       ),
       ShellRoute(
         builder: (context, state, child) => MainShell(child: child),
         routes: [
           GoRoute(
             path: '/home',
-            builder: (context, state) => const HomeScreen(),
+            pageBuilder: (context, state) => _fadeThrough(state, const HomeScreen()),
           ),
           GoRoute(
             path: '/catalog',
-            builder: (context, state) => CatalogScreen(
-              categoryId: state.uri.queryParameters['category_id'] != null
-                  ? int.parse(state.uri.queryParameters['category_id']!)
-                  : null,
+            pageBuilder: (context, state) => _fadeThrough(
+              state,
+              CatalogScreen(
+                categoryId: state.uri.queryParameters['category_id'] != null
+                    ? int.parse(state.uri.queryParameters['category_id']!)
+                    : null,
+              ),
             ),
           ),
           GoRoute(
             path: '/search',
-            builder: (context, state) => const SearchScreen(),
+            pageBuilder: (context, state) => _fadeThrough(state, const SearchScreen()),
           ),
           GoRoute(
             path: '/cart',
-            builder: (context, state) => const CartScreen(),
+            pageBuilder: (context, state) => _sharedAxisY(state, const CartScreen()),
           ),
           GoRoute(
             path: '/branches',
-            builder: (context, state) => const BranchesScreen(),
+            pageBuilder: (context, state) => _fadeThrough(state, const BranchesScreen()),
           ),
           GoRoute(
             path: '/orders',
-            builder: (context, state) => const OrdersScreen(),
+            pageBuilder: (context, state) => _fadeThrough(state, const OrdersScreen()),
             routes: [
               GoRoute(
                 path: ':id',
-                builder: (context, state) {
+                pageBuilder: (context, state) {
                   final id = state.pathParameters['id']!;
                   final extra = state.extra as Order?;
-                  return OrderDetailScreen(orderId: id, extraOrder: extra);
+                  return _sharedAxisY(
+                    state,
+                    OrderDetailScreen(orderId: id, extraOrder: extra),
+                  );
                 },
               ),
             ],
           ),
           GoRoute(
             path: '/profile',
-            builder: (context, state) => const ProfileScreen(),
+            pageBuilder: (context, state) => _fadeThrough(state, const ProfileScreen()),
           ),
         ],
       ),
       GoRoute(
         path: '/checkout',
-        builder: (context, state) => const CheckoutScreen(),
+        pageBuilder: (context, state) => _sharedAxisY(state, const CheckoutScreen()),
       ),
       GoRoute(
         path: '/order-confirmation/:id',
-        builder: (context, state) => OrderConfirmationScreen(
-          orderId: state.pathParameters['id']!,
-          orderData: state.extra as Map<String, dynamic>?,
+        pageBuilder: (context, state) => _fadeThrough(
+          state,
+          OrderConfirmationScreen(
+            orderId: state.pathParameters['id']!,
+            orderData: state.extra as Map<String, dynamic>?,
+          ),
         ),
       ),
       GoRoute(
         path: '/product/:id',
-        builder: (context, state) => ProductDetailScreen(
-          productId: int.parse(state.pathParameters['id']!),
+        pageBuilder: (context, state) => _sharedAxisY(
+          state,
+          ProductDetailScreen(
+            productId: int.parse(state.pathParameters['id']!),
+          ),
         ),
       ),
     ],

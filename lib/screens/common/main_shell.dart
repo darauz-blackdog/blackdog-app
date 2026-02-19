@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../theme/app_theme.dart';
 
+/// Responsive main shell: NavigationBar on phones, NavigationRail on tablets (>600dp)
 class MainShell extends StatelessWidget {
   final Widget child;
   const MainShell({super.key, required this.child});
@@ -28,6 +29,56 @@ class MainShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentIdx = _currentIndex(context);
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+
+    if (isWide) {
+      return Scaffold(
+        body: Row(
+          children: [
+            NavigationRail(
+              selectedIndex: currentIdx,
+              onDestinationSelected: (index) => _onTap(context, index),
+              labelType: NavigationRailLabelType.all,
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              indicatorColor: AppColors.primary.withValues(alpha: 0.15),
+              selectedIconTheme: const IconThemeData(color: AppColors.primary),
+              unselectedIconTheme: const IconThemeData(color: AppColors.textLight),
+              selectedLabelTextStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+              unselectedLabelTextStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: AppColors.textLight,
+              ),
+              destinations: const [
+                NavigationRailDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home_rounded),
+                  label: Text('Inicio'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.map_outlined),
+                  selectedIcon: Icon(Icons.map_rounded),
+                  label: Text('Mapa'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.receipt_long_outlined),
+                  selectedIcon: Icon(Icons.receipt_long_rounded),
+                  label: Text('Pedidos'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.person_outlined),
+                  selectedIcon: Icon(Icons.person_rounded),
+                  label: Text('Perfil'),
+                ),
+              ],
+            ),
+            const VerticalDivider(width: 1, thickness: 1),
+            Expanded(child: child),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       body: child,

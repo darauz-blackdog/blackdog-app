@@ -113,17 +113,10 @@ class CartScreen extends ConsumerWidget {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             border: Border(
-              top: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+              top: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, -4),
-              ),
-            ],
           ),
           child: SafeArea(
             child: Column(
