@@ -145,6 +145,39 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   Text('Ya tienes cuenta? ', style: Theme.of(context).textTheme.bodyMedium),
                   TextButton(onPressed: () => context.go('/login'), child: const Text('Inicia Sesion')),
                 ]),
+                const SizedBox(height: 24),
+
+                // Divider
+                Row(children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text('o registrate con', style: Theme.of(context).textTheme.bodySmall),
+                  ),
+                  const Expanded(child: Divider()),
+                ]),
+                const SizedBox(height: 24),
+
+                // Social buttons
+                Row(children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: isLoading ? null
+                          : () => ref.read(authNotifierProvider.notifier).signInWithGoogle(),
+                      icon: const Icon(Icons.g_mobiledata, size: 24),
+                      label: const Text('Google'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: isLoading ? null
+                          : () => ref.read(authNotifierProvider.notifier).signInWithApple(),
+                      icon: const Icon(Icons.apple, size: 24),
+                      label: const Text('Apple'),
+                    ),
+                  ),
+                ]),
               ],
             ),
           ),
