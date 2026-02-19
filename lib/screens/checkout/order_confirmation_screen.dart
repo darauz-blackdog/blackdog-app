@@ -98,7 +98,7 @@ class OrderConfirmationScreen extends ConsumerWidget {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
-                  onPressed: () => context.go('/cart'),
+                  onPressed: () => context.go('/orders'),
                   child: const Text('Mis pedidos'),
                 ),
               ),

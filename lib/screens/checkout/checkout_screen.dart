@@ -325,7 +325,7 @@ class _PaymentStep extends StatelessWidget {
             children: [
               _RadioCard(
                 title: 'Tarjeta de crédito / débito',
-                subtitle: 'Pago seguro via Tilopay',
+                subtitle: 'Pago seguro vía Tilopay',
                 icon: Icons.credit_card_outlined,
                 selected: paymentMethod == 'tilopay',
                 onTap: () => onPaymentMethodChanged('tilopay'),
@@ -333,7 +333,7 @@ class _PaymentStep extends StatelessWidget {
               const SizedBox(height: 12),
               _RadioCard(
                 title: 'Yappy',
-                subtitle: 'Transferencia via Yappy',
+                subtitle: 'Transferencia vía Yappy',
                 icon: Icons.phone_android_outlined,
                 selected: paymentMethod == 'yappy',
                 onTap: () => onPaymentMethodChanged('yappy'),

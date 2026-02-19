@@ -13,8 +13,7 @@ class ProductDetailScreen extends ConsumerStatefulWidget {
   const ProductDetailScreen({super.key, required this.productId});
 
   @override
-  ConsumerState<ProductDetailScreen> createState() =>
-      _ProductDetailScreenState();
+  ConsumerState<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
 
 class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
@@ -30,7 +29,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-
         actions: [
           const CartBadge(),
           IconButton(icon: const Icon(Icons.share_outlined), onPressed: () {}),
@@ -56,64 +54,45 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       children: [
                         if (p.categoryName != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: AppColors.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               p.categoryName!.split(' / ').last,
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: AppColors.primaryDark,
                                     fontWeight: FontWeight.w500,
                                   ),
                             ),
                           ),
-                        ...p.tags
-                            .take(5)
-                            .map(
-                              (tag) => Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.secondary.withValues(
-                                    alpha: 0.08,
-                                  ),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  tag,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: AppColors.secondary,
-                                        fontSize: 11,
-                                      ),
-                                ),
+                        ...p.tags.take(5).map((tag) => Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.secondary.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(6),
                               ),
-                            ),
+                              child: Text(
+                                tag,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppColors.secondary,
+                                      fontSize: 11,
+                                    ),
+                              ),
+                            )),
                       ],
                     ),
                     const SizedBox(height: 12),
 
                     // Name
-                    Text(
-                      p.name,
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
+                    Text(p.name, style: Theme.of(context).textTheme.headlineSmall),
                     const SizedBox(height: 8),
 
                     // SKU
                     if (p.defaultCode != null)
-                      Text(
-                        'SKU: ${p.defaultCode}',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
+                      Text('SKU: ${p.defaultCode}',
+                          style: Theme.of(context).textTheme.bodySmall),
                     const SizedBox(height: 16),
 
                     // Price
@@ -122,8 +101,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       children: [
                         Text(
                           '\$${p.effectivePrice.toStringAsFixed(2)}',
-                          style: Theme.of(context).textTheme.headlineMedium
-                              ?.copyWith(
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -132,30 +110,21 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                           const SizedBox(width: 12),
                           Text(
                             '\$${p.listPrice.toStringAsFixed(2)}',
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                                   decoration: TextDecoration.lineThrough,
                                   color: AppColors.textLight,
                                 ),
                           ),
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
                               color: AppColors.error.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: Text(
-                              '-${p.discountPercent.toStringAsFixed(0)}%',
-                              style: const TextStyle(
-                                color: AppColors.error,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12,
-                              ),
-                            ),
+                            child: Text('-${p.discountPercent.toStringAsFixed(0)}%',
+                                style: const TextStyle(
+                                    color: AppColors.error, fontWeight: FontWeight.w600, fontSize: 12)),
                           ),
                         ],
                       ],
@@ -163,38 +132,26 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     const SizedBox(height: 24),
 
                     // Stock availability
-                    Text(
-                      'Disponibilidad',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
+                    Text('Disponibilidad', style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 8),
                     if (p.inStock)
-                      ...p.stockByBranch.map(
-                        (s) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.check_circle,
-                                size: 18,
-                                color: AppColors.success,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  s.branch?.name ?? 'Sucursal',
-                                  style: Theme.of(context).textTheme.bodyMedium,
+                      ...p.stockByBranch.map((s) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              children: [
+                                Icon(Icons.check_circle, size: 18, color: AppColors.success),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(s.branch?.name ?? 'Sucursal',
+                                      style: Theme.of(context).textTheme.bodyMedium),
                                 ),
-                              ),
-                              Text(
-                                '${s.qtyAvailable.toInt()} unid.',
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(fontWeight: FontWeight.w500),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
+                                Text('${s.qtyAvailable.toInt()} unid.',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          fontWeight: FontWeight.w500,
+                                        )),
+                              ],
+                            ),
+                          ))
                     else
                       Container(
                         padding: const EdgeInsets.all(16),
@@ -206,38 +163,23 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                           children: [
                             Icon(Icons.info_outline, color: AppColors.error),
                             const SizedBox(width: 12),
-                            Text(
-                              'Sin stock disponible',
-                              style: TextStyle(color: AppColors.error),
-                            ),
+                            Text('Sin stock disponible',
+                                style: TextStyle(color: AppColors.error)),
                           ],
                         ),
                       ),
 
                     // Description (prefer Shopify HTML → plain text, fallback to Odoo description)
-                    if (p.descriptionPlain != null &&
-                        p.descriptionPlain!.isNotEmpty) ...[
+                    if (p.descriptionPlain != null && p.descriptionPlain!.isNotEmpty) ...[
                       const SizedBox(height: 24),
-                      Text(
-                        'Descripcion',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
+                      Text('Descripción', style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 8),
-                      Text(
-                        p.descriptionPlain!,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
+                      Text(p.descriptionPlain!, style: Theme.of(context).textTheme.bodyMedium),
                     ] else if (p.description != null) ...[
                       const SizedBox(height: 24),
-                      Text(
-                        'Descripcion',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
+                      Text('Descripción', style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 8),
-                      Text(
-                        p.description!,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
+                      Text(p.description!, style: Theme.of(context).textTheme.bodyMedium),
                     ],
 
                     const SizedBox(height: 100), // space for FAB
@@ -256,8 +198,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               const SizedBox(height: 16),
               Text('Error al cargar producto'),
               TextButton(
-                onPressed: () =>
-                    ref.invalidate(productDetailProvider(widget.productId)),
+                onPressed: () => ref.invalidate(productDetailProvider(widget.productId)),
                 child: const Text('Reintentar'),
               ),
             ],
@@ -285,9 +226,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   } catch (e) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Error al agregar al carrito'),
-                        ),
+                        const SnackBar(content: Text('Error al agregar al carrito')),
                       );
                     }
                   }
@@ -310,11 +249,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         width: double.infinity,
         height: 300,
         color: AppColors.divider,
-        child: const Icon(
-          Icons.image_outlined,
-          size: 80,
-          color: AppColors.textLight,
-        ),
+        child: const Icon(Icons.image_outlined, size: 80, color: AppColors.textLight),
       );
     }
 
@@ -327,13 +262,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         child: CachedNetworkImage(
           imageUrl: images.first,
           fit: BoxFit.contain,
-          placeholder: (_, __) =>
-              const Center(child: CircularProgressIndicator()),
-          errorWidget: (_, __, ___) => const Icon(
-            Icons.image_outlined,
-            size: 80,
-            color: AppColors.textLight,
-          ),
+          placeholder: (_, __) => const Center(child: CircularProgressIndicator()),
+          errorWidget: (_, __, ___) =>
+              const Icon(Icons.image_outlined, size: 80, color: AppColors.textLight),
         ),
       );
     }
@@ -352,13 +283,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               child: CachedNetworkImage(
                 imageUrl: images[index],
                 fit: BoxFit.contain,
-                placeholder: (_, __) =>
-                    const Center(child: CircularProgressIndicator()),
-                errorWidget: (_, __, ___) => const Icon(
-                  Icons.image_outlined,
-                  size: 80,
-                  color: AppColors.textLight,
-                ),
+                placeholder: (_, __) => const Center(child: CircularProgressIndicator()),
+                errorWidget: (_, __, ___) =>
+                    const Icon(Icons.image_outlined, size: 80, color: AppColors.textLight),
               ),
             ),
           ),
@@ -374,9 +301,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               height: 8,
               margin: const EdgeInsets.symmetric(horizontal: 3),
               decoration: BoxDecoration(
-                color: i == _currentImageIndex
-                    ? AppColors.primary
-                    : AppColors.textLight.withValues(alpha: 0.3),
+                color: i == _currentImageIndex ? AppColors.primary : AppColors.textLight.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(4),
               ),
             ),

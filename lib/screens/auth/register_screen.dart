@@ -85,10 +85,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
-                      labelText: 'Correo electronico', prefixIcon: Icon(Icons.email_outlined)),
+                      labelText: 'Correo electrónico', prefixIcon: Icon(Icons.email_outlined)),
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Ingresa tu correo';
-                    if (!v.contains('@')) return 'Correo invalido';
+                    if (!v.contains('@')) return 'Correo inválido';
                     return null;
                   },
                 ),
@@ -98,7 +98,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   keyboardType: TextInputType.phone,
                   textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
-                    labelText: 'Telefono (opcional)',
+                    labelText: 'Teléfono (opcional)',
                     prefixIcon: Icon(Icons.phone_outlined),
                     hintText: '+507 6000-0000',
                   ),
@@ -109,7 +109,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   obscureText: _obscurePassword,
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
-                    labelText: 'Contrasena',
+                    labelText: 'Contraseña',
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
@@ -117,8 +117,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                   ),
                   validator: (v) {
-                    if (v == null || v.isEmpty) return 'Ingresa una contrasena';
-                    if (v.length < 6) return 'Minimo 6 caracteres';
+                    if (v == null || v.isEmpty) return 'Ingresa una contraseña';
+                    if (v.length < 6) return 'Mínimo 6 caracteres';
                     return null;
                   },
                 ),
@@ -129,8 +129,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _handleRegister(),
                   decoration: const InputDecoration(
-                      labelText: 'Confirmar contrasena', prefixIcon: Icon(Icons.lock_outlined)),
-                  validator: (v) => v != _passwordController.text ? 'Las contrasenas no coinciden' : null,
+                      labelText: 'Confirmar contraseña', prefixIcon: Icon(Icons.lock_outlined)),
+                  validator: (v) => v != _passwordController.text ? 'Las contraseñas no coinciden' : null,
                 ),
                 const SizedBox(height: 32),
                 ElevatedButton(
@@ -142,8 +142,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 24),
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text('Ya tienes cuenta? ', style: Theme.of(context).textTheme.bodyMedium),
-                  TextButton(onPressed: () => context.go('/login'), child: const Text('Inicia Sesion')),
+                  Text('¿Ya tienes cuenta? ', style: Theme.of(context).textTheme.bodyMedium),
+                  TextButton(onPressed: () => context.go('/login'), child: const Text('Inicia Sesión')),
                 ]),
                 const SizedBox(height: 24),
 
@@ -152,7 +152,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const Expanded(child: Divider()),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text('o registrate con', style: Theme.of(context).textTheme.bodySmall),
+                    child: Text('o regístrate con', style: Theme.of(context).textTheme.bodySmall),
                   ),
                   const Expanded(child: Divider()),
                 ]),

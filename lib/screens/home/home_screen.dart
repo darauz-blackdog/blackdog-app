@@ -11,7 +11,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/category_icon_box.dart';
 
-import '../../providers/auth_provider.dart'; // Added import for currentUserProvider
+import '../../widgets/cart_badge.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -20,8 +20,7 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final featured = ref.watch(featuredProductsProvider);
     final categories = ref.watch(categoriesProvider);
-    final cartCount = ref.watch(cartItemCountProvider);
-    final user = ref.watch(currentUserProvider); // Added line
+
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -31,9 +30,7 @@ class HomeScreen extends ConsumerWidget {
           SliverAppBar(
             floating: true,
             snap: true,
-            backgroundColor: Colors.white.withOpacity(
-              0.85,
-            ), // Changed withValues to withOpacity
+            backgroundColor: Colors.white.withOpacity(0.85), // Changed withValues to withOpacity
             surfaceTintColor: Colors.transparent,
             elevation: 0,
             flexibleSpace: ClipRect(
@@ -69,41 +66,7 @@ class HomeScreen extends ConsumerWidget {
                 icon: const Icon(Icons.notifications_outlined),
                 color: AppColors.secondary,
               ),
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  IconButton(
-                    onPressed: () => context.go('/cart'),
-                    icon: const Icon(Icons.shopping_bag_outlined),
-                    color: AppColors.secondary,
-                  ),
-                  if (cartCount > 0)
-                    Positioned(
-                      top: 6,
-                      right: 4,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        constraints: const BoxConstraints(
-                          minWidth: 18,
-                          minHeight: 18,
-                        ),
-                        decoration: const BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          '$cartCount',
-                          style: const TextStyle(
-                            color: AppColors.secondary,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+              const CartBadge(),
               const SizedBox(width: 4),
             ],
             bottom: PreferredSize(
@@ -122,21 +85,14 @@ class HomeScreen extends ConsumerWidget {
               child: GestureDetector(
                 onTap: () => context.go('/search'),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
                     color: AppColors.grayMedium,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.search_rounded,
-                        color: AppColors.textLight,
-                        size: 22,
-                      ),
+                      Icon(Icons.search_rounded, color: AppColors.textLight, size: 22),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
@@ -179,24 +135,20 @@ class HomeScreen extends ConsumerWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Categorias',
-                          style: GoogleFonts.montserrat(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
+                        Text('Categorías',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                            )),
                         GestureDetector(
                           onTap: () => context.go('/catalog'),
-                          child: Text(
-                            'Ver todo',
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
-                            ),
-                          ),
+                          child: Text('Ver todo',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                              )),
                         ),
                       ],
                     ),
@@ -217,9 +169,8 @@ class HomeScreen extends ConsumerWidget {
                             icon: style.icon,
                             backgroundColor: style.backgroundColor,
                             iconColor: style.iconColor,
-                            onTap: () => context.go(
-                              '/catalog?category_id=${cats[i].id}',
-                            ),
+                            onTap: () =>
+                                context.go('/catalog?category_id=${cats[i].id}'),
                           );
                         },
                       ),
@@ -240,24 +191,20 @@ class HomeScreen extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Productos Populares',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
+                  Text('Productos Populares',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      )),
                   GestureDetector(
                     onTap: () => context.go('/catalog'),
-                    child: Text(
-                      'Ver todo',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primary,
-                      ),
-                    ),
+                    child: Text('Ver todo',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        )),
                   ),
                 ],
               ),
@@ -281,15 +228,11 @@ class HomeScreen extends ConsumerWidget {
                     onTap: () => context.push('/product/${products[i].id}'),
                     onAddToCart: () async {
                       try {
-                        await ref
-                            .read(cartProvider.notifier)
-                            .addItem(products[i].id);
+                        await ref.read(cartProvider.notifier).addItem(products[i].id);
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(
-                                '${products[i].name} agregado al carrito',
-                              ),
+                              content: Text('${products[i].name} agregado al carrito'),
                               duration: const Duration(seconds: 1),
                               action: SnackBarAction(
                                 label: 'Ver',
@@ -320,16 +263,11 @@ class HomeScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 48,
-                      color: AppColors.textLight,
-                    ),
+                    const Icon(Icons.error_outline, size: 48,
+                        color: AppColors.textLight),
                     const SizedBox(height: 16),
-                    Text(
-                      'Error al cargar productos',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
+                    Text('Error al cargar productos',
+                        style: Theme.of(context).textTheme.bodyMedium),
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: () => ref.invalidate(featuredProductsProvider),

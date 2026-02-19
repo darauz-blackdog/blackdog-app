@@ -75,7 +75,7 @@ class CartScreen extends ConsumerWidget {
                   size: 64, color: AppColors.primary),
             ),
             const SizedBox(height: 24),
-            Text('Tu carrito esta vacio',
+            Text('Tu carrito está vacío',
                 style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 8),
             Text('Explora nuestros productos y agrega tus favoritos',
@@ -172,7 +172,7 @@ class CartScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Vaciar carrito'),
-        content: const Text('¿Estas seguro de vaciar tu carrito?'),
+        content: const Text('¿Estás seguro de vaciar tu carrito?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),

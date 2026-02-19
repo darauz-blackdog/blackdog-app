@@ -28,10 +28,10 @@ class _FadeInUpState extends State<FadeInUp> with SingleTickerProviderStateMixin
     super.initState();
     _controller = AnimationController(vsync: this, duration: widget.duration);
     _opacity = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
     _translate = Tween<Offset>(begin: Offset(0, widget.offset), end: Offset.zero).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
 
     Future.delayed(Duration(milliseconds: widget.delay), () {
