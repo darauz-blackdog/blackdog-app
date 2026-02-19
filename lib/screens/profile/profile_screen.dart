@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
@@ -23,7 +24,11 @@ class ProfileScreen extends ConsumerWidget {
               backgroundColor: AppColors.primary,
               child: Text(
                 (user?.email?.substring(0, 1) ?? 'U').toUpperCase(),
-                style: const TextStyle(fontSize: 32, color: AppColors.secondary, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 32,
+                  color: AppColors.secondary,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -35,7 +40,10 @@ class ProfileScreen extends ConsumerWidget {
             ),
           ),
           Center(
-            child: Text(user?.email ?? '', style: Theme.of(context).textTheme.bodyMedium),
+            child: Text(
+              user?.email ?? '',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
           ),
           const SizedBox(height: 32),
 
@@ -60,18 +68,17 @@ class ProfileScreen extends ConsumerWidget {
             title: 'Notificaciones',
             onTap: () {}, // TODO: Notifications screen
           ),
-          _MenuItem(
-            icon: Icons.help_outline,
-            title: 'Ayuda',
-            onTap: () {},
-          ),
+          _MenuItem(icon: Icons.help_outline, title: 'Ayuda', onTap: () {}),
           const SizedBox(height: 24),
 
           // Logout
           OutlinedButton.icon(
             onPressed: () => ref.read(authNotifierProvider.notifier).signOut(),
             icon: const Icon(Icons.logout, color: AppColors.error),
-            label: const Text('Cerrar sesion', style: TextStyle(color: AppColors.error)),
+            label: const Text(
+              'Cerrar sesion',
+              style: TextStyle(color: AppColors.error),
+            ),
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: AppColors.error),
             ),
@@ -87,7 +94,11 @@ class _MenuItem extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
 
-  const _MenuItem({required this.icon, required this.title, required this.onTap});
+  const _MenuItem({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {

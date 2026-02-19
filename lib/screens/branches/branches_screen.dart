@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../services/api_service.dart';
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/cart_badge.dart';
@@ -22,10 +21,7 @@ class BranchesScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sucursales'),
-        actions: const [
-          CartBadge(),
-          SizedBox(width: 8),
-        ],
+        actions: const [CartBadge(), SizedBox(width: 8)],
       ),
       body: branchesAsync.when(
         data: (branches) {
@@ -81,7 +77,10 @@ class _BranchCard extends StatelessWidget {
                     color: AppColors.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.store_mall_directory, color: AppColors.primary),
+                  child: const Icon(
+                    Icons.store_mall_directory,
+                    color: AppColors.primary,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -90,9 +89,8 @@ class _BranchCard extends StatelessWidget {
                     children: [
                       Text(
                         name,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -113,22 +111,33 @@ class _BranchCard extends StatelessWidget {
                     onPressed: () => launchUrl(Uri.parse('tel:$phone')),
                     icon: const Icon(Icons.phone, size: 18),
                     label: const Text('Llamar'),
-                    style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.textSecondary,
+                    ),
                   ),
                 if (googleMapsUrl != null)
                   IconButton(
-                    onPressed: () => launchUrl(Uri.parse(googleMapsUrl), mode: LaunchMode.externalApplication),
+                    onPressed: () => launchUrl(
+                      Uri.parse(googleMapsUrl),
+                      mode: LaunchMode.externalApplication,
+                    ),
                     icon: const Icon(Icons.map, color: Colors.blue),
                     tooltip: 'Google Maps',
                   ),
                 if (wazeUrl != null)
                   IconButton(
-                    onPressed: () => launchUrl(Uri.parse(wazeUrl), mode: LaunchMode.externalApplication),
-                    icon: const Icon(Icons.directions_car, color: Colors.indigo), // Waze-ish
+                    onPressed: () => launchUrl(
+                      Uri.parse(wazeUrl),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                    icon: const Icon(
+                      Icons.directions_car,
+                      color: Colors.indigo,
+                    ), // Waze-ish
                     tooltip: 'Waze',
                   ),
               ],
-            )
+            ),
           ],
         ),
       ),
