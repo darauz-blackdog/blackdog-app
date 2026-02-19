@@ -23,10 +23,15 @@ class CartNotifier extends AsyncNotifier<Cart?> {
   }
 
   Future<void> addItem(int productId, {int quantity = 1}) async {
-    final api = ref.read(apiServiceProvider);
-    await api.addToCart(productId: productId, quantity: quantity);
-    // Refresh cart from server
-    state = AsyncValue.data(await _fetchCart());
+    try {
+      final api = ref.read(apiServiceProvider);
+      await api.addToCart(productId: productId, quantity: quantity);
+      // Refresh cart from server
+      state = AsyncValue.data(await _fetchCart());
+    } catch (e) {
+      // Re-throw to be caught by the UI
+      rethrow;
+    }
   }
 
   Future<void> updateItemQuantity(String itemId, int quantity) async {

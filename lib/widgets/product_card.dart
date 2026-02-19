@@ -199,10 +199,12 @@ class ProductCard extends StatelessWidget {
                     width: double.infinity,
                     height: 34,
                     child: ElevatedButton(
-                      onPressed: onAddToCart,
+                      onPressed: product.inStock ? onAddToCart : null,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.secondary,
-                        foregroundColor: Colors.white,
+                        backgroundColor: product.inStock ? AppColors.secondary : AppColors.divider,
+                        foregroundColor: product.inStock ? Colors.white : AppColors.textLight,
+                        disabledBackgroundColor: AppColors.divider,
+                        disabledForegroundColor: AppColors.textLight,
                         elevation: 0,
                         padding: EdgeInsets.zero,
                         minimumSize: Size.zero,
@@ -213,10 +215,12 @@ class ProductCard extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.add, size: 16),
-                          const SizedBox(width: 4),
+                          if (product.inStock) ...[
+                            const Icon(Icons.add, size: 16),
+                            const SizedBox(width: 4),
+                          ],
                           Text(
-                            'Agregar',
+                            product.inStock ? 'Agregar' : 'Agotado',
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,

@@ -14,8 +14,10 @@ class Product {
   final List<String> tags;
   final String? handle;
   final bool isPublished;
+  final double totalStock;
 
   Product({
+
     required this.id,
     required this.name,
     required this.listPrice,
@@ -31,7 +33,9 @@ class Product {
     this.tags = const [],
     this.handle,
     this.isPublished = true,
+    this.totalStock = 0,
   });
+
 
   factory Product.fromJson(Map<String, dynamic> json) {
     final urls = (json['image_urls'] as List?)?.cast<String>() ?? [];
@@ -51,11 +55,14 @@ class Product {
       tags: (json['tags'] as List?)?.cast<String>() ?? [],
       handle: json['handle'] as String?,
       isPublished: json['is_published'] as bool? ?? true,
+      totalStock: (json['total_stock'] as num?)?.toDouble() ?? 0,
     );
   }
 
   double get effectivePrice => salePrice ?? listPrice;
   bool get hasDiscount => salePrice != null && salePrice! < listPrice;
+  bool get inStock => totalStock > 0;
+
   double get discountPercent =>
       hasDiscount ? ((listPrice - salePrice!) / listPrice * 100) : 0;
 
@@ -126,7 +133,6 @@ class ProductDetail extends Product {
     );
   }
 
-  bool get inStock => totalStock > 0;
 }
 
 class StockByBranch {
