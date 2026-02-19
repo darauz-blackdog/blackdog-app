@@ -6,6 +6,7 @@ import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/category_chip.dart';
+import '../../widgets/cart_badge.dart';
 
 class CatalogScreen extends ConsumerStatefulWidget {
   final int? categoryId;
@@ -49,9 +50,18 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
             onSelected: (v) => setState(() => _sort = v),
             itemBuilder: (_) => [
               const PopupMenuItem(value: 'name', child: Text('Nombre A-Z')),
-              const PopupMenuItem(value: 'price_asc', child: Text('Precio menor')),
-              const PopupMenuItem(value: 'price_desc', child: Text('Precio mayor')),
-              const PopupMenuItem(value: 'newest', child: Text('Mas recientes')),
+              const PopupMenuItem(
+                value: 'price_asc',
+                child: Text('Precio menor'),
+              ),
+              const PopupMenuItem(
+                value: 'price_desc',
+                child: Text('Precio mayor'),
+              ),
+              const PopupMenuItem(
+                value: 'newest',
+                child: Text('Mas recientes'),
+              ),
             ],
           ),
         ],
@@ -63,7 +73,10 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
             height: 52,
             child: categories.when(
               data: (cats) => ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 scrollDirection: Axis.horizontal,
                 itemCount: cats.length + 1,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
@@ -97,10 +110,16 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.inventory_2_outlined, size: 64, color: AppColors.textLight),
+                        Icon(
+                          Icons.inventory_2_outlined,
+                          size: 64,
+                          color: AppColors.textLight,
+                        ),
                         const SizedBox(height: 16),
-                        Text('No se encontraron productos',
-                            style: Theme.of(context).textTheme.bodyLarge),
+                        Text(
+                          'No se encontraron productos',
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
                       ],
                     ),
                   );
@@ -116,7 +135,8 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                   itemCount: result.products.length,
                   itemBuilder: (_, i) => ProductCard(
                     product: result.products[i],
-                    onTap: () => context.push('/product/${result.products[i].id}'),
+                    onTap: () =>
+                        context.push('/product/${result.products[i].id}'),
                   ),
                 );
               },
@@ -129,7 +149,8 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                     const SizedBox(height: 16),
                     Text('Error: $err'),
                     TextButton(
-                      onPressed: () => ref.invalidate(productListProvider(params)),
+                      onPressed: () =>
+                          ref.invalidate(productListProvider(params)),
                       child: const Text('Reintentar'),
                     ),
                   ],
