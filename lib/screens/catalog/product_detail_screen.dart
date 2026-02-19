@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/cart_badge.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   final int productId;
@@ -28,7 +29,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
+import '../../widgets/cart_badge.dart';
+
+// ... inside ProductDetailScreen build ...
         actions: [
+          const CartBadge(),
           IconButton(icon: const Icon(Icons.share_outlined), onPressed: () {}),
         ],
       ),

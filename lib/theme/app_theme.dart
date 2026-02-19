@@ -49,6 +49,12 @@ class AppTheme {
         onSurface: AppColors.textPrimary,
         error: AppColors.error,
       ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: ZoomPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       scaffoldBackgroundColor: AppColors.background,
       textTheme: GoogleFonts.interTextTheme().copyWith(
         headlineLarge: GoogleFonts.montserrat(

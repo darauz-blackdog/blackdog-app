@@ -40,8 +40,10 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () => context.go('/search'),
+            onPressed: () => context.push('/search'),
           ),
+          const CartBadge(),
+          const SizedBox(width: 8),
           PopupMenuButton<String>(
             icon: const Icon(Icons.sort),
             onSelected: (v) => setState(() => _sort = v),

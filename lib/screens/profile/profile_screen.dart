@@ -53,7 +53,7 @@ class ProfileScreen extends ConsumerWidget {
           _MenuItem(
             icon: Icons.receipt_long_outlined,
             title: 'Mis pedidos',
-            onTap: () {}, // TODO: Orders screen
+            onTap: () => context.push('/orders'),
           ),
           _MenuItem(
             icon: Icons.notifications_outlined,

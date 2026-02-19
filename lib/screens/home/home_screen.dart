@@ -11,6 +11,9 @@ import '../../theme/app_theme.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/category_icon_box.dart';
 
+import '../../widgets/cart_badge.dart'; // Added import
+import '../../providers/auth_provider.dart'; // Added import for currentUserProvider
+
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -19,6 +22,7 @@ class HomeScreen extends ConsumerWidget {
     final featured = ref.watch(featuredProductsProvider);
     final categories = ref.watch(categoriesProvider);
     final cartCount = ref.watch(cartItemCountProvider);
+    final user = ref.watch(currentUserProvider); // Added line
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -28,7 +32,7 @@ class HomeScreen extends ConsumerWidget {
           SliverAppBar(
             floating: true,
             snap: true,
-            backgroundColor: Colors.white.withValues(alpha: 0.85),
+            backgroundColor: Colors.white.withOpacity(0.85), // Changed withValues to withOpacity
             surfaceTintColor: Colors.transparent,
             elevation: 0,
             flexibleSpace: ClipRect(

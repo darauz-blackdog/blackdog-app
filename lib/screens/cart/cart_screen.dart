@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../models/cart.dart';
 import '../../providers/cart_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/fade_in_up.dart';
 
 class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
@@ -101,7 +102,10 @@ class CartScreen extends ConsumerWidget {
             itemCount: cart.items.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
-              return _CartItemCard(item: cart.items[index]);
+              return FadeInUp(
+                delay: index * 100,
+                child: _CartItemCard(item: cart.items[index]),
+              );
             },
           ),
         ),

@@ -4,14 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../screens/auth/splash_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
-import '../screens/home/home_screen.dart';
+import '../screens/orders/order_detail_screen.dart';
+import '../screens/orders/orders_screen.dart';
+import '../models/order.dart';
 import '../screens/catalog/catalog_screen.dart';
 import '../screens/catalog/product_detail_screen.dart';
 import '../screens/catalog/search_screen.dart';
 import '../screens/cart/cart_screen.dart';
 import '../screens/checkout/checkout_screen.dart';
 import '../screens/checkout/order_confirmation_screen.dart';
-import '../screens/health/health_screen.dart';
+import '../screens/branches/branches_screen.dart'; // Added
 import '../screens/profile/profile_screen.dart';
 import '../screens/common/main_shell.dart';
 import '../providers/auth_provider.dart';
@@ -72,8 +74,22 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const CartScreen(),
           ),
           GoRoute(
-            path: '/health',
-            builder: (context, state) => const HealthScreen(),
+            path: '/branches',
+            builder: (context, state) => const BranchesScreen(),
+          ),
+          GoRoute(
+            path: '/orders',
+            builder: (context, state) => const OrdersScreen(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  final extra = state.extra as Order?;
+                  return OrderDetailScreen(orderId: id, extraOrder: extra);
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/profile',
