@@ -116,4 +116,111 @@ class ApiService {
     });
     return response.data as Map<String, dynamic>;
   }
+
+  // ── Cart ──────────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> getCart() async {
+    final response = await _dio.get('/cart');
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> addToCart({required int productId, int quantity = 1}) async {
+    final response = await _dio.post('/cart/items', data: {
+      'product_id': productId,
+      'quantity': quantity,
+    });
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> updateCartItem(String itemId, int quantity) async {
+    final response = await _dio.put('/cart/items/$itemId', data: {
+      'quantity': quantity,
+    });
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<void> removeCartItem(String itemId) async {
+    await _dio.delete('/cart/items/$itemId');
+  }
+
+  Future<void> clearCart() async {
+    await _dio.delete('/cart');
+  }
+
+  // ── Orders ────────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> createOrder({
+    required String deliveryType,
+    required int branchId,
+    required String paymentMethod,
+    String? addressId,
+    String? notes,
+  }) async {
+    final response = await _dio.post('/orders', data: {
+      'delivery_type': deliveryType,
+      'branch_id': branchId,
+      'payment_method': paymentMethod,
+      if (addressId != null) 'address_id': addressId,
+      if (notes != null) 'notes': notes,
+    });
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getOrders({int page = 1, int limit = 10, String? status}) async {
+    final params = <String, dynamic>{'page': page, 'limit': limit};
+    if (status != null) params['status'] = status;
+    final response = await _dio.get('/orders', queryParameters: params);
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getOrder(String id) async {
+    final response = await _dio.get('/orders/$id');
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<void> cancelOrder(String id) async {
+    await _dio.post('/orders/$id/cancel');
+  }
+
+  // ── Payments ──────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> checkTilopayStatus(String orderId) async {
+    final response = await _dio.get('/payments/tilopay/status/$orderId');
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getYappyInstructions(String orderId) async {
+    final response = await _dio.get('/payments/yappy/instructions/$orderId');
+    return response.data as Map<String, dynamic>;
+  }
+
+  // ── Addresses ─────────────────────────────────────────────────
+
+  Future<List<dynamic>> getAddresses() async {
+    final response = await _dio.get('/addresses');
+    return (response.data as Map<String, dynamic>)['data'] as List<dynamic>;
+  }
+
+  Future<Map<String, dynamic>> createAddress({
+    required String label,
+    required String addressLine,
+    String? city,
+    String? zone,
+    double? latitude,
+    double? longitude,
+  }) async {
+    final response = await _dio.post('/addresses', data: {
+      'label': label,
+      'address_line': addressLine,
+      if (city != null) 'city': city,
+      if (zone != null) 'zone': zone,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+    });
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<void> deleteAddress(String id) async {
+    await _dio.delete('/addresses/$id');
+  }
 }

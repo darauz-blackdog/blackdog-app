@@ -9,6 +9,8 @@ import '../screens/catalog/catalog_screen.dart';
 import '../screens/catalog/product_detail_screen.dart';
 import '../screens/catalog/search_screen.dart';
 import '../screens/cart/cart_screen.dart';
+import '../screens/checkout/checkout_screen.dart';
+import '../screens/checkout/order_confirmation_screen.dart';
 import '../screens/health/health_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/common/main_shell.dart';
@@ -78,6 +80,17 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const ProfileScreen(),
           ),
         ],
+      ),
+      GoRoute(
+        path: '/checkout',
+        builder: (context, state) => const CheckoutScreen(),
+      ),
+      GoRoute(
+        path: '/order-confirmation/:id',
+        builder: (context, state) => OrderConfirmationScreen(
+          orderId: state.pathParameters['id']!,
+          orderData: state.extra as Map<String, dynamic>?,
+        ),
       ),
       GoRoute(
         path: '/product/:id',

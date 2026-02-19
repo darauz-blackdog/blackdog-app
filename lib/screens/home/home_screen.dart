@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../providers/cart_provider.dart';
 import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/product_card.dart';
@@ -17,6 +18,7 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final featured = ref.watch(featuredProductsProvider);
     final categories = ref.watch(categoriesProvider);
+    final cartCount = ref.watch(cartItemCountProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -70,19 +72,28 @@ class HomeScreen extends ConsumerWidget {
                     icon: const Icon(Icons.shopping_bag_outlined),
                     color: AppColors.secondary,
                   ),
-                  // Cart badge placeholder
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle,
+                  if (cartCount > 0)
+                    Positioned(
+                      top: 6,
+                      right: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                        decoration: const BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          '$cartCount',
+                          style: const TextStyle(
+                            color: AppColors.secondary,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
               const SizedBox(width: 4),
@@ -244,13 +255,29 @@ class HomeScreen extends ConsumerWidget {
                   (ctx, i) => ProductCard(
                     product: products[i],
                     onTap: () => context.push('/product/${products[i].id}'),
-                    onAddToCart: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('${products[i].name} agregado al carrito'),
-                          duration: const Duration(seconds: 1),
-                        ),
-                      );
+                    onAddToCart: () async {
+                      try {
+                        await ref.read(cartProvider.notifier).addItem(products[i].id);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('${products[i].name} agregado al carrito'),
+                              duration: const Duration(seconds: 1),
+                              action: SnackBarAction(
+                                label: 'Ver',
+                                textColor: AppColors.primary,
+                                onPressed: () => context.go('/cart'),
+                              ),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Error al agregar')),
+                          );
+                        }
+                      }
                     },
                   ),
                   childCount: products.length,

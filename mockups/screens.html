@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BlackDog App — Fase 2 Mockups</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #F7B104;
+  --primary-dark: #D49A03;
+  --secondary: #1A1A2E;
+  --background: #F5F5F7;
+  --white: #FFFFFF;
+  --border: #E5E5EA;
+  --text-primary: #1C1C1E;
+  --text-light: #8E8E93;
+  --success: #34C759;
+  --error: #FF3B30;
+  --divider: #F2F2F7;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: #1A1A2E;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  min-height: 100vh;
+}
+
+h1.page-title {
+  font-family: 'Montserrat', sans-serif;
+  color: var(--primary);
+  font-size: 28px;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  color: rgba(255,255,255,0.6);
+  text-align: center;
+  margin-bottom: 40px;
+  font-size: 14px;
+}
+
+.screens-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  justify-content: center;
+  max-width: 1400px;
+}
+
+.screen-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.screen-label {
+  font-family: 'Montserrat', sans-serif;
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 16px;
+  background: rgba(247,177,4,0.15);
+  padding: 6px 16px;
+  border-radius: 20px;
+  color: var(--primary);
+}
+
+/* Phone frame */
+.phone {
+  width: 375px;
+  height: 812px;
+  background: var(--white);
+  border-radius: 44px;
+  overflow: hidden;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.4), 0 0 0 4px #333, 0 0 0 6px #555;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.phone::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160px;
+  height: 34px;
+  background: #000;
+  border-radius: 0 0 20px 20px;
+  z-index: 10;
+}
+
+/* Common components */
+.app-bar {
+  padding: 60px 20px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.app-bar .back {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  font-size: 20px;
+}
+
+.app-bar .title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.app-bar .action {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+  font-size: 18px;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--background);
+}
+
+.bottom-bar {
+  padding: 16px 20px;
+  background: white;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.cta-button {
+  width: 100%;
+  padding: 16px;
+  background: var(--primary);
+  color: var(--secondary);
+  border: none;
+  border-radius: 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+.cta-button.outline {
+  background: transparent;
+  border: 2px solid var(--secondary);
+  color: var(--secondary);
+}
+
+/* ── Cart Screen ─────────────────────── */
+.cart-item {
+  background: white;
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  gap: 12px;
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+.cart-item .img {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  background: var(--divider);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.cart-item .info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-item .name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.cart-item .price {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.cart-item .bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.qty-selector {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.qty-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+}
+
+.qty-val {
+  width: 32px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.line-total {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.remove-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 14px;
+}
+
+.summary-row .label { color: var(--text-primary); }
+.summary-row .value { font-weight: 500; }
+.summary-row.hint .value { color: var(--text-light); font-size: 12px; }
+
+/* ── Checkout ────────────────────────── */
+.radio-card {
+  background: white;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s;
+}
+
+.radio-card.selected {
+  border-color: var(--primary);
+  border-width: 2px;
+  background: rgba(247, 177, 4, 0.04);
+}
+
+.radio-card.compact { padding: 12px; }
+
+.radio-card .icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--divider);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.radio-card.selected .icon-box {
+  background: rgba(247, 177, 4, 0.15);
+}
+
+.radio-card .text-col {
+  flex: 1;
+}
+
+.radio-card .rc-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.radio-card.selected .rc-title { font-weight: 700; }
+
+.radio-card .rc-sub {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+
+.radio-card .check {
+  color: var(--primary);
+  font-size: 22px;
+}
+
+.section-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+/* ── Order Confirmation ────────────── */
+.confirm-icon {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  font-size: 52px;
+}
+
+.confirm-icon.success {
+  background: rgba(52, 199, 89, 0.1);
+  color: var(--success);
+}
+
+.payment-card {
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+}
+
+.payment-card.in-store {
+  background: rgba(247, 177, 4, 0.06);
+  border: 1px solid rgba(247, 177, 4, 0.25);
+}
+
+.payment-card.tilopay {
+  background: #EBF5FF;
+  border: 1px solid #93C5FD;
+}
+
+.payment-card.yappy {
+  background: #F0FFF4;
+  border: 1px solid #68D391;
+}
+
+.payment-card .pc-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.payment-card .pc-title {
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.payment-card .pc-desc {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* Tab bar for switching views */
+.tab-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 36px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.tab {
+  padding: 10px 20px;
+  border-radius: 24px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 2px solid rgba(247,177,4,0.3);
+  background: transparent;
+  color: rgba(255,255,255,0.7);
+  transition: all 0.2s;
+}
+
+.tab:hover { border-color: var(--primary); color: white; }
+.tab.active {
+  background: var(--primary);
+  color: var(--secondary);
+  border-color: var(--primary);
+}
+
+.yappy-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+}
+.yappy-row .yr-label { color: #666; }
+.yappy-row .yr-value { font-weight: 600; }
+
+.yappy-warning {
+  background: #FFFBEB;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: 12px;
+  font-size: 11px;
+  color: #92400E;
+}
+</style>
+</head>
+<body>
+
+<h1 class="page-title">🐾 BLACK DOG APP</h1>
+<p class="subtitle">Fase 2 — Cart + Checkout + Payments — UI Mockups</p>
+
+<div class="tab-bar">
+  <button class="tab active" onclick="show('cart')">🛒 Carrito</button>
+  <button class="tab" onclick="show('delivery')">📦 Checkout: Entrega</button>
+  <button class="tab" onclick="show('payment')">💳 Checkout: Pago</button>
+  <button class="tab" onclick="show('summary')">📋 Checkout: Resumen</button>
+  <button class="tab" onclick="show('confirm-store')">✅ Confirmación</button>
+  <button class="tab" onclick="show('confirm-tilopay')">💳 Conf. Tilopay</button>
+  <button class="tab" onclick="show('confirm-yappy')">📱 Conf. Yappy</button>
+</div>
+
+<div class="screens-grid">
+
+<!-- ══════════════════════════════════════════ -->
+<!-- CART SCREEN                                -->
+<!-- ══════════════════════════════════════════ -->
+<div class="screen-wrapper" id="screen-cart">
+  <span class="screen-label">Pantalla de Carrito</span>
+  <div class="phone">
+    <div class="app-bar">
+      <div class="back">←</div>
+      <div class="title">Carrito</div>
+      <div class="action">🗑</div>
+    </div>
+    <div class="content" style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+      <!-- Item 1 -->
+      <div class="cart-item" style="position:relative">
+        <div class="img">🐕</div>
+        <div class="info">
+          <div class="name">Royal Canin Mini Adult 2kg</div>
+          <div class="price">$24.99</div>
+          <div class="bottom-row">
+            <div class="qty-selector">
+              <button class="qty-btn">−</button>
+              <span class="qty-val">2</span>
+              <button class="qty-btn">+</button>
+            </div>
+            <span class="line-total">$49.98</span>
+          </div>
+        </div>
+        <div class="remove-btn">✕</div>
+      </div>
+      <!-- Item 2 -->
+      <div class="cart-item" style="position:relative">
+        <div class="img">🦴</div>
+        <div class="info">
+          <div class="name">Kong Classic Mediano</div>
+          <div class="price">$12.50</div>
+          <div class="bottom-row">
+            <div class="qty-selector">
+              <button class="qty-btn">−</button>
+              <span class="qty-val">1</span>
+              <button class="qty-btn">+</button>
+            </div>
+            <span class="line-total">$12.50</span>
+          </div>
+        </div>
+        <div class="remove-btn">✕</div>
+      </div>
+      <!-- Item 3 -->
+      <div class="cart-item" style="position:relative">
+        <div class="img">🐾</div>
+        <div class="info">
+          <div class="name">Collar Reflectivo Nylon L</div>
+          <div class="price">$8.95</div>
+          <div class="bottom-row">
+            <div class="qty-selector">
+              <button class="qty-btn">−</button>
+              <span class="qty-val">1</span>
+              <button class="qty-btn">+</button>
+            </div>
+            <span class="line-total">$8.95</span>
+          </div>
+        </div>
+        <div class="remove-btn">✕</div>
+      </div>
+    </div>
+    <div class="bottom-bar">
+      <div class="summary-row"><span class="label">Subtotal</span><span class="value">$71.43</span></div>
+      <div class="summary-row hint"><span class="label">Delivery</span><span class="value">Calculado en checkout</span></div>
+      <div style="height: 12px;"></div>
+      <button class="cta-button">Proceder al Checkout  •  $71.43</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- CHECKOUT: DELIVERY                         -->
+<!-- ══════════════════════════════════════════ -->
+<div class="screen-wrapper" id="screen-delivery" style="display:none">
+  <span class="screen-label">Checkout — Paso 1</span>
+  <div class="phone">
+    <div class="app-bar">
+      <div class="back">←</div>
+      <div class="title">Método de entrega</div>
+    </div>
+    <div class="content" style="padding: 20px;">
+      <div class="radio-card selected" style="margin-bottom: 12px;">
+        <div class="icon-box">🏪</div>
+        <div class="text-col">
+          <div class="rc-title">Recoger en tienda</div>
+          <div class="rc-sub">Sin costo de delivery</div>
+        </div>
+        <div class="check">✓</div>
+      </div>
+      <div class="radio-card" style="margin-bottom: 28px;">
+        <div class="icon-box">🛵</div>
+        <div class="text-col">
+          <div class="rc-title">Delivery a domicilio</div>
+          <div class="rc-sub">Costo: $3.50</div>
+        </div>
+      </div>
+
+      <div class="section-title">Sucursal</div>
+      <div class="radio-card compact selected" style="margin-bottom: 8px;">
+        <div class="icon-box" style="width:36px;height:36px;font-size:16px;">📍</div>
+        <div class="text-col">
+          <div class="rc-title">Black Dog — Costa del Este</div>
+          <div class="rc-sub">Town Center, Local 12</div>
+        </div>
+        <div class="check">✓</div>
+      </div>
+      <div class="radio-card compact" style="margin-bottom: 8px;">
+        <div class="icon-box" style="width:36px;height:36px;font-size:16px;">📍</div>
+        <div class="text-col">
+          <div class="rc-title">Black Dog — Casco Viejo</div>
+          <div class="rc-sub">Ave. Central, Plaza Catedral</div>
+        </div>
+      </div>
+      <div class="radio-card compact">
+        <div class="icon-box" style="width:36px;height:36px;font-size:16px;">📍</div>
+        <div class="text-col">
+          <div class="rc-title">Black Dog — San Francisco</div>
+          <div class="rc-sub">Calle 74, PH Icon</div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-bar">
+      <button class="cta-button">Continuar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- CHECKOUT: PAYMENT                          -->
+<!-- ══════════════════════════════════════════ -->
+<div class="screen-wrapper" id="screen-payment" style="display:none">
+  <span class="screen-label">Checkout — Paso 2</span>
+  <div class="phone">
+    <div class="app-bar">
+      <div class="back">←</div>
+      <div class="title">Método de pago</div>
+    </div>
+    <div class="content" style="padding: 20px;">
+      <div class="radio-card selected" style="margin-bottom: 12px;">
+        <div class="icon-box">💳</div>
+        <div class="text-col">
+          <div class="rc-title">Tarjeta de crédito / débito</div>
+          <div class="rc-sub">Pago seguro via Tilopay</div>
+        </div>
+        <div class="check">✓</div>
+      </div>
+      <div class="radio-card" style="margin-bottom: 12px;">
+        <div class="icon-box">📱</div>
+        <div class="text-col">
+          <div class="rc-title">Yappy</div>
+          <div class="rc-sub">Transferencia via Yappy</div>
+        </div>
+      </div>
+      <div class="radio-card">
+        <div class="icon-box">🏪</div>
+        <div class="text-col">
+          <div class="rc-title">Pago en tienda</div>
+          <div class="rc-sub">Paga al recoger tu pedido</div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-bar">
+      <button class="cta-button">Continuar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- CHECKOUT: SUMMARY                          -->
+<!-- ══════════════════════════════════════════ -->
+<div class="screen-wrapper" id="screen-summary" style="display:none">
+  <span class="screen-label">Checkout — Paso 3</span>
+  <div class="phone">
+    <div class="app-bar">
+      <div class="back">←</div>
+      <div class="title">Resumen del pedido</div>
+    </div>
+    <div class="content" style="padding: 20px;">
+      <div class="section-title">Productos (3)</div>
+      <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; font-size:14px;">
+          <span>2× Royal Canin Mini Adult</span><span>$49.98</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:14px;">
+          <span>1× Kong Classic Mediano</span><span>$12.50</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:14px;">
+          <span>1× Collar Reflectivo Nylon</span><span>$8.95</span>
+        </div>
+      </div>
+      <hr style="border:none; border-top:1px solid var(--border); margin:16px 0;">
+
+      <div style="display:flex; flex-direction:column; gap:8px; font-size:14px;">
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:var(--text-light)">Entrega</span>
+          <span style="font-weight:500">Recoger en tienda</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:var(--text-light)">Sucursal</span>
+          <span style="font-weight:500">Costa del Este</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:var(--text-light)">Pago</span>
+          <span style="font-weight:500">Tarjeta (Tilopay)</span>
+        </div>
+      </div>
+      <hr style="border:none; border-top:1px solid var(--border); margin:16px 0;">
+
+      <div style="display:flex; justify-content:space-between; font-size:14px; margin-bottom:6px;">
+        <span>Subtotal</span><span style="font-weight:500">$71.43</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:14px; margin-bottom:12px;">
+        <span>Delivery</span><span style="font-weight:500; color:var(--success)">Gratis</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:baseline;">
+        <span style="font-family:'Montserrat'; font-weight:700; font-size:20px;">Total</span>
+        <span style="font-family:'Montserrat'; font-weight:700; font-size:22px; color:var(--primary);">$71.43</span>
+      </div>
+
+      <div style="margin-top:24px;">
+        <div style="font-size:12px; color:var(--text-light); margin-bottom:6px;">Notas (opcional)</div>
+        <div style="border:1px solid var(--border); border-radius:12px; padding:12px; font-size:13px; color:var(--text-light); min-height:60px;">
+          Instrucciones de entrega, alergias, etc.
+        </div>
+      </div>
+    </div>
+    <div class="bottom-bar">
+      <button class="cta-button">Confirmar Pedido  •  $71.43</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- CONFIRMATION: IN-STORE                     -->
+<!-- ══════════════════════════════════════════ -->
+<div class="screen-wrapper" id="screen-confirm-store" style="display:none">
+  <span class="screen-label">Confirmación — En Tienda</span>
+  <div class="phone">
+    <div class="content" style="padding: 24px; display:flex; flex-direction:column; align-items:center; padding-top:100px;">
+      <div class="confirm-icon success">✓</div>
+      <div style="height:24px"></div>
+      <div style="font-family:'Montserrat';font-weight:700;font-size:22px;text-align:center;">¡Pedido Confirmado!</div>
+      <div style="height:8px"></div>
+      <div style="color:var(--text-light);font-size:15px;">Pedido #S00142</div>
+      <div style="height:8px"></div>
+      <div style="font-family:'Montserrat';font-weight:700;font-size:24px;color:var(--primary);">$71.43</div>
+      <div style="height:32px"></div>
+      <div class="payment-card in-store" style="width:100%;">
+        <div class="pc-icon">🏪</div>
+        <div class="pc-title">Pago en tienda</div>
+        <div class="pc-desc">Tu pedido está confirmado. Paga directamente al momento de recogerlo en la sucursal.</div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="width:100%; display:flex; flex-direction:column; gap:12px; padding-bottom:40px;">
+        <button class="cta-button">Seguir comprando</button>
+        <button class="cta-button outline">Mis pedidos</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- CONFIRMATION: TILOPAY                      -->
+<!-- ══════════════════════════════════════════ -->
+<div class="screen-wrapper" id="screen-confirm-tilopay" style="display:none">
+  <span class="screen-label">Confirmación — Tilopay</span>
+  <div class="phone">
+    <div class="content" style="padding: 24px; display:flex; flex-direction:column; align-items:center; padding-top:100px;">
+      <div class="confirm-icon" style="background:rgba(59,130,246,0.1); color:#3B82F6;">🧾</div>
+      <div style="height:24px"></div>
+      <div style="font-family:'Montserrat';font-weight:700;font-size:22px;text-align:center;">¡Pedido Creado!</div>
+      <div style="height:8px"></div>
+      <div style="color:var(--text-light);font-size:15px;">Pedido #S00143</div>
+      <div style="height:8px"></div>
+      <div style="font-family:'Montserrat';font-weight:700;font-size:24px;color:var(--primary);">$74.93</div>
+      <div style="height:32px"></div>
+      <div class="payment-card tilopay" style="width:100%;">
+        <div class="pc-icon">💳</div>
+        <div class="pc-title">Pagar con tarjeta</div>
+        <div class="pc-desc" style="margin-bottom:16px;">Serás redirigido a Tilopay para completar tu pago de forma segura.</div>
+        <button class="cta-button" style="background:#3B82F6; color:white;">🔗 Ir a pagar</button>
+      </div>
+      <div style="flex:1"></div>
+      <div style="width:100%; display:flex; flex-direction:column; gap:12px; padding-bottom:40px;">
+        <button class="cta-button">Seguir comprando</button>
+        <button class="cta-button outline">Mis pedidos</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- CONFIRMATION: YAPPY                        -->
+<!-- ══════════════════════════════════════════ -->
+<div class="screen-wrapper" id="screen-confirm-yappy" style="display:none">
+  <span class="screen-label">Confirmación — Yappy</span>
+  <div class="phone">
+    <div class="content" style="padding: 24px; display:flex; flex-direction:column; align-items:center; padding-top:100px;">
+      <div class="confirm-icon" style="background:rgba(56,161,105,0.1); color:#38A169;">🧾</div>
+      <div style="height:24px"></div>
+      <div style="font-family:'Montserrat';font-weight:700;font-size:22px;text-align:center;">¡Pedido Creado!</div>
+      <div style="height:8px"></div>
+      <div style="color:var(--text-light);font-size:15px;">Pedido #S00144</div>
+      <div style="height:8px"></div>
+      <div style="font-family:'Montserrat';font-weight:700;font-size:24px;color:var(--primary);">$71.43</div>
+      <div style="height:32px"></div>
+      <div class="payment-card yappy" style="width:100%; text-align:left;">
+        <div style="text-align:center;">
+          <div class="pc-icon">📱</div>
+          <div class="pc-title">Pagar con Yappy</div>
+        </div>
+        <div style="height:12px"></div>
+        <div class="yappy-row"><span class="yr-label">Número</span><span class="yr-value">+507 6000-0000</span></div>
+        <div class="yappy-row"><span class="yr-label">Banco</span><span class="yr-value">Banco General</span></div>
+        <div class="yappy-row"><span class="yr-label">Referencia</span><span class="yr-value">S00144</span></div>
+        <div class="yappy-row"><span class="yr-label">Monto exacto</span><span class="yr-value" style="color:var(--primary)">$71.43</span></div>
+        <div class="yappy-warning">
+          <span>⚠️</span>
+          <span>Envía el monto EXACTO e incluye la referencia en la descripción.</span>
+        </div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="width:100%; display:flex; flex-direction:column; gap:12px; padding-bottom:40px;">
+        <button class="cta-button">Seguir comprando</button>
+        <button class="cta-button outline">Mis pedidos</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end screens-grid -->
+
+<script>
+const screens = ['cart','delivery','payment','summary','confirm-store','confirm-tilopay','confirm-yappy'];
+
+function show(name) {
+  screens.forEach(s => {
+    document.getElementById('screen-' + s).style.display = s === name ? 'flex' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.getAttribute('onclick')?.includes(name));
+  });
+}
+</script>
+
+</body>
+</html>

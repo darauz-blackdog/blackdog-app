@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../providers/cart_provider.dart';
 import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
 
@@ -205,11 +206,28 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       floatingActionButton: product.whenOrNull(
         data: (p) => p.inStock
             ? FloatingActionButton.extended(
-                onPressed: () {
-                  // TODO: Add to cart
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Agregado al carrito')),
-                  );
+                onPressed: () async {
+                  try {
+                    await ref.read(cartProvider.notifier).addItem(p.id);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Agregado al carrito'),
+                          action: SnackBarAction(
+                            label: 'Ver carrito',
+                            textColor: AppColors.primary,
+                            onPressed: () => context.go('/cart'),
+                          ),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Error al agregar al carrito')),
+                      );
+                    }
+                  }
                 },
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.secondary,
