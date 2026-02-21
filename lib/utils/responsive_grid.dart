@@ -1,45 +1,24 @@
 import 'package:flutter/material.dart';
 
-/// Returns responsive grid delegate based on screen width.
+/// Returns responsive grid delegate that auto-calculates column count
+/// based on the actual available width (works inside NavigationRail, etc).
 ///
-/// [compact] mode targets smaller items (home popular products).
-/// Normal mode targets standard product cards (catalog, search).
-SliverGridDelegateWithFixedCrossAxisCount responsiveProductGrid(
-  BuildContext context, {
-  bool compact = false,
-}) {
-  final width = MediaQuery.sizeOf(context).width;
-
-  final int crossAxisCount;
-  final double spacing;
-  final double aspectRatio;
-
+/// [compact] mode targets smaller items (~100px wide) for home popular products.
+/// Normal mode targets standard product cards (~170px wide) for catalog/search.
+SliverGridDelegate responsiveProductGrid({bool compact = false}) {
   if (compact) {
-    // Compact: more columns, smaller cards
-    crossAxisCount = switch (width) {
-      < 360 => 3,
-      < 600 => 4,
-      < 900 => 5,
-      _ => 6,
-    };
-    spacing = 8;
-    aspectRatio = 0.78;
-  } else {
-    // Full: standard product cards
-    crossAxisCount = switch (width) {
-      < 400 => 2,
-      < 600 => 3,
-      < 900 => 4,
-      _ => 5,
-    };
-    spacing = 12;
-    aspectRatio = 0.7;
+    return const SliverGridDelegateWithMaxCrossAxisExtent(
+      maxCrossAxisExtent: 130,
+      childAspectRatio: 0.82,
+      crossAxisSpacing: 8,
+      mainAxisSpacing: 8,
+    );
   }
 
-  return SliverGridDelegateWithFixedCrossAxisCount(
-    crossAxisCount: crossAxisCount,
-    childAspectRatio: aspectRatio,
-    crossAxisSpacing: spacing,
-    mainAxisSpacing: spacing,
+  return const SliverGridDelegateWithMaxCrossAxisExtent(
+    maxCrossAxisExtent: 200,
+    childAspectRatio: 0.7,
+    crossAxisSpacing: 12,
+    mainAxisSpacing: 12,
   );
 }

@@ -105,7 +105,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     Expanded(
                       child: GridView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        gridDelegate: responsiveProductGrid(context),
+                        gridDelegate: responsiveProductGrid(),
                         itemCount: result.products.length,
                         itemBuilder: (_, i) => ProductCard(
                           product: result.products[i],

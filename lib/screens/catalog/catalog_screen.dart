@@ -109,7 +109,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                 }
                 return GridView.builder(
                   padding: const EdgeInsets.all(16),
-                  gridDelegate: responsiveProductGrid(context),
+                  gridDelegate: responsiveProductGrid(),
                   itemCount: result.products.length,
                   itemBuilder: (_, i) => ProductCard(
                     product: result.products[i],
