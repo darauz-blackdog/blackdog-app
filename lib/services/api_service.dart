@@ -34,7 +34,7 @@ class ApiService {
   // Products
   Future<Map<String, dynamic>> getProducts({
     int page = 1,
-    int limit = 20,
+    int limit = 40,
     int? categoryId,
     String sort = 'name',
   }) async {
@@ -63,7 +63,7 @@ class ApiService {
     return response.data as Map<String, dynamic>;
   }
 
-  Future<List<dynamic>> getFeaturedProducts({int limit = 12}) async {
+  Future<List<dynamic>> getFeaturedProducts({int limit = 20}) async {
     final response = await _dio.get('/products/featured', queryParameters: {'limit': limit});
     return (response.data as Map<String, dynamic>)['data'] as List<dynamic>;
   }
