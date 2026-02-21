@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive_grid.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/category_icon_box.dart';
 
@@ -214,17 +215,13 @@ class HomeScreen extends ConsumerWidget {
           // Product grid
           featured.when(
             data: (products) => SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.7,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                ),
+                gridDelegate: responsiveProductGrid(context, compact: true),
                 delegate: SliverChildBuilderDelegate(
                   (ctx, i) => ProductCard(
                     product: products[i],
+                    compact: true,
                     onTap: () => context.push('/product/${products[i].id}'),
                     onAddToCart: () async {
                       try {

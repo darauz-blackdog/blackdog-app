@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive_grid.dart';
 import '../../widgets/product_card.dart';
 
 /// Debounced search query provider
@@ -104,12 +105,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     Expanded(
                       child: GridView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.7,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                        ),
+                        gridDelegate: responsiveProductGrid(context),
                         itemCount: result.products.length,
                         itemBuilder: (_, i) => ProductCard(
                           product: result.products[i],

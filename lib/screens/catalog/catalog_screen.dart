@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive_grid.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/category_chip.dart';
 import '../../widgets/cart_badge.dart';
@@ -108,12 +109,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                 }
                 return GridView.builder(
                   padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.7,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
+                  gridDelegate: responsiveProductGrid(context),
                   itemCount: result.products.length,
                   itemBuilder: (_, i) => ProductCard(
                     product: result.products[i],
