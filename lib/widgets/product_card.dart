@@ -39,7 +39,7 @@ class ProductCard extends StatelessWidget {
           children: [
             // Image section with overlays
             Expanded(
-              flex: 3,
+              flex: 5,
               child: Stack(
                 children: [
                   // Image container
@@ -165,7 +165,7 @@ class ProductCard extends StatelessWidget {
 
             // Info section
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -173,7 +173,7 @@ class ProductCard extends StatelessWidget {
                   Text(
                     product.name,
                     style: GoogleFonts.montserrat(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
@@ -192,12 +192,12 @@ class ProductCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
 
                   // Add to Cart button
                   SizedBox(
                     width: double.infinity,
-                    height: 34,
+                    height: 30,
                     child: ElevatedButton(
                       onPressed: product.inStock ? onAddToCart : null,
                       style: ElevatedButton.styleFrom(
