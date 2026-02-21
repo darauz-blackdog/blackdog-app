@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../theme/app_theme.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -66,6 +67,10 @@ class ProfileScreen extends ConsumerWidget {
             title: 'Ayuda',
             onTap: () {},
           ),
+          const SizedBox(height: 8),
+
+          // Theme toggle
+          _ThemeToggle(),
           const SizedBox(height: 24),
 
           // Logout
@@ -95,10 +100,37 @@ class _MenuItem extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        leading: Icon(icon, color: AppColors.textSecondary),
+        leading: Icon(icon, color: Theme.of(context).hintColor),
         title: Text(title),
-        trailing: const Icon(Icons.chevron_right, color: AppColors.textLight),
+        trailing: Icon(Icons.chevron_right, color: Theme.of(context).hintColor),
         onTap: onTap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+}
+
+class _ThemeToggle extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(themeModeProvider);
+    final isDark = mode == ThemeMode.dark ||
+        (mode == ThemeMode.system && MediaQuery.platformBrightnessOf(context) == Brightness.dark);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: ListTile(
+        leading: Icon(
+          isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+          color: Theme.of(context).hintColor,
+        ),
+        title: const Text('Modo oscuro'),
+        trailing: Switch.adaptive(
+          value: isDark,
+          activeColor: AppColors.primary,
+          onChanged: (_) => ref.read(themeModeProvider.notifier).toggle(),
+        ),
+        onTap: () => ref.read(themeModeProvider.notifier).toggle(),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
