@@ -164,6 +164,20 @@ class CategoryStyle {
         iconColor: Color(0xFFCA8A04),
       );
     }
+    if (lower.contains('servicio') || lower.contains('service')) {
+      return const CategoryStyle(
+        icon: Icons.build_rounded,
+        backgroundColor: Color(0xFFE0F2FE), // sky blue
+        iconColor: Color(0xFF0EA5E9),
+      );
+    }
+    if (lower.contains('humano') || lower.contains('human')) {
+      return const CategoryStyle(
+        icon: Icons.person_rounded,
+        backgroundColor: Color(0xFFD1FAE5), // light green
+        iconColor: Color(0xFF10B981),
+      );
+    }
     // Default
     return const CategoryStyle(
       icon: Icons.shopping_bag_rounded,

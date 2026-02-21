@@ -92,9 +92,14 @@ final featuredProductsProvider = FutureProvider<List<Product>>((ref) async {
   return result.map((p) => Product.fromJson(p as Map<String, dynamic>)).toList();
 });
 
-/// Category tree
+/// Category tree — extracts direct children of the root category (e.g. "Vendibles")
 final categoriesProvider = FutureProvider<List<Category>>((ref) async {
   final api = ref.read(apiServiceProvider);
   final result = await api.getCategories();
-  return result.map((c) => Category.fromJson(c as Map<String, dynamic>)).toList();
+  final roots = result.map((c) => Category.fromJson(c as Map<String, dynamic>)).toList();
+  // The API returns a single root ("Vendibles") — show its children
+  if (roots.length == 1 && roots.first.children.isNotEmpty) {
+    return roots.first.children;
+  }
+  return roots;
 });
