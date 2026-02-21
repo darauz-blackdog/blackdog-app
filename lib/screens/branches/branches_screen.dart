@@ -62,7 +62,7 @@ class _BranchCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+        side: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -112,7 +112,7 @@ class _BranchCard extends StatelessWidget {
                     icon: const Icon(Icons.phone, size: 18),
                     label: const Text('Llamar'),
                     style: TextButton.styleFrom(
-                      foregroundColor: AppColors.textSecondary,
+                      foregroundColor: Theme.of(context).textTheme.bodyMedium?.color,
                     ),
                   ),
                 if (googleMapsUrl != null)
@@ -121,7 +121,7 @@ class _BranchCard extends StatelessWidget {
                       Uri.parse(googleMapsUrl),
                       mode: LaunchMode.externalApplication,
                     ),
-                    icon: const Icon(Icons.map, color: Colors.blue),
+                    icon: const Icon(Icons.map, color: AppColors.info),
                     tooltip: 'Google Maps',
                   ),
                 if (wazeUrl != null)

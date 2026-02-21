@@ -16,6 +16,13 @@ class AppColors {
   static const divider = Color(0xFFF3F4F6);
   static const grayMedium = Color(0xFFF3F4F6);   // Search bar bg
 
+  // Semantic colors
+  static const info = Color(0xFF3B82F6);
+  static const infoLight = Color(0xFFDBEAFE);
+  static const warning = Color(0xFFF59E0B);
+  static const warningLight = Color(0xFFFEF3C7);
+  static const successLight = Color(0xFFD1FAE5);
+
   // Dark mode colors
   static const darkBackground = Color(0xFF121212);
   static const darkSurface = Color(0xFF1E1E1E);

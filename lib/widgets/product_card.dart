@@ -29,9 +29,9 @@ class ProductCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border.withValues(alpha: 0.7)),
+          border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
           boxShadow: AppShadows.soft,
         ),
         child: Column(
@@ -46,7 +46,7 @@ class ProductCard extends StatelessWidget {
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: AppColors.grayMedium,
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(16),
                       ),
@@ -175,7 +175,7 @@ class ProductCard extends StatelessWidget {
                     style: GoogleFonts.montserrat(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -186,7 +186,7 @@ class ProductCard extends StatelessWidget {
                       product.categoryName!.split(' / ').last,
                       style: GoogleFonts.inter(
                         fontSize: 10,
-                        color: AppColors.textLight,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -201,10 +201,10 @@ class ProductCard extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: product.inStock ? onAddToCart : null,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: product.inStock ? AppColors.secondary : AppColors.divider,
-                        foregroundColor: product.inStock ? Colors.white : AppColors.textLight,
-                        disabledBackgroundColor: AppColors.divider,
-                        disabledForegroundColor: AppColors.textLight,
+                        backgroundColor: product.inStock ? Theme.of(context).colorScheme.onSurface : Theme.of(context).dividerColor,
+                        foregroundColor: product.inStock ? Theme.of(context).colorScheme.surface : Theme.of(context).hintColor,
+                        disabledBackgroundColor: Theme.of(context).dividerColor,
+                        disabledForegroundColor: Theme.of(context).hintColor,
                         elevation: 0,
                         padding: EdgeInsets.zero,
                         minimumSize: Size.zero,

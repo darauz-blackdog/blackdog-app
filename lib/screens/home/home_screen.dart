@@ -43,7 +43,8 @@ class HomeScreen extends ConsumerWidget {
                 Image.asset(
                   'assets/images/logo.png',
                   height: 28,
-                  color: AppColors.secondary,
+                  fit: BoxFit.contain,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -51,7 +52,7 @@ class HomeScreen extends ConsumerWidget {
                   style: GoogleFonts.montserrat(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.secondary,
+                    color: Theme.of(context).colorScheme.onSurface,
                     letterSpacing: 1.5,
                   ),
                 ),
@@ -62,8 +63,8 @@ class HomeScreen extends ConsumerWidget {
                 onPressed: () {
                   // TODO: Notifications
                 },
-                icon: const Icon(Icons.notifications_outlined),
-                color: AppColors.secondary,
+                icon: Icon(Icons.notifications_outlined,
+                    color: Theme.of(context).colorScheme.onSurface),
               ),
               const CartBadge(),
               const SizedBox(width: 4),
@@ -72,7 +73,7 @@ class HomeScreen extends ConsumerWidget {
               preferredSize: const Size.fromHeight(1),
               child: Container(
                 height: 1,
-                color: AppColors.border.withValues(alpha: 0.5),
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
               ),
             ),
           ),
@@ -86,19 +87,19 @@ class HomeScreen extends ConsumerWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
-                    color: AppColors.grayMedium,
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.search_rounded, color: AppColors.textLight, size: 22),
+                      Icon(Icons.search_rounded, color: Theme.of(context).hintColor, size: 22),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           'Buscar comida, juguetes, accesorios...',
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            color: AppColors.textLight,
+                            color: Theme.of(context).hintColor,
                           ),
                         ),
                       ),
@@ -106,12 +107,12 @@ class HomeScreen extends ConsumerWidget {
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: AppColors.secondary,
+                          color: Theme.of(context).colorScheme.onSurface,
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.tune_rounded,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.surface,
                           size: 18,
                         ),
                       ),
@@ -138,7 +139,7 @@ class HomeScreen extends ConsumerWidget {
                             style: GoogleFonts.montserrat(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
+                              color: Theme.of(context).colorScheme.onSurface,
                             )),
                         GestureDetector(
                           onTap: () => context.go('/catalog'),
@@ -194,7 +195,7 @@ class HomeScreen extends ConsumerWidget {
                       style: GoogleFonts.montserrat(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                        color: Theme.of(context).colorScheme.onSurface,
                       )),
                   GestureDetector(
                     onTap: () => context.go('/catalog'),

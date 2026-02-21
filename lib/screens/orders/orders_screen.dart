@@ -99,7 +99,7 @@ class _OrderCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+        side: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
       ),
       child: InkWell(
         onTap: () => context.push('/orders/${order.id}', extra: order),
@@ -124,7 +124,7 @@ class _OrderCard extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Icon(Icons.shopping_bag_outlined, size: 16, color: AppColors.textLight),
+                  Icon(Icons.shopping_bag_outlined, size: 16, color: Theme.of(context).hintColor),
                   const SizedBox(width: 4),
                   Text('${order.items.length} productos', style: Theme.of(context).textTheme.bodyMedium),
                   const Spacer(),
@@ -164,10 +164,10 @@ class _StatusChip extends StatelessWidget {
       case 'confirmed':
       case 'ready_pickup':
       case 'shipping':
-        color = Colors.blue;
+        color = AppColors.info;
         break;
       default:
-        color = Colors.orange;
+        color = AppColors.warning;
     }
 
     return Container(

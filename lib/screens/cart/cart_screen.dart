@@ -193,9 +193,9 @@ class _CartItemCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -307,13 +307,13 @@ class _QuantitySelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _qtyButton(Icons.remove, onDecrement, quantity <= 1),
+          _qtyButton(context, Icons.remove, onDecrement, quantity <= 1),
           Container(
             constraints: const BoxConstraints(minWidth: 36),
             alignment: Alignment.center,
@@ -325,13 +325,13 @@ class _QuantitySelector extends StatelessWidget {
                   ?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
-          _qtyButton(Icons.add, onIncrement, false),
+          _qtyButton(context, Icons.add, onIncrement, false),
         ],
       ),
     );
   }
 
-  Widget _qtyButton(IconData icon, VoidCallback onTap, bool disabled) {
+  Widget _qtyButton(BuildContext context, IconData icon, VoidCallback onTap, bool disabled) {
     return GestureDetector(
       onTap: disabled ? null : onTap,
       child: Container(
@@ -339,7 +339,7 @@ class _QuantitySelector extends StatelessWidget {
         child: Icon(
           icon,
           size: 18,
-          color: disabled ? AppColors.textLight : AppColors.textPrimary,
+          color: disabled ? Theme.of(context).hintColor : Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );

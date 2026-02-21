@@ -71,6 +71,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       padding: const EdgeInsets.all(12),
                       child: Image.asset(
                         'assets/images/logo.png',
+                        fit: BoxFit.contain,
                         color: AppColors.secondary,
                       ),
                     ),

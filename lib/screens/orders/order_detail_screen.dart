@@ -61,7 +61,7 @@ class OrderDetailScreen extends ConsumerWidget {
             order.createdAt != null
                 ? DateFormat('dd MMM yyyy, hh:mm a').format(DateTime.parse(order.createdAt!).toLocal())
                 : '',
-            style: const TextStyle(color: AppColors.textLight),
+            style: TextStyle(color: Theme.of(context).hintColor),
           ),
           
           const Divider(height: 32),
@@ -75,20 +75,20 @@ class OrderDetailScreen extends ConsumerWidget {
               children: [
                 Container(
                   width: 40, height: 40,
-                  decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(8)),
-                  child: const Icon(Icons.image, color: Colors.grey, size: 20),
+                  decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(8)),
+                  child: Icon(Icons.image, color: Theme.of(context).hintColor, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(item.productName ?? 'Desconocido', style: const TextStyle(fontWeight: FontWeight.w500)),
-                      Text('${item.quantity} x \$${item.unitPrice.toStringAsFixed(2)}', style: const TextStyle(fontSize: 12, color: AppColors.textLight)),
+                      Text(item.productName ?? 'Desconocido', style: TextStyle(fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface)),
+                      Text('${item.quantity} x \$${item.unitPrice.toStringAsFixed(2)}', style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor)),
                     ],
                   ),
                 ),
-                Text('\$${item.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text('\$${item.total.toStringAsFixed(2)}', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
               ],
             ),
           )),
@@ -113,7 +113,7 @@ class OrderDetailScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Total', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text('Total', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
               Text('\$${order.total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
             ],
           ),
@@ -142,8 +142,8 @@ class _InfoRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: AppColors.textLight)),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
+        Text(label, style: TextStyle(color: Theme.of(context).hintColor)),
+        Text(value, style: TextStyle(fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface)),
       ],
     );
   }

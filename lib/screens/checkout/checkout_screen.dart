@@ -268,7 +268,7 @@ class _DeliveryStep extends ConsumerWidget {
           return Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: Theme.of(context).colorScheme.outline),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Center(
@@ -517,10 +517,10 @@ class _RadioCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected
               ? AppColors.primary.withValues(alpha: 0.06)
-              : Colors.white,
+              : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? AppColors.primary : AppColors.border,
+            color: selected ? AppColors.primary : Theme.of(context).colorScheme.outline,
             width: selected ? 2 : 1,
           ),
         ),
@@ -531,12 +531,12 @@ class _RadioCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: selected
                     ? AppColors.primary.withValues(alpha: 0.15)
-                    : AppColors.divider,
+                    : Theme.of(context).dividerColor,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icon,
                   size: compact ? 20 : 24,
-                  color: selected ? AppColors.primary : AppColors.textLight),
+                  color: selected ? AppColors.primary : Theme.of(context).hintColor),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -598,9 +598,9 @@ class _BottomButton extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         border: Border(
-          top: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+          top: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
         ),
       ),
       child: SafeArea(

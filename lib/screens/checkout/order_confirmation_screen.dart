@@ -61,7 +61,7 @@ class OrderConfirmationScreen extends ConsumerWidget {
               Text(
                 'Pedido #$orderNumber',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppColors.textLight,
+                      color: Theme.of(context).hintColor,
                     ),
               ),
               const SizedBox(height: 8),
@@ -113,13 +113,13 @@ class OrderConfirmationScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.blue.shade50,
+        color: AppColors.infoLight,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.blue.shade200),
+        border: Border.all(color: AppColors.info.withValues(alpha: 0.4)),
       ),
       child: Column(
         children: [
-          const Icon(Icons.credit_card, size: 40, color: Colors.blue),
+          const Icon(Icons.credit_card, size: 40, color: AppColors.info),
           const SizedBox(height: 12),
           Text('Pagar con tarjeta',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -137,7 +137,7 @@ class OrderConfirmationScreen extends ConsumerWidget {
               icon: const Icon(Icons.open_in_new),
               label: const Text('Ir a pagar'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: AppColors.info,
                 foregroundColor: Colors.white,
               ),
             ),
@@ -171,20 +171,20 @@ class OrderConfirmationScreen extends ConsumerWidget {
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600)),
           const SizedBox(height: 16),
-          _yappyRow('Número', phone),
-          _yappyRow('Banco', bankName),
-          _yappyRow('Referencia', orderNumber),
-          _yappyRow('Monto exacto', '\$${total.toStringAsFixed(2)}'),
+          _yappyRow(context, 'Número', phone),
+          _yappyRow(context, 'Banco', bankName),
+          _yappyRow(context, 'Referencia', orderNumber),
+          _yappyRow(context, 'Monto exacto', '\$${total.toStringAsFixed(2)}'),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.amber.shade50,
+              color: AppColors.warningLight,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline, color: Colors.amber.shade700, size: 18),
+                const Icon(Icons.info_outline, color: AppColors.warning, size: 18),
                 const SizedBox(width: 8),
                 const Expanded(
                   child: Text(
@@ -200,15 +200,15 @@ class OrderConfirmationScreen extends ConsumerWidget {
     );
   }
 
-  Widget _yappyRow(String label, String value) {
+  Widget _yappyRow(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.black54)),
+          Text(label, style: TextStyle(color: Theme.of(context).hintColor)),
           SelectableText(value,
-              style: const TextStyle(fontWeight: FontWeight.w600)),
+              style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
         ],
       ),
     );
