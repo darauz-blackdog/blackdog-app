@@ -93,13 +93,16 @@ final featuredProductsProvider = FutureProvider<List<Product>>((ref) async {
 });
 
 /// Category tree — extracts direct children of the root category (e.g. "Vendibles")
+const _hiddenCategories = {'humano', 'servicios'};
+
 final categoriesProvider = FutureProvider<List<Category>>((ref) async {
   final api = ref.read(apiServiceProvider);
   final result = await api.getCategories();
   final roots = result.map((c) => Category.fromJson(c as Map<String, dynamic>)).toList();
   // The API returns a single root ("Vendibles") — show its children
+  List<Category> categories = roots;
   if (roots.length == 1 && roots.first.children.isNotEmpty) {
-    return roots.first.children;
+    categories = roots.first.children;
   }
-  return roots;
+  return categories.where((c) => !_hiddenCategories.contains(c.name.toLowerCase())).toList();
 });
