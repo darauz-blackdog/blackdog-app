@@ -208,7 +208,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Tamaño', style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          // Detect variant type: size labels start with digit, color labels start with letter
+          p.variants.any((v) => v.variantLabel != null && RegExp(r'^\d').hasMatch(v.variantLabel!))
+              ? 'Tamaño'
+              : 'Variante',
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
