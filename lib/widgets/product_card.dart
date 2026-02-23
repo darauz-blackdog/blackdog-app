@@ -50,7 +50,7 @@ class ProductCard extends StatelessWidget {
                   Positioned.fill(
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        color: Colors.white,
                         borderRadius: BorderRadius.vertical(
                           top: Radius.circular(compact ? 12 : 16),
                         ),
