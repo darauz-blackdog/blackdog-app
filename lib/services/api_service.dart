@@ -70,6 +70,11 @@ class ApiService {
     return response.data as Map<String, dynamic>;
   }
 
+  Future<List<dynamic>> getHomeSections() async {
+    final response = await _dio.get('/home/sections');
+    return (response.data as Map<String, dynamic>)['sections'] as List<dynamic>;
+  }
+
   Future<List<dynamic>> getFeaturedProducts({int limit = 20}) async {
     final response = await _dio.get('/products/featured', queryParameters: {'limit': limit});
     return (response.data as Map<String, dynamic>)['data'] as List<dynamic>;

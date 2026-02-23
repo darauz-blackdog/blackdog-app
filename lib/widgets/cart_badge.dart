@@ -13,7 +13,7 @@ class CartBadge extends ConsumerWidget {
     final cartAsync = ref.watch(cartProvider);
 
     return IconButton(
-      onPressed: () => context.push('/cart'),
+      onPressed: () => context.go('/cart'),
       icon: cartAsync.when(
         data: (cart) {
           final count = cart?.items.fold(0, (sum, item) => sum + item.quantity) ?? 0;

@@ -12,7 +12,8 @@ import '../../widgets/cart_badge.dart';
 class CatalogScreen extends ConsumerStatefulWidget {
   final int? categoryId;
   final int? appCategoryId;
-  const CatalogScreen({super.key, this.categoryId, this.appCategoryId});
+  final String? brand;
+  const CatalogScreen({super.key, this.categoryId, this.appCategoryId, this.brand});
 
   @override
   ConsumerState<CatalogScreen> createState() => _CatalogScreenState();
@@ -27,6 +28,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
   void initState() {
     super.initState();
     _selectedAppCategoryId = widget.appCategoryId;
+    _selectedBrand = widget.brand;
   }
 
   @override

@@ -1,3 +1,31 @@
+class HomeSection {
+  final String id;
+  final String title;
+  final String type; // "brand" or "category"
+  final Map<String, dynamic> filter;
+  final List<Product> products;
+
+  HomeSection({
+    required this.id,
+    required this.title,
+    required this.type,
+    required this.filter,
+    required this.products,
+  });
+
+  factory HomeSection.fromJson(Map<String, dynamic> json) {
+    return HomeSection(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      type: json['type'] as String,
+      filter: Map<String, dynamic>.from(json['filter'] as Map),
+      products: (json['products'] as List)
+          .map((p) => Product.fromJson(p as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
 class Product {
   final int id;
   final String name;

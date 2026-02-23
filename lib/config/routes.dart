@@ -124,6 +124,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 appCategoryId: state.uri.queryParameters['app_category_id'] != null
                     ? int.parse(state.uri.queryParameters['app_category_id']!)
                     : null,
+                brand: state.uri.queryParameters['brand'],
               ),
             ),
           ),
