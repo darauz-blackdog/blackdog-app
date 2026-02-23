@@ -95,6 +95,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                           style: Theme.of(context).textTheme.bodySmall),
                     const SizedBox(height: 16),
 
+                    // Variant selector chips
+                    if (p.variants.length > 1) ...[
+                      _buildVariantChips(context, p),
+                      const SizedBox(height: 16),
+                    ],
+
                     // Price
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -241,6 +247,53 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     );
   }
 
+  Widget _buildVariantChips(BuildContext context, dynamic p) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Tamaño', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: p.variants.map<Widget>((v) {
+            final isSelected = v.id == p.id;
+            final hasStock = v.inStock;
+            return ChoiceChip(
+              label: Text(v.variantLabel ?? ''),
+              selected: isSelected,
+              onSelected: (_) {
+                if (v.id != p.id) {
+                  context.push('/product/${v.id}');
+                }
+              },
+              backgroundColor: hasStock
+                  ? null
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+              selectedColor: AppColors.primary,
+              labelStyle: TextStyle(
+                color: isSelected
+                    ? AppColors.secondary
+                    : hasStock
+                        ? Theme.of(context).colorScheme.onSurface
+                        : Theme.of(context).hintColor,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                decoration: hasStock ? null : TextDecoration.lineThrough,
+              ),
+              side: isSelected
+                  ? BorderSide.none
+                  : BorderSide(
+                      color: hasStock
+                          ? Theme.of(context).colorScheme.outline
+                          : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                    ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
   Widget _buildImageGallery(dynamic p) {
     final images = p.imageUrls as List<String>;
 
@@ -262,6 +315,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         child: CachedNetworkImage(
           imageUrl: images.first,
           fit: BoxFit.contain,
+          alignment: Alignment.center,
+          fadeInDuration: const Duration(milliseconds: 150),
           placeholder: (_, __) => const Center(child: CircularProgressIndicator()),
           errorWidget: (_, __, ___) =>
               const Icon(Icons.image_outlined, size: 80, color: AppColors.textLight),
@@ -283,6 +338,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               child: CachedNetworkImage(
                 imageUrl: images[index],
                 fit: BoxFit.contain,
+                alignment: Alignment.center,
+                fadeInDuration: const Duration(milliseconds: 150),
                 placeholder: (_, __) => const Center(child: CircularProgressIndicator()),
                 errorWidget: (_, __, ___) =>
                     const Icon(Icons.image_outlined, size: 80, color: AppColors.textLight),

@@ -17,6 +17,8 @@ class Product {
   final String? handle;
   final bool isPublished;
   final double totalStock;
+  final String? variantGroup;
+  final String? variantLabel;
 
   Product({
     required this.id,
@@ -37,6 +39,8 @@ class Product {
     this.handle,
     this.isPublished = true,
     this.totalStock = 0,
+    this.variantGroup,
+    this.variantLabel,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -60,6 +64,8 @@ class Product {
       handle: json['handle'] as String?,
       isPublished: json['is_published'] as bool? ?? true,
       totalStock: (json['total_stock'] as num?)?.toDouble() ?? 0,
+      variantGroup: json['variant_group'] as String?,
+      variantLabel: json['variant_label'] as String?,
     );
   }
 
@@ -91,6 +97,7 @@ class Product {
 class ProductDetail extends Product {
   final List<StockByBranch> stockByBranch;
   final double totalStock;
+  final List<ProductVariant> variants;
 
   ProductDetail({
     required super.id,
@@ -110,8 +117,11 @@ class ProductDetail extends Product {
     super.tags,
     super.handle,
     super.isPublished,
+    super.variantGroup,
+    super.variantLabel,
     required this.stockByBranch,
     required this.totalStock,
+    this.variants = const [],
   });
 
   factory ProductDetail.fromJson(Map<String, dynamic> json) {
@@ -134,13 +144,49 @@ class ProductDetail extends Product {
       tags: (json['tags'] as List?)?.cast<String>() ?? [],
       handle: json['handle'] as String?,
       isPublished: json['is_published'] as bool? ?? true,
+      variantGroup: json['variant_group'] as String?,
+      variantLabel: json['variant_label'] as String?,
       stockByBranch: (json['stock_by_branch'] as List? ?? [])
           .map((s) => StockByBranch.fromJson(s as Map<String, dynamic>))
           .toList(),
       totalStock: (json['total_stock'] as num?)?.toDouble() ?? 0,
+      variants: (json['variants'] as List? ?? [])
+          .map((v) => ProductVariant.fromJson(v as Map<String, dynamic>))
+          .toList(),
     );
   }
+}
 
+class ProductVariant {
+  final int id;
+  final String? variantLabel;
+  final double listPrice;
+  final double? salePrice;
+  final double totalStock;
+  final String? imageUrl;
+
+  ProductVariant({
+    required this.id,
+    this.variantLabel,
+    required this.listPrice,
+    this.salePrice,
+    this.totalStock = 0,
+    this.imageUrl,
+  });
+
+  bool get inStock => totalStock > 0;
+  double get effectivePrice => salePrice ?? listPrice;
+
+  factory ProductVariant.fromJson(Map<String, dynamic> json) {
+    return ProductVariant(
+      id: json['id'] as int,
+      variantLabel: json['variant_label'] as String?,
+      listPrice: (json['list_price'] as num).toDouble(),
+      salePrice: json['sale_price'] != null ? (json['sale_price'] as num).toDouble() : null,
+      totalStock: (json['total_stock'] as num?)?.toDouble() ?? 0,
+      imageUrl: json['image_url'] as String?,
+    );
+  }
 }
 
 class StockByBranch {

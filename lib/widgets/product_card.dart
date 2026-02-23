@@ -41,41 +41,47 @@ class ProductCard extends StatelessWidget {
           children: [
             // Image section with overlays
             Expanded(
-              child: Stack(
+              child: Opacity(
+                opacity: product.inStock ? 1.0 : 0.5,
+                child: Stack(
+                fit: StackFit.expand,
                 children: [
                   // Image container
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(compact ? 12 : 16),
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(compact ? 12 : 16),
+                        ),
                       ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(compact ? 12 : 16),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.all(compact ? 4 : 8),
-                        child: product.imageUrl != null
-                            ? CachedNetworkImage(
-                                imageUrl: product.imageUrl!,
-                                fit: BoxFit.contain,
-                                placeholder: (_, __) => const Center(
-                                  child: SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: AppColors.primary,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(compact ? 12 : 16),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(compact ? 4 : 8),
+                          child: product.imageUrl != null
+                              ? CachedNetworkImage(
+                                  imageUrl: product.imageUrl!,
+                                  fit: BoxFit.contain,
+                                  alignment: Alignment.center,
+                                  fadeInDuration: const Duration(milliseconds: 150),
+                                  placeholder: (_, __) => const Center(
+                                    child: SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: AppColors.primary,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                errorWidget: (_, __, ___) =>
-                                    _PlaceholderIcon(compact: compact),
-                              )
-                            : _PlaceholderIcon(compact: compact),
+                                  errorWidget: (_, __, ___) =>
+                                      _PlaceholderIcon(compact: compact),
+                                )
+                              : _PlaceholderIcon(compact: compact),
+                        ),
                       ),
                     ),
                   ),
@@ -185,6 +191,7 @@ class ProductCard extends StatelessWidget {
                       ),
                     ),
                 ],
+              ),
               ),
             ),
 
