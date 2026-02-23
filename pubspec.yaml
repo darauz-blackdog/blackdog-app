@@ -35,6 +35,10 @@ dependencies:
   shared_preferences: ^2.5.3
   flutter_secure_storage: ^9.2.4
 
+  # Maps
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+
   # Utils
   intl: ^0.20.2
   url_launcher: ^6.3.1
