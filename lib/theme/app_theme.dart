@@ -5,7 +5,7 @@ class AppColors {
   static const primary = Color(0xFFF7B104);       // Golden yellow
   static const primaryDark = Color(0xFFD49A03);
   static const secondary = Color(0xFF1A1A1A);     // Near-black
-  static const background = Color(0xFFFAFAFA);
+  static const background = Colors.white;
   static const surface = Colors.white;
   static const error = Color(0xFFE53935);
   static const success = Color(0xFF43A047);
