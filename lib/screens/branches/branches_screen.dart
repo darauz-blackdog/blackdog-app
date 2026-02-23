@@ -34,6 +34,20 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
     _mapController.move(LatLng(lat, lng), 15);
   }
 
+  void _openGoogleMaps(double lat, double lng) {
+    launchUrl(
+      Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng'),
+      mode: LaunchMode.externalApplication,
+    );
+  }
+
+  void _openWaze(double lat, double lng) {
+    launchUrl(
+      Uri.parse('https://waze.com/ul?ll=$lat,$lng&navigate=yes'),
+      mode: LaunchMode.externalApplication,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final branchesAsync = ref.watch(branchesProvider);
@@ -44,17 +58,20 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
         actions: const [CartBadge(), SizedBox(width: 8)],
       ),
       body: branchesAsync.when(
-        data: (branches) {
+        data: (allBranches) {
+          // Filter out branches without valid coordinates or with placeholder data
+          final branches = allBranches.where((b) {
+            final lat = b['latitude'] as double?;
+            final lng = b['longitude'] as double?;
+            final address = b['address'] as String?;
+            // Skip branches without coords or with Miami placeholder addresses
+            if (lat == null || lng == null) return false;
+            if (address != null && address.contains('NW 35TH')) return false;
+            return true;
+          }).toList();
+
           if (branches.isEmpty) {
             return const Center(child: Text('No hay sucursales disponibles'));
-          }
-
-          // Filter branches with valid coordinates for the map
-          final markable = <int>[];
-          for (var i = 0; i < branches.length; i++) {
-            if (branches[i]['latitude'] != null && branches[i]['longitude'] != null) {
-              markable.add(i);
-            }
           }
 
           // Center on Panama City
@@ -64,7 +81,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
             children: [
               // Map
               SizedBox(
-                height: 280,
+                height: 260,
                 child: FlutterMap(
                   mapController: _mapController,
                   options: MapOptions(
@@ -80,7 +97,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                       userAgentPackageName: 'com.blackdog.app',
                     ),
                     MarkerLayer(
-                      markers: markable.map((i) {
+                      markers: List.generate(branches.length, (i) {
                         final b = branches[i];
                         final isSelected = _selectedIndex == i;
                         return Marker(
@@ -88,19 +105,19 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                             b['latitude'] as double,
                             b['longitude'] as double,
                           ),
-                          width: isSelected ? 48 : 40,
-                          height: isSelected ? 48 : 40,
+                          width: isSelected ? 46 : 38,
+                          height: isSelected ? 46 : 38,
                           child: GestureDetector(
                             onTap: () => _selectBranch(i, b),
                             child: Container(
                               decoration: BoxDecoration(
                                 color: isSelected ? AppColors.primary : AppColors.secondary,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
+                                border: Border.all(color: Colors.white, width: 2.5),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.3),
-                                    blurRadius: 4,
+                                    blurRadius: 6,
                                     offset: const Offset(0, 2),
                                   ),
                                 ],
@@ -108,12 +125,29 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                               child: Icon(
                                 Icons.pets,
                                 color: isSelected ? AppColors.secondary : Colors.white,
-                                size: isSelected ? 22 : 18,
+                                size: isSelected ? 20 : 16,
                               ),
                             ),
                           ),
                         );
-                      }).toList(),
+                      }),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Branch count
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                child: Row(
+                  children: [
+                    Text(
+                      '${branches.length} sucursales',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                     ),
                   ],
                 ),
@@ -122,16 +156,24 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
               // Branch list
               Expanded(
                 child: ListView.separated(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                   itemCount: branches.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
-                    final branch = branches[index];
+                    final branch = branches[index] as Map<String, dynamic>;
                     final isSelected = _selectedIndex == index;
                     return _BranchCard(
                       branch: branch,
                       isSelected: isSelected,
                       onTap: () => _selectBranch(index, branch),
+                      onGoogleMaps: () => _openGoogleMaps(
+                        branch['latitude'] as double,
+                        branch['longitude'] as double,
+                      ),
+                      onWaze: () => _openWaze(
+                        branch['latitude'] as double,
+                        branch['longitude'] as double,
+                      ),
                     );
                   },
                 ),
@@ -150,20 +192,24 @@ class _BranchCard extends StatelessWidget {
   final Map<String, dynamic> branch;
   final bool isSelected;
   final VoidCallback onTap;
+  final VoidCallback onGoogleMaps;
+  final VoidCallback onWaze;
 
   const _BranchCard({
     required this.branch,
     required this.isSelected,
     required this.onTap,
+    required this.onGoogleMaps,
+    required this.onWaze,
   });
 
   @override
   Widget build(BuildContext context) {
     final name = branch['name'] ?? 'Sucursal';
-    final address = branch['address'] ?? 'Sin dirección';
-    final phone = branch['phone'];
-    final wazeUrl = branch['waze_url'];
-    final googleMapsUrl = branch['google_maps_url'];
+    final address = branch['address'] as String?;
+    final city = branch['city'] as String?;
+    final phone = branch['phone'] as String?;
+    final email = branch['email'] as String?;
 
     return GestureDetector(
       onTap: onTap,
@@ -171,33 +217,37 @@ class _BranchCard extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
+            color: isSelected
+                ? AppColors.primary
+                : Theme.of(context).colorScheme.outline.withValues(alpha: 0.4),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: isSelected ? AppShadows.soft : null,
         ),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Name + icon
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? AppColors.primary.withValues(alpha: 0.2)
-                        : AppColors.primary.withValues(alpha: 0.1),
+                        ? AppColors.primary.withValues(alpha: 0.15)
+                        : AppColors.primary.withValues(alpha: 0.08),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    Icons.store_mall_directory,
+                    Icons.store,
                     color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                    size: 20,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,52 +260,113 @@ class _BranchCard extends StatelessWidget {
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        address,
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
+                      if (city != null && city.isNotEmpty)
+                        Text(
+                          city.replaceAll('.', ''),
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: AppColors.textLight,
+                          ),
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
                     ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+
+            // Address
+            if (address != null && address.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      address,
+                      style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            // Phone
+            if (phone != null && phone.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(Icons.phone_outlined, size: 16, color: AppColors.textSecondary),
+                  const SizedBox(width: 6),
+                  GestureDetector(
+                    onTap: () => launchUrl(Uri.parse('tel:$phone')),
+                    child: Text(
+                      phone,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: AppColors.info,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            // Email
+            if (email != null && email.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(Icons.email_outlined, size: 16, color: AppColors.textSecondary),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      email,
+                      style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            // Navigation buttons
+            const SizedBox(height: 10),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                if (phone != null)
-                  TextButton.icon(
-                    onPressed: () => launchUrl(Uri.parse('tel:$phone')),
-                    icon: const Icon(Icons.phone, size: 18),
-                    label: const Text('Llamar'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.textSecondary,
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: onGoogleMaps,
+                    icon: const Icon(Icons.map_outlined, size: 16),
+                    label: const Text('Google Maps'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.textPrimary,
+                      side: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.4)),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      textStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                   ),
-                if (googleMapsUrl != null)
-                  IconButton(
-                    onPressed: () => launchUrl(
-                      Uri.parse(googleMapsUrl),
-                      mode: LaunchMode.externalApplication,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: onWaze,
+                    icon: const Icon(Icons.directions_car_outlined, size: 16),
+                    label: const Text('Waze'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.textPrimary,
+                      side: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.4)),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      textStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    icon: const Icon(Icons.map, color: AppColors.info),
-                    tooltip: 'Google Maps',
                   ),
-                if (wazeUrl != null)
-                  IconButton(
-                    onPressed: () => launchUrl(
-                      Uri.parse(wazeUrl),
-                      mode: LaunchMode.externalApplication,
-                    ),
-                    icon: const Icon(Icons.directions_car, color: Colors.indigo),
-                    tooltip: 'Waze',
-                  ),
+                ),
               ],
             ),
           ],
