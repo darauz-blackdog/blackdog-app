@@ -39,39 +39,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Image.asset(
-                  'assets/images/logo.png',
-                  fit: BoxFit.contain,
-                  color: AppColors.secondary,
-                ),
-              ),
+            Image.asset(
+              'assets/images/logo.png',
+              width: 280,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
             ),
-            const SizedBox(height: 24),
-            Text(
-              'BLACK DOG',
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    color: AppColors.secondary,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 3,
-                  ),
-            ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             Text(
               'Pet Shop Panamá',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(

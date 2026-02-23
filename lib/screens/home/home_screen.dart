@@ -38,25 +38,11 @@ class HomeScreen extends ConsumerWidget {
                 child: Container(color: Colors.transparent),
               ),
             ),
-            title: Row(
-              children: [
-                Image.asset(
-                  'assets/images/logo.png',
-                  height: 28,
-                  fit: BoxFit.contain,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'BLACK DOG',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-              ],
+            title: Image.asset(
+              'assets/images/logo.png',
+              height: 32,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
             ),
             actions: [
               IconButton(
