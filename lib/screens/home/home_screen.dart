@@ -19,7 +19,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final featured = ref.watch(featuredProductsProvider);
-    final categories = ref.watch(categoriesProvider);
+    final categories = ref.watch(appCategoriesProvider);
 
 
     return Scaffold(
@@ -163,14 +163,14 @@ class HomeScreen extends ConsumerWidget {
                         itemCount: cats.length,
                         separatorBuilder: (_, __) => const SizedBox(width: 12),
                         itemBuilder: (_, i) {
-                          final style = CategoryStyle.forCategory(cats[i].name);
+                          final style = CategoryStyle.forAppCategory(cats[i].icon);
                           return CategoryIconBox(
-                            label: cats[i].name.split(' / ').last,
+                            label: cats[i].name,
                             icon: style.icon,
                             backgroundColor: style.backgroundColor,
                             iconColor: style.iconColor,
                             onTap: () =>
-                                context.go('/catalog?category_id=${cats[i].id}'),
+                                context.go('/catalog?app_category_id=${cats[i].id}'),
                           );
                         },
                       ),

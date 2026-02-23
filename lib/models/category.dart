@@ -31,3 +31,29 @@ class Category {
     );
   }
 }
+
+class AppCategory {
+  final int id;
+  final String name;
+  final String icon;
+  final int sortOrder;
+  final int productCount;
+
+  AppCategory({
+    required this.id,
+    required this.name,
+    required this.icon,
+    this.sortOrder = 0,
+    this.productCount = 0,
+  });
+
+  factory AppCategory.fromJson(Map<String, dynamic> json) {
+    return AppCategory(
+      id: json['id'] as int,
+      name: json['name'] as String,
+      icon: json['icon'] as String? ?? 'shopping_bag',
+      sortOrder: json['sort_order'] as int? ?? 0,
+      productCount: json['product_count'] as int? ?? 0,
+    );
+  }
+}

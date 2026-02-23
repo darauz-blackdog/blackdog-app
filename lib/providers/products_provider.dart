@@ -4,23 +4,33 @@ import '../models/product.dart';
 import '../models/category.dart';
 import 'service_providers.dart';
 
-/// Paginated product list with optional category filter
+/// Paginated product list with optional category/brand filter
 class ProductListParams {
   final int? categoryId;
+  final int? appCategoryId;
+  final String? brand;
   final String sort;
   final int page;
 
-  const ProductListParams({this.categoryId, this.sort = 'name', this.page = 1});
+  const ProductListParams({
+    this.categoryId,
+    this.appCategoryId,
+    this.brand,
+    this.sort = 'name',
+    this.page = 1,
+  });
 
   @override
   bool operator ==(Object other) =>
       other is ProductListParams &&
       other.categoryId == categoryId &&
+      other.appCategoryId == appCategoryId &&
+      other.brand == brand &&
       other.sort == sort &&
       other.page == page;
 
   @override
-  int get hashCode => Object.hash(categoryId, sort, page);
+  int get hashCode => Object.hash(categoryId, appCategoryId, brand, sort, page);
 }
 
 final productListProvider = FutureProvider.family<ProductListResult, ProductListParams>((ref, params) async {
@@ -28,6 +38,8 @@ final productListProvider = FutureProvider.family<ProductListResult, ProductList
   final result = await api.getProducts(
     page: params.page,
     categoryId: params.categoryId,
+    appCategoryId: params.appCategoryId,
+    brand: params.brand,
     sort: params.sort,
   );
 
@@ -105,4 +117,17 @@ final categoriesProvider = FutureProvider<List<Category>>((ref) async {
     categories = roots.first.children;
   }
   return categories.where((c) => !_hiddenCategories.contains(c.name.toLowerCase())).toList();
+});
+
+/// Simplified app categories (14 categories)
+final appCategoriesProvider = FutureProvider<List<AppCategory>>((ref) async {
+  final api = ref.read(apiServiceProvider);
+  final result = await api.getAppCategories();
+  return result.map((c) => AppCategory.fromJson(c as Map<String, dynamic>)).toList();
+});
+
+/// Brands for a specific app category
+final brandsProvider = FutureProvider.family<List<String>, int?>((ref, appCategoryId) async {
+  final api = ref.read(apiServiceProvider);
+  return api.getBrands(appCategoryId: appCategoryId);
 });

@@ -11,30 +11,34 @@ import '../../widgets/cart_badge.dart';
 
 class CatalogScreen extends ConsumerStatefulWidget {
   final int? categoryId;
-  const CatalogScreen({super.key, this.categoryId});
+  final int? appCategoryId;
+  const CatalogScreen({super.key, this.categoryId, this.appCategoryId});
 
   @override
   ConsumerState<CatalogScreen> createState() => _CatalogScreenState();
 }
 
 class _CatalogScreenState extends ConsumerState<CatalogScreen> {
-  int? _selectedCategoryId;
+  int? _selectedAppCategoryId;
+  String? _selectedBrand;
   String _sort = 'name';
 
   @override
   void initState() {
     super.initState();
-    _selectedCategoryId = widget.categoryId;
+    _selectedAppCategoryId = widget.appCategoryId;
   }
 
   @override
   Widget build(BuildContext context) {
     final params = ProductListParams(
-      categoryId: _selectedCategoryId,
+      appCategoryId: _selectedAppCategoryId,
+      brand: _selectedBrand,
       sort: _sort,
     );
     final products = ref.watch(productListProvider(params));
-    final categories = ref.watch(categoriesProvider);
+    final appCategories = ref.watch(appCategoriesProvider);
+    final brands = ref.watch(brandsProvider(_selectedAppCategoryId));
 
     return Scaffold(
       appBar: AppBar(
@@ -60,10 +64,10 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
       ),
       body: Column(
         children: [
-          // Category filter chips
+          // App category filter chips
           SizedBox(
             height: 52,
-            child: categories.when(
+            child: appCategories.when(
               data: (cats) => ListView.separated(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 scrollDirection: Axis.horizontal,
@@ -73,15 +77,21 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                   if (i == 0) {
                     return CategoryChip(
                       label: 'Todos',
-                      isSelected: _selectedCategoryId == null,
-                      onTap: () => setState(() => _selectedCategoryId = null),
+                      isSelected: _selectedAppCategoryId == null,
+                      onTap: () => setState(() {
+                        _selectedAppCategoryId = null;
+                        _selectedBrand = null;
+                      }),
                     );
                   }
                   final cat = cats[i - 1];
                   return CategoryChip(
                     label: cat.name,
-                    isSelected: _selectedCategoryId == cat.id,
-                    onTap: () => setState(() => _selectedCategoryId = cat.id),
+                    isSelected: _selectedAppCategoryId == cat.id,
+                    onTap: () => setState(() {
+                      _selectedAppCategoryId = cat.id;
+                      _selectedBrand = null;
+                    }),
                   );
                 },
               ),
@@ -89,6 +99,40 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
               error: (_, __) => const SizedBox(),
             ),
           ),
+
+          // Brand filter chips (only when a category is selected)
+          if (_selectedAppCategoryId != null)
+            SizedBox(
+              height: 44,
+              child: brands.when(
+                data: (brandList) {
+                  if (brandList.isEmpty) return const SizedBox();
+                  return ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: brandList.length + 1,
+                    separatorBuilder: (_, __) => const SizedBox(width: 6),
+                    itemBuilder: (_, i) {
+                      if (i == 0) {
+                        return CategoryChip(
+                          label: 'Todas las marcas',
+                          isSelected: _selectedBrand == null,
+                          onTap: () => setState(() => _selectedBrand = null),
+                        );
+                      }
+                      final brand = brandList[i - 1];
+                      return CategoryChip(
+                        label: brand,
+                        isSelected: _selectedBrand == brand,
+                        onTap: () => setState(() => _selectedBrand = brand),
+                      );
+                    },
+                  );
+                },
+                loading: () => const SizedBox(),
+                error: (_, __) => const SizedBox(),
+              ),
+            ),
 
           // Product grid
           Expanded(

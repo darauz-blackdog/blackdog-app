@@ -94,6 +94,7 @@ class _CategoryIconBoxState extends State<CategoryIconBox>
 }
 
 /// Maps category names to icon + colors.
+/// Now supports both legacy category names and new app_category icon names from the API.
 class CategoryStyle {
   final IconData icon;
   final Color backgroundColor;
@@ -105,84 +106,120 @@ class CategoryStyle {
     required this.iconColor,
   });
 
+  /// Map API icon name (Material icon string) to IconData + colors
+  static CategoryStyle forAppCategory(String iconName) {
+    return _iconStyles[iconName] ?? _defaultStyle;
+  }
+
+  /// Legacy: map category name to style (used by old categoriesProvider)
   static CategoryStyle forCategory(String name) {
     final lower = name.toLowerCase();
 
     if (lower.contains('aliment') || lower.contains('comida') || lower.contains('food')) {
-      return const CategoryStyle(
-        icon: Icons.restaurant_rounded,
-        backgroundColor: Color(0xFFFEF3C7), // warm yellow
-        iconColor: Color(0xFFF59E0B),
-      );
+      return _iconStyles['restaurant']!;
     }
     if (lower.contains('juguete') || lower.contains('toy') || lower.contains('juego')) {
-      return const CategoryStyle(
-        icon: Icons.sports_baseball_rounded,
-        backgroundColor: Color(0xFFDBEAFE), // light blue
-        iconColor: Color(0xFF3B82F6),
-      );
+      return _iconStyles['sports_baseball']!;
     }
     if (lower.contains('ropa') || lower.contains('apparel') || lower.contains('vest') || lower.contains('collar')) {
-      return const CategoryStyle(
-        icon: Icons.checkroom_rounded,
-        backgroundColor: Color(0xFFD1FAE5), // light green
-        iconColor: Color(0xFF10B981),
-      );
+      return _iconStyles['checkroom']!;
     }
     if (lower.contains('salud') || lower.contains('health') || lower.contains('medic') || lower.contains('higiene')) {
-      return const CategoryStyle(
-        icon: Icons.favorite_rounded,
-        backgroundColor: Color(0xFFEDE9FE), // light purple
-        iconColor: Color(0xFF8B5CF6),
-      );
+      return _iconStyles['favorite']!;
     }
     if (lower.contains('cama') || lower.contains('bed') || lower.contains('casa') || lower.contains('hogar')) {
-      return const CategoryStyle(
-        icon: Icons.bed_rounded,
-        backgroundColor: Color(0xFFFEE2E2), // light red
-        iconColor: Color(0xFFEF4444),
-      );
+      return _iconStyles['bed']!;
     }
     if (lower.contains('accesori') || lower.contains('accessor')) {
-      return const CategoryStyle(
-        icon: Icons.auto_awesome_rounded,
-        backgroundColor: Color(0xFFFCE7F3), // light pink
-        iconColor: Color(0xFFEC4899),
-      );
+      return _iconStyles['auto_awesome']!;
     }
     if (lower.contains('arena') || lower.contains('litter') || lower.contains('gato') || lower.contains('cat')) {
-      return const CategoryStyle(
-        icon: Icons.pets_rounded,
-        backgroundColor: Color(0xFFE0F2FE), // sky blue
-        iconColor: Color(0xFF0EA5E9),
-      );
+      return _iconStyles['pets']!;
     }
     if (lower.contains('transport') || lower.contains('viaje') || lower.contains('travel')) {
-      return const CategoryStyle(
-        icon: Icons.luggage_rounded,
-        backgroundColor: Color(0xFFFEF9C3), // light lime
-        iconColor: Color(0xFFCA8A04),
-      );
+      return _iconStyles['luggage']!;
     }
     if (lower.contains('servicio') || lower.contains('service')) {
       return const CategoryStyle(
         icon: Icons.build_rounded,
-        backgroundColor: Color(0xFFE0F2FE), // sky blue
+        backgroundColor: Color(0xFFE0F2FE),
         iconColor: Color(0xFF0EA5E9),
       );
     }
-    if (lower.contains('humano') || lower.contains('human')) {
-      return const CategoryStyle(
-        icon: Icons.person_rounded,
-        backgroundColor: Color(0xFFD1FAE5), // light green
-        iconColor: Color(0xFF10B981),
-      );
-    }
-    // Default
-    return const CategoryStyle(
-      icon: Icons.shopping_bag_rounded,
-      backgroundColor: Color(0xFFF3F4F6),
-      iconColor: Color(0xFF6B7280),
-    );
+    return _defaultStyle;
   }
+
+  static const _defaultStyle = CategoryStyle(
+    icon: Icons.shopping_bag_rounded,
+    backgroundColor: Color(0xFFF3F4F6),
+    iconColor: Color(0xFF6B7280),
+  );
+
+  static final Map<String, CategoryStyle> _iconStyles = {
+    'restaurant': const CategoryStyle(
+      icon: Icons.restaurant_rounded,
+      backgroundColor: Color(0xFFFEF3C7),
+      iconColor: Color(0xFFF59E0B),
+    ),
+    'cookie': const CategoryStyle(
+      icon: Icons.cookie_rounded,
+      backgroundColor: Color(0xFFFED7AA),
+      iconColor: Color(0xFFEA580C),
+    ),
+    'sports_baseball': const CategoryStyle(
+      icon: Icons.sports_baseball_rounded,
+      backgroundColor: Color(0xFFDBEAFE),
+      iconColor: Color(0xFF3B82F6),
+    ),
+    'favorite': const CategoryStyle(
+      icon: Icons.favorite_rounded,
+      backgroundColor: Color(0xFFEDE9FE),
+      iconColor: Color(0xFF8B5CF6),
+    ),
+    'bed': const CategoryStyle(
+      icon: Icons.bed_rounded,
+      backgroundColor: Color(0xFFFEE2E2),
+      iconColor: Color(0xFFEF4444),
+    ),
+    'checkroom': const CategoryStyle(
+      icon: Icons.checkroom_rounded,
+      backgroundColor: Color(0xFFD1FAE5),
+      iconColor: Color(0xFF10B981),
+    ),
+    'water_drop': const CategoryStyle(
+      icon: Icons.water_drop_rounded,
+      backgroundColor: Color(0xFFCFFAFE),
+      iconColor: Color(0xFF0891B2),
+    ),
+    'pets': const CategoryStyle(
+      icon: Icons.pets_rounded,
+      backgroundColor: Color(0xFFE0F2FE),
+      iconColor: Color(0xFF0EA5E9),
+    ),
+    'fitness_center': const CategoryStyle(
+      icon: Icons.fitness_center_rounded,
+      backgroundColor: Color(0xFFD1FAE5),
+      iconColor: Color(0xFF059669),
+    ),
+    'luggage': const CategoryStyle(
+      icon: Icons.luggage_rounded,
+      backgroundColor: Color(0xFFFEF9C3),
+      iconColor: Color(0xFFCA8A04),
+    ),
+    'cleaning_services': const CategoryStyle(
+      icon: Icons.cleaning_services_rounded,
+      backgroundColor: Color(0xFFE0E7FF),
+      iconColor: Color(0xFF6366F1),
+    ),
+    'medical_services': const CategoryStyle(
+      icon: Icons.medical_services_rounded,
+      backgroundColor: Color(0xFFFCE7F3),
+      iconColor: Color(0xFFDB2777),
+    ),
+    'auto_awesome': const CategoryStyle(
+      icon: Icons.auto_awesome_rounded,
+      backgroundColor: Color(0xFFFCE7F3),
+      iconColor: Color(0xFFEC4899),
+    ),
+  };
 }

@@ -5,6 +5,8 @@ class Product {
   final double? salePrice;
   final int? categoryId;
   final String? categoryName;
+  final int? appCategoryId;
+  final String? brand;
   final String? productType;
   final String? defaultCode;
   final String? description;
@@ -17,13 +19,14 @@ class Product {
   final double totalStock;
 
   Product({
-
     required this.id,
     required this.name,
     required this.listPrice,
     this.salePrice,
     this.categoryId,
     this.categoryName,
+    this.appCategoryId,
+    this.brand,
     this.productType,
     this.defaultCode,
     this.description,
@@ -36,7 +39,6 @@ class Product {
     this.totalStock = 0,
   });
 
-
   factory Product.fromJson(Map<String, dynamic> json) {
     final urls = (json['image_urls'] as List?)?.cast<String>() ?? [];
     return Product(
@@ -46,6 +48,8 @@ class Product {
       salePrice: json['sale_price'] != null ? (json['sale_price'] as num).toDouble() : null,
       categoryId: json['category_id'] as int?,
       categoryName: json['category_name'] as String?,
+      appCategoryId: json['app_category_id'] as int?,
+      brand: json['brand'] as String?,
       productType: json['product_type'] as String?,
       defaultCode: json['default_code'] as String?,
       description: json['description'] as String?,
@@ -95,6 +99,8 @@ class ProductDetail extends Product {
     super.salePrice,
     super.categoryId,
     super.categoryName,
+    super.appCategoryId,
+    super.brand,
     super.productType,
     super.defaultCode,
     super.description,
@@ -117,6 +123,8 @@ class ProductDetail extends Product {
       salePrice: json['sale_price'] != null ? (json['sale_price'] as num).toDouble() : null,
       categoryId: json['category_id'] as int?,
       categoryName: json['category_name'] as String?,
+      appCategoryId: json['app_category_id'] as int?,
+      brand: json['brand'] as String?,
       productType: json['product_type'] as String?,
       defaultCode: json['default_code'] as String?,
       description: json['description'] as String?,

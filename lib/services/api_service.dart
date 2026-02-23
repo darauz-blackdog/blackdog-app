@@ -36,6 +36,8 @@ class ApiService {
     int page = 1,
     int limit = 40,
     int? categoryId,
+    int? appCategoryId,
+    String? brand,
     String sort = 'name',
   }) async {
     final params = <String, dynamic>{
@@ -43,7 +45,12 @@ class ApiService {
       'limit': limit,
       'sort': sort,
     };
-    if (categoryId != null) params['category_id'] = categoryId;
+    if (appCategoryId != null) {
+      params['app_category_id'] = appCategoryId;
+    } else if (categoryId != null) {
+      params['category_id'] = categoryId;
+    }
+    if (brand != null) params['brand'] = brand;
 
     final response = await _dio.get('/products', queryParameters: params);
     return response.data as Map<String, dynamic>;
@@ -72,6 +79,21 @@ class ApiService {
   Future<List<dynamic>> getCategories({bool flat = false}) async {
     final response = await _dio.get('/categories', queryParameters: {'flat': flat.toString()});
     return (response.data as Map<String, dynamic>)['data'] as List<dynamic>;
+  }
+
+  // App Categories (simplified)
+  Future<List<dynamic>> getAppCategories() async {
+    final response = await _dio.get('/app-categories');
+    return (response.data as Map<String, dynamic>)['data'] as List<dynamic>;
+  }
+
+  // Brands
+  Future<List<String>> getBrands({int? appCategoryId}) async {
+    final params = <String, dynamic>{};
+    if (appCategoryId != null) params['app_category_id'] = appCategoryId;
+    final response = await _dio.get('/brands', queryParameters: params);
+    final data = (response.data as Map<String, dynamic>)['data'] as List;
+    return data.cast<String>();
   }
 
   // Branches
