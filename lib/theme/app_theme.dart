@@ -26,11 +26,12 @@ class AppColors {
   // Dark mode colors
   static const darkBackground = Color(0xFF121212);
   static const darkSurface = Color(0xFF1E1E1E);
-  static const darkSurfaceContainer = Color(0xFF2A2A2A);
+  static const darkCard = Color(0xFF262626);
+  static const darkSurfaceContainer = Color(0xFF2E2E2E);
   static const darkTextPrimary = Color(0xFFEAEAEA);
   static const darkTextSecondary = Color(0xFF9CA3AF);
   static const darkTextLight = Color(0xFF6B7280);
-  static const darkBorder = Color(0xFF3A3A3A);
+  static const darkBorder = Color(0xFF444444);
   static const darkDivider = Color(0xFF2A2A2A);
 }
 
@@ -219,7 +220,7 @@ class AppTheme {
         onPrimary: AppColors.secondary,
         secondary: AppColors.primary,
         onSecondary: AppColors.secondary,
-        surface: AppColors.darkSurface,
+        surface: AppColors.darkCard,
         onSurface: AppColors.darkTextPrimary,
         surfaceContainerHighest: AppColors.darkSurfaceContainer,
         error: AppColors.error,
@@ -281,7 +282,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(16),
           side: const BorderSide(color: AppColors.darkBorder),
         ),
-        color: AppColors.darkSurface,
+        color: AppColors.darkCard,
       ),
       dividerTheme: const DividerThemeData(color: AppColors.darkDivider, thickness: 1, space: 1),
       chipTheme: ChipThemeData(
