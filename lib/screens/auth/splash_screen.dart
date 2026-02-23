@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
+import '../../providers/cart_provider.dart';
+import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -20,11 +22,21 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   }
 
   Future<void> _checkAuth() async {
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(milliseconds: 1500));
     if (!mounted) return;
 
     final user = ref.read(currentUserProvider);
     if (user != null) {
+      // Pre-cargar datos del home en paralelo
+      await Future.wait([
+        ref.read(featuredProductsProvider.future),
+        ref.read(appCategoriesProvider.future),
+        ref.read(cartProvider.future),
+      ]).timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => [null, null, null],
+      );
+      if (!mounted) return;
       context.go('/home');
     } else {
       context.go('/login');
