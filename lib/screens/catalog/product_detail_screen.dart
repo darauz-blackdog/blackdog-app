@@ -329,34 +329,31 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       color: AppColors.success,
                     ),
               ),
-              const Spacer(),
-              Text(
-                '${p.totalStock.toInt()} unid.',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
             ],
           ),
           const SizedBox(height: 10),
           Wrap(
             spacing: 6,
             runSpacing: 6,
-            children: p.stockByBranch.map((s) => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
-                  ),
-                  child: Text(
-                    '${s.branch?.name ?? 'Sucursal'} (${s.qtyAvailable.toInt()})',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                  ),
-                )).toList(),
+            children: p.stockByBranch.map((s) {
+              final qty = s.qtyAvailable.toInt();
+              final name = s.branch?.name ?? 'Sucursal';
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
+                ),
+                child: Text(
+                  qty <= 50 ? '$name ($qty)' : name,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),
