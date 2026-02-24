@@ -77,7 +77,9 @@ class Product {
       id: json['id'] as int,
       name: json['name'] as String,
       listPrice: (json['list_price'] as num).toDouble(),
-      salePrice: json['sale_price'] != null ? (json['sale_price'] as num).toDouble() : null,
+      salePrice: json['sale_price'] != null
+          ? (json['sale_price'] as num).toDouble()
+          : null,
       categoryId: json['category_id'] as int?,
       categoryName: json['category_name'] as String?,
       appCategoryId: json['app_category_id'] as int?,
@@ -85,7 +87,8 @@ class Product {
       productType: json['product_type'] as String?,
       defaultCode: json['default_code'] as String?,
       description: json['description'] as String?,
-      imageUrl: json['image_url'] as String? ?? (urls.isNotEmpty ? urls.first : null),
+      imageUrl:
+          json['image_url'] as String? ?? (urls.isNotEmpty ? urls.first : null),
       imageUrls: urls,
       descriptionHtml: json['description_html'] as String?,
       tags: (json['tags'] as List?)?.cast<String>() ?? [],
@@ -124,7 +127,6 @@ class Product {
 
 class ProductDetail extends Product {
   final List<StockByBranch> stockByBranch;
-  final double totalStock;
   final List<ProductVariant> variants;
 
   ProductDetail({
@@ -148,7 +150,7 @@ class ProductDetail extends Product {
     super.variantGroup,
     super.variantLabel,
     required this.stockByBranch,
-    required this.totalStock,
+    required super.totalStock,
     this.variants = const [],
   });
 
@@ -158,7 +160,9 @@ class ProductDetail extends Product {
       id: json['id'] as int,
       name: json['name'] as String,
       listPrice: (json['list_price'] as num).toDouble(),
-      salePrice: json['sale_price'] != null ? (json['sale_price'] as num).toDouble() : null,
+      salePrice: json['sale_price'] != null
+          ? (json['sale_price'] as num).toDouble()
+          : null,
       categoryId: json['category_id'] as int?,
       categoryName: json['category_name'] as String?,
       appCategoryId: json['app_category_id'] as int?,
@@ -166,7 +170,8 @@ class ProductDetail extends Product {
       productType: json['product_type'] as String?,
       defaultCode: json['default_code'] as String?,
       description: json['description'] as String?,
-      imageUrl: json['image_url'] as String? ?? (urls.isNotEmpty ? urls.first : null),
+      imageUrl:
+          json['image_url'] as String? ?? (urls.isNotEmpty ? urls.first : null),
       imageUrls: urls,
       descriptionHtml: json['description_html'] as String?,
       tags: (json['tags'] as List?)?.cast<String>() ?? [],
@@ -210,7 +215,9 @@ class ProductVariant {
       id: json['id'] as int,
       variantLabel: json['variant_label'] as String?,
       listPrice: (json['list_price'] as num).toDouble(),
-      salePrice: json['sale_price'] != null ? (json['sale_price'] as num).toDouble() : null,
+      salePrice: json['sale_price'] != null
+          ? (json['sale_price'] as num).toDouble()
+          : null,
       totalStock: (json['total_stock'] as num?)?.toDouble() ?? 0,
       imageUrl: json['image_url'] as String?,
     );

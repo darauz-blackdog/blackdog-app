@@ -138,7 +138,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 scrollDirection: Axis.horizontal,
                 itemCount: cats.length + 1,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (_, i) {
                   if (i == 0) {
                     return CategoryChip(
@@ -168,7 +168,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                 },
               ),
               loading: () => const SizedBox(),
-              error: (_, __) => const SizedBox(),
+              error: (_, _) => const SizedBox(),
             ),
           ),
 
@@ -183,7 +183,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     scrollDirection: Axis.horizontal,
                     itemCount: brandList.length + 1,
-                    separatorBuilder: (_, __) => const SizedBox(width: 6),
+                    separatorBuilder: (_, _) => const SizedBox(width: 6),
                     itemBuilder: (_, i) {
                       if (i == 0) {
                         return CategoryChip(
@@ -208,7 +208,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                   );
                 },
                 loading: () => const SizedBox(),
-                error: (_, __) => const SizedBox(),
+                error: (_, _) => const SizedBox(),
               ),
             ),
 

@@ -23,9 +23,22 @@ class ProfileScreen extends ConsumerWidget {
             child: CircleAvatar(
               radius: 48,
               backgroundColor: AppColors.primary,
-              child: Text(
-                (user?.email?.substring(0, 1) ?? 'U').toUpperCase(),
-                style: const TextStyle(fontSize: 32, color: AppColors.secondary, fontWeight: FontWeight.bold),
+              child: RefreshIndicator(
+                color: AppColors.primary,
+                onRefresh: () async {
+                  // TODO: Implement refresh logic for user data
+                  await Future.delayed(
+                    const Duration(seconds: 1),
+                  ); // Simulate network call
+                },
+                child: Text(
+                  (user?.email?.substring(0, 1) ?? 'U').toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 32,
+                    color: AppColors.secondary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ),
@@ -37,7 +50,10 @@ class ProfileScreen extends ConsumerWidget {
             ),
           ),
           Center(
-            child: Text(user?.email ?? '', style: Theme.of(context).textTheme.bodyMedium),
+            child: Text(
+              user?.email ?? '',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
           ),
           const SizedBox(height: 32),
 
@@ -62,11 +78,7 @@ class ProfileScreen extends ConsumerWidget {
             title: 'Notificaciones',
             onTap: () {}, // TODO: Notifications screen
           ),
-          _MenuItem(
-            icon: Icons.help_outline,
-            title: 'Ayuda',
-            onTap: () {},
-          ),
+          _MenuItem(icon: Icons.help_outline, title: 'Ayuda', onTap: () {}),
           const SizedBox(height: 8),
 
           // Theme toggle
@@ -77,7 +89,10 @@ class ProfileScreen extends ConsumerWidget {
           OutlinedButton.icon(
             onPressed: () => ref.read(authNotifierProvider.notifier).signOut(),
             icon: const Icon(Icons.logout, color: AppColors.error),
-            label: const Text('Cerrar sesión', style: TextStyle(color: AppColors.error)),
+            label: const Text(
+              'Cerrar sesión',
+              style: TextStyle(color: AppColors.error),
+            ),
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: AppColors.error),
             ),
@@ -93,7 +108,11 @@ class _MenuItem extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
 
-  const _MenuItem({required this.icon, required this.title, required this.onTap});
+  const _MenuItem({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -114,8 +133,10 @@ class _ThemeToggle extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final mode = ref.watch(themeModeProvider);
-    final isDark = mode == ThemeMode.dark ||
-        (mode == ThemeMode.system && MediaQuery.platformBrightnessOf(context) == Brightness.dark);
+    final isDark =
+        mode == ThemeMode.dark ||
+        (mode == ThemeMode.system &&
+            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
 
     return Card(
       margin: EdgeInsets.zero,
@@ -127,7 +148,8 @@ class _ThemeToggle extends ConsumerWidget {
         title: const Text('Modo oscuro'),
         trailing: Switch.adaptive(
           value: isDark,
-          activeColor: AppColors.primary,
+          activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
+          activeThumbColor: AppColors.primary,
           onChanged: (_) => ref.read(themeModeProvider.notifier).toggle(),
         ),
         onTap: () => ref.read(themeModeProvider.notifier).toggle(),

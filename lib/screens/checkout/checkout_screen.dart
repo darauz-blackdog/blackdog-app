@@ -16,7 +16,9 @@ final _branchesProvider = FutureProvider<List<Branch>>((ref) async {
   return data.map((b) => Branch.fromJson(b as Map<String, dynamic>)).toList();
 });
 
-final _addressesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+final _addressesProvider = FutureProvider<List<Map<String, dynamic>>>((
+  ref,
+) async {
   final api = ref.read(apiServiceProvider);
   final data = await api.getAddresses();
   return data.cast<Map<String, dynamic>>();
@@ -54,7 +56,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         title: Text(_stepTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: _step > 0 ? () => setState(() => _step--) : () => context.pop(),
+          onPressed: _step > 0
+              ? () => setState(() => _step--)
+              : () => context.pop(),
         ),
       ),
       body: AnimatedSwitcher(
@@ -66,47 +70,55 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   String get _stepTitle {
     switch (_step) {
-      case 0: return 'Método de entrega';
-      case 1: return 'Método de pago';
-      case 2: return 'Resumen del pedido';
-      default: return 'Checkout';
+      case 0:
+        return 'Método de entrega';
+      case 1:
+        return 'Método de pago';
+      case 2:
+        return 'Resumen del pedido';
+      default:
+        return 'Checkout';
     }
   }
 
   Widget _buildCurrentStep(Cart cart) {
     switch (_step) {
-      case 0: return _DeliveryStep(
-        key: const ValueKey('delivery'),
-        deliveryType: _deliveryType,
-        selectedBranchId: _selectedBranchId,
-        selectedAddressId: _selectedAddressId,
-        onDeliveryTypeChanged: (v) => setState(() {
-          _deliveryType = v;
-          if (v == 'pickup') _selectedAddressId = null;
-        }),
-        onBranchSelected: (id) => setState(() => _selectedBranchId = id),
-        onAddressSelected: (id) => setState(() => _selectedAddressId = id),
-        onNext: _canProceedDelivery ? () => setState(() => _step = 1) : null,
-      );
-      case 1: return _PaymentStep(
-        key: const ValueKey('payment'),
-        paymentMethod: _paymentMethod,
-        deliveryType: _deliveryType,
-        onPaymentMethodChanged: (v) => setState(() => _paymentMethod = v),
-        onNext: () => setState(() => _step = 2),
-      );
-      case 2: return _SummaryStep(
-        key: const ValueKey('summary'),
-        cart: cart,
-        deliveryType: _deliveryType,
-        selectedBranchId: _selectedBranchId,
-        paymentMethod: _paymentMethod,
-        notes: _notes,
-        isSubmitting: _isSubmitting,
-        onNotesChanged: (v) => _notes = v,
-        onConfirm: _submitOrder,
-      );
-      default: return const SizedBox.shrink();
+      case 0:
+        return _DeliveryStep(
+          key: const ValueKey('delivery'),
+          deliveryType: _deliveryType,
+          selectedBranchId: _selectedBranchId,
+          selectedAddressId: _selectedAddressId,
+          onDeliveryTypeChanged: (v) => setState(() {
+            _deliveryType = v;
+            if (v == 'pickup') _selectedAddressId = null;
+          }),
+          onBranchSelected: (id) => setState(() => _selectedBranchId = id),
+          onAddressSelected: (id) => setState(() => _selectedAddressId = id),
+          onNext: _canProceedDelivery ? () => setState(() => _step = 1) : null,
+        );
+      case 1:
+        return _PaymentStep(
+          key: const ValueKey('payment'),
+          paymentMethod: _paymentMethod,
+          deliveryType: _deliveryType,
+          onPaymentMethodChanged: (v) => setState(() => _paymentMethod = v),
+          onNext: () => setState(() => _step = 2),
+        );
+      case 2:
+        return _SummaryStep(
+          key: const ValueKey('summary'),
+          cart: cart,
+          deliveryType: _deliveryType,
+          selectedBranchId: _selectedBranchId,
+          paymentMethod: _paymentMethod,
+          notes: _notes,
+          isSubmitting: _isSubmitting,
+          onNotesChanged: (v) => _notes = v,
+          onConfirm: _submitOrder,
+        );
+      default:
+        return const SizedBox.shrink();
     }
   }
 
@@ -139,9 +151,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     } catch (e) {
       setState(() => _isSubmitting = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     }
   }
@@ -198,26 +210,34 @@ class _DeliveryStep extends ConsumerWidget {
               const SizedBox(height: 24),
 
               // Branch selector (always shown — used as source warehouse)
-              Text('Sucursal',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600)),
+              Text(
+                'Sucursal',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: 12),
               branches.when(
                 data: (list) => Column(
-                  children: list.map((b) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _RadioCard(
-                      title: b.name,
-                      subtitle: b.address ?? '',
-                      icon: Icons.location_on_outlined,
-                      selected: selectedBranchId == b.id,
-                      onTap: () => onBranchSelected(b.id),
-                      compact: true,
-                    ),
-                  )).toList(),
+                  children: list
+                      .map(
+                        (b) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: _RadioCard(
+                            title: b.name,
+                            subtitle: b.address ?? '',
+                            icon: Icons.location_on_outlined,
+                            selected: selectedBranchId == b.id,
+                            onTap: () => onBranchSelected(b.id),
+                            compact: true,
+                          ),
+                        ),
+                      )
+                      .toList(),
                 ),
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => const Text('Error cargando sucursales'),
+                error: (context, error) =>
+                    const Text('Error cargando sucursales'),
               ),
 
               // Address selector (only for delivery)
@@ -226,15 +246,18 @@ class _DeliveryStep extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Dirección de entrega',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600)),
+                    Text(
+                      'Dirección de entrega',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     TextButton.icon(
                       onPressed: () async {
                         final result = await showModalBottomSheet<bool>(
                           context: context,
                           isScrollControlled: true,
-                          builder: (_) => const AddAddressSheet(),
+                          builder: (context) => const AddAddressSheet(),
                         );
                         if (result == true) {
                           ref.invalidate(_addressesProvider);
@@ -251,10 +274,7 @@ class _DeliveryStep extends ConsumerWidget {
             ],
           ),
         ),
-        _BottomButton(
-          label: 'Continuar',
-          onPressed: onNext,
-        ),
+        _BottomButton(label: 'Continuar', onPressed: onNext),
       ],
     );
   }
@@ -294,7 +314,7 @@ class _DeliveryStep extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Text('Error cargando direcciones'),
+      error: (context, error) => const Text('Error cargando direcciones'),
     );
   }
 }
@@ -395,25 +415,32 @@ class _SummaryStep extends ConsumerWidget {
             padding: const EdgeInsets.all(20),
             children: [
               // Items summary
-              Text('Productos (${cart.items.length})',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600)),
+              Text(
+                'Productos (${cart.items.length})',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: 12),
-              ...cart.items.map((item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${item.quantity}x ${item.productName ?? "Producto"}',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
+              ...cart.items.map(
+                (item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${item.quantity}x ${item.productName ?? "Producto"}',
+                          style: Theme.of(context).textTheme.bodyMedium,
                         ),
-                        Text('\$${item.lineTotal.toStringAsFixed(2)}',
-                            style: Theme.of(context).textTheme.bodyMedium),
-                      ],
-                    ),
-                  )),
+                      ),
+                      Text(
+                        '\$${item.lineTotal.toStringAsFixed(2)}',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               const Divider(height: 24),
 
               // Delivery info
@@ -425,10 +452,7 @@ class _SummaryStep extends ConsumerWidget {
               ),
               if (branch != null)
                 _SummaryRow(label: 'Sucursal', value: branch.name),
-              _SummaryRow(
-                label: 'Pago',
-                value: _paymentLabel(paymentMethod),
-              ),
+              _SummaryRow(label: 'Pago', value: _paymentLabel(paymentMethod)),
               const Divider(height: 24),
 
               // Totals
@@ -446,14 +470,19 @@ class _SummaryStep extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Total',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w700)),
-                  Text('\$${total.toStringAsFixed(2)}',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
-                          )),
+                  Text(
+                    'Total',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    '\$${total.toStringAsFixed(2)}',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -471,7 +500,9 @@ class _SummaryStep extends ConsumerWidget {
           ),
         ),
         _BottomButton(
-          label: isSubmitting ? 'Procesando...' : 'Confirmar Pedido  •  \$${total.toStringAsFixed(2)}',
+          label: isSubmitting
+              ? 'Procesando...'
+              : 'Confirmar Pedido  •  \$${total.toStringAsFixed(2)}',
           onPressed: isSubmitting ? null : onConfirm,
         ),
       ],
@@ -480,10 +511,14 @@ class _SummaryStep extends ConsumerWidget {
 
   String _paymentLabel(String method) {
     switch (method) {
-      case 'tilopay': return 'Tarjeta (Tilopay)';
-      case 'yappy': return 'Yappy';
-      case 'in_store': return 'Pago en tienda';
-      default: return method;
+      case 'tilopay':
+        return 'Tarjeta (Tilopay)';
+      case 'yappy':
+        return 'Yappy';
+      case 'in_store':
+        return 'Pago en tienda';
+      default:
+        return method;
     }
   }
 }
@@ -520,7 +555,9 @@ class _RadioCard extends StatelessWidget {
               : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? AppColors.primary : Theme.of(context).colorScheme.outline,
+            color: selected
+                ? AppColors.primary
+                : Theme.of(context).colorScheme.outline,
             width: selected ? 2 : 1,
           ),
         ),
@@ -534,29 +571,41 @@ class _RadioCard extends StatelessWidget {
                     : Theme.of(context).dividerColor,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon,
-                  size: compact ? 20 : 24,
-                  color: selected ? AppColors.primary : Theme.of(context).hintColor),
+              child: Icon(
+                icon,
+                size: compact ? 20 : 24,
+                color: selected
+                    ? AppColors.primary
+                    : Theme.of(context).hintColor,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                          )),
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  ),
                   if (subtitle.isNotEmpty)
-                    Text(subtitle,
-                        style: Theme.of(context).textTheme.bodySmall,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                 ],
               ),
             ),
             if (selected)
-              const Icon(Icons.check_circle, color: AppColors.primary, size: 24),
+              const Icon(
+                Icons.check_circle,
+                color: AppColors.primary,
+                size: 24,
+              ),
           ],
         ),
       ),
@@ -578,9 +627,12 @@ class _SummaryRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: Theme.of(context).textTheme.bodyMedium),
-          Text(value,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500)),
+          Text(
+            value,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+          ),
         ],
       ),
     );
@@ -600,16 +652,15 @@ class _BottomButton extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: Border(
-          top: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
+          top: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+          ),
         ),
       ),
       child: SafeArea(
         child: SizedBox(
           width: double.infinity,
-          child: ElevatedButton(
-            onPressed: onPressed,
-            child: Text(label),
-          ),
+          child: ElevatedButton(onPressed: onPressed, child: Text(label)),
         ),
       ),
     );

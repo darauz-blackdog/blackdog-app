@@ -27,7 +27,9 @@ class HomeScreen extends ConsumerWidget {
           SliverAppBar(
             floating: true,
             snap: true,
-            backgroundColor: Theme.of(context).colorScheme.surface.withOpacity(0.85),
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.surface.withValues(alpha: 0.85),
             surfaceTintColor: Colors.transparent,
             elevation: 0,
             flexibleSpace: ClipRect(
@@ -47,8 +49,10 @@ class HomeScreen extends ConsumerWidget {
                 onPressed: () {
                   // TODO: Notifications
                 },
-                icon: Icon(Icons.notifications_outlined,
-                    color: Theme.of(context).colorScheme.onSurface),
+                icon: Icon(
+                  Icons.notifications_outlined,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
               const CartBadge(),
               const SizedBox(width: 4),
@@ -57,7 +61,9 @@ class HomeScreen extends ConsumerWidget {
               preferredSize: const Size.fromHeight(1),
               child: Container(
                 height: 1,
-                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                color: Theme.of(
+                  context,
+                ).colorScheme.outline.withValues(alpha: 0.3),
               ),
             ),
           ),
@@ -69,14 +75,23 @@ class HomeScreen extends ConsumerWidget {
               child: GestureDetector(
                 onTap: () => context.go('/search'),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.search_rounded, color: Theme.of(context).hintColor, size: 22),
+                      Icon(
+                        Icons.search_rounded,
+                        color: Theme.of(context).hintColor,
+                        size: 22,
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
@@ -119,20 +134,24 @@ class HomeScreen extends ConsumerWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Categorías',
-                            style: GoogleFonts.montserrat(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            )),
+                        Text(
+                          'Categorías',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
                         GestureDetector(
                           onTap: () => context.go('/catalog'),
-                          child: Text('Ver todo',
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primary,
-                              )),
+                          child: Text(
+                            'Ver todo',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -145,22 +164,25 @@ class HomeScreen extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         scrollDirection: Axis.horizontal,
                         itemCount: cats.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        separatorBuilder: (_, _) => const SizedBox(width: 12),
                         itemBuilder: (_, i) {
-                          final style = CategoryStyle.forAppCategory(cats[i].icon);
+                          final style = CategoryStyle.forAppCategory(
+                            cats[i].icon,
+                          );
                           return CategoryIconBox(
                             label: cats[i].name,
                             icon: style.icon,
                             backgroundColor: style.backgroundColor,
                             iconColor: style.iconColor,
-                            onTap: () =>
-                                context.go('/catalog?app_category_id=${cats[i].id}'),
+                            onTap: () => context.go(
+                              '/catalog?app_category_id=${cats[i].id}',
+                            ),
                           );
                         },
                       ),
                       loading: () =>
                           const Center(child: CircularProgressIndicator()),
-                      error: (_, __) => const SizedBox(),
+                      error: (_, _) => const SizedBox(),
                     ),
                   ),
                 ],
@@ -171,51 +193,52 @@ class HomeScreen extends ConsumerWidget {
           // Brand/category sections
           sections.when(
             data: (sectionList) => SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (ctx, i) {
-                  final section = sectionList[i];
-                  return ProductCarouselSection(
-                    title: section.title,
-                    products: section.products,
-                    onViewAll: () {
-                      if (section.type == 'brand') {
-                        final brand = Uri.encodeComponent(
-                            section.filter['brand'] as String);
-                        context.go('/catalog?brand=$brand');
-                      } else {
-                        context.go(
-                            '/catalog?app_category_id=${section.filter['app_category_id']}');
-                      }
-                    },
-                    onTap: (product) => context.push('/product/${product.id}'),
-                    onAddToCart: (product) async {
-                      try {
-                        await ref.read(cartProvider.notifier).addItem(product.id);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('${product.name} agregado al carrito'),
-                              duration: const Duration(seconds: 1),
-                              action: SnackBarAction(
-                                label: 'Ver',
-                                textColor: AppColors.primary,
-                                onPressed: () => context.go('/cart'),
-                              ),
+              delegate: SliverChildBuilderDelegate((ctx, i) {
+                final section = sectionList[i];
+                return ProductCarouselSection(
+                  title: section.title,
+                  products: section.products,
+                  onViewAll: () {
+                    if (section.type == 'brand') {
+                      final brand = Uri.encodeComponent(
+                        section.filter['brand'] as String,
+                      );
+                      context.go('/catalog?brand=$brand');
+                    } else {
+                      context.go(
+                        '/catalog?app_category_id=${section.filter['app_category_id']}',
+                      );
+                    }
+                  },
+                  onTap: (product) => context.push('/product/${product.id}'),
+                  onAddToCart: (product) async {
+                    try {
+                      await ref.read(cartProvider.notifier).addItem(product.id);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              '${product.name} agregado al carrito',
                             ),
-                          );
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Error al agregar')),
-                          );
-                        }
+                            duration: const Duration(seconds: 1),
+                            action: SnackBarAction(
+                              label: 'Ver',
+                              textColor: AppColors.primary,
+                              onPressed: () => context.go('/cart'),
+                            ),
+                          ),
+                        );
                       }
-                    },
-                  );
-                },
-                childCount: sectionList.length,
-              ),
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Error al agregar')),
+                        );
+                      }
+                    }
+                  },
+                );
+              }, childCount: sectionList.length),
             ),
             loading: () => const SliverToBoxAdapter(
               child: Padding(
@@ -229,11 +252,16 @@ class HomeScreen extends ConsumerWidget {
                 child: Center(
                   child: Column(
                     children: [
-                      const Icon(Icons.error_outline, size: 48,
-                          color: AppColors.textLight),
+                      const Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: AppColors.textLight,
+                      ),
                       const SizedBox(height: 16),
-                      Text('Error al cargar secciones',
-                          style: Theme.of(context).textTheme.bodyMedium),
+                      Text(
+                        'Error al cargar secciones',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                       const SizedBox(height: 8),
                       TextButton(
                         onPressed: () => ref.invalidate(homeSectionsProvider),

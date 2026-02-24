@@ -67,7 +67,7 @@ class ProductCard extends StatelessWidget {
                                   fit: BoxFit.contain,
                                   alignment: Alignment.center,
                                   fadeInDuration: const Duration(milliseconds: 150),
-                                  placeholder: (_, __) => const Center(
+                                  placeholder: (_, _) => const Center(
                                     child: SizedBox(
                                       width: 24,
                                       height: 24,
@@ -77,7 +77,7 @@ class ProductCard extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  errorWidget: (_, __, ___) =>
+                                  errorWidget: (_, _, _) =>
                                       _PlaceholderIcon(compact: compact),
                                 )
                               : _PlaceholderIcon(compact: compact),

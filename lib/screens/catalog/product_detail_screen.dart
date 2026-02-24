@@ -416,8 +416,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           fit: BoxFit.contain,
           alignment: Alignment.center,
           fadeInDuration: const Duration(milliseconds: 150),
-          placeholder: (_, __) => const Center(child: CircularProgressIndicator()),
-          errorWidget: (_, __, ___) =>
+          placeholder: (_, _) => const Center(child: CircularProgressIndicator()),
+          errorWidget: (_, _, _) =>
               const Icon(Icons.image_outlined, size: 80, color: AppColors.textLight),
         ),
       );
@@ -439,8 +439,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 fit: BoxFit.contain,
                 alignment: Alignment.center,
                 fadeInDuration: const Duration(milliseconds: 150),
-                placeholder: (_, __) => const Center(child: CircularProgressIndicator()),
-                errorWidget: (_, __, ___) =>
+                placeholder: (_, _) => const Center(child: CircularProgressIndicator()),
+                errorWidget: (_, _, _) =>
                     const Icon(Icons.image_outlined, size: 80, color: AppColors.textLight),
               ),
             ),

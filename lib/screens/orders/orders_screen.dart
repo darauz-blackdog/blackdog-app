@@ -27,7 +27,7 @@ class OrdersScreen extends ConsumerWidget {
           return ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: result.orders.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               return FadeInUp(
                 delay: index * 100, // Staggered delay
@@ -41,12 +41,17 @@ class OrdersScreen extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 48, color: AppColors.textLight),
+              const Icon(
+                Icons.error_outline,
+                size: 48,
+                color: AppColors.textLight,
+              ),
               const SizedBox(height: 16),
               Text('Error: $err'),
               const SizedBox(height: 8),
               TextButton(
-                onPressed: () => ref.refresh(orderListProvider(const OrderListParams())),
+                onPressed: () =>
+                    ref.refresh(orderListProvider(const OrderListParams())),
                 child: const Text('Reintentar'),
               ),
             ],
@@ -67,12 +72,22 @@ class OrdersScreen extends ConsumerWidget {
               color: AppColors.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.receipt_long_outlined, size: 64, color: AppColors.primary),
+            child: const Icon(
+              Icons.receipt_long_outlined,
+              size: 64,
+              color: AppColors.primary,
+            ),
           ),
           const SizedBox(height: 24),
-          Text('No tienes pedidos aún', style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            'No tienes pedidos aún',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
           const SizedBox(height: 8),
-          Text('Tus compras aparecerán aquí', style: Theme.of(context).textTheme.bodyMedium),
+          Text(
+            'Tus compras aparecerán aquí',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
           const SizedBox(height: 32),
           ElevatedButton(
             onPressed: () => context.go('/home'),
@@ -92,14 +107,18 @@ class _OrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final date = order.createdAt != null
-        ? DateFormat('dd MMM yyyy, hh:mm a').format(DateTime.parse(order.createdAt!).toLocal())
+        ? DateFormat(
+            'dd MMM yyyy, hh:mm a',
+          ).format(DateTime.parse(order.createdAt!).toLocal())
         : 'Fecha desconocida';
 
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
+        ),
       ),
       child: InkWell(
         onTap: () => context.push('/orders/${order.id}', extra: order),
@@ -124,19 +143,26 @@ class _OrderCard extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Icon(Icons.shopping_bag_outlined, size: 16, color: Theme.of(context).hintColor),
+                  Icon(
+                    Icons.shopping_bag_outlined,
+                    size: 16,
+                    color: Theme.of(context).hintColor,
+                  ),
                   const SizedBox(width: 4),
-                  Text('${order.items.length} productos', style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    '${order.items.length} productos',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                   const Spacer(),
                   Text(
                     '\$${order.total.toStringAsFixed(2)}',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ],
-              )
+              ),
             ],
           ),
         ),
@@ -178,7 +204,11 @@ class _StatusChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

@@ -29,7 +29,7 @@ class CartBadge extends ConsumerWidget {
           );
         },
         loading: () => const Icon(Icons.shopping_cart_outlined),
-        error: (_, __) => const Icon(Icons.shopping_cart_outlined),
+        error: (_, _) => const Icon(Icons.shopping_cart_outlined),
       ),
     );
   }

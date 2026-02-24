@@ -43,7 +43,11 @@ class CartScreen extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 48, color: AppColors.textLight),
+              const Icon(
+                Icons.error_outline,
+                size: 48,
+                color: AppColors.textLight,
+              ),
               const SizedBox(height: 16),
               const Text('Error al cargar el carrito'),
               const SizedBox(height: 8),
@@ -71,16 +75,23 @@ class CartScreen extends ConsumerWidget {
                 color: AppColors.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.shopping_cart_outlined,
-                  size: 64, color: AppColors.primary),
+              child: const Icon(
+                Icons.shopping_cart_outlined,
+                size: 64,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(height: 24),
-            Text('Tu carrito está vacío',
-                style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              'Tu carrito está vacío',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             const SizedBox(height: 8),
-            Text('Explora nuestros productos y agrega tus favoritos',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              'Explora nuestros productos y agrega tus favoritos',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
               onPressed: () => context.go('/catalog'),
@@ -100,7 +111,7 @@ class CartScreen extends ConsumerWidget {
           child: ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: cart.items.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               return FadeInUp(
                 delay: index * 100,
@@ -115,7 +126,11 @@ class CartScreen extends ConsumerWidget {
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             border: Border(
-              top: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
+              top: BorderSide(
+                color: Theme.of(
+                  context,
+                ).colorScheme.outline.withValues(alpha: 0.3),
+              ),
             ),
           ),
           child: SafeArea(
@@ -125,22 +140,30 @@ class CartScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Subtotal',
-                        style: Theme.of(context).textTheme.bodyLarge),
-                    Text('\$${cart.subtotal.toStringAsFixed(2)}',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            )),
+                    Text(
+                      'Subtotal',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    Text(
+                      '\$${cart.subtotal.toStringAsFixed(2)}',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Delivery',
-                        style: Theme.of(context).textTheme.bodySmall),
-                    Text('Calculado en checkout',
-                        style: Theme.of(context).textTheme.bodySmall),
+                    Text(
+                      'Delivery',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    Text(
+                      'Calculado en checkout',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -149,7 +172,8 @@ class CartScreen extends ConsumerWidget {
                   child: ElevatedButton(
                     onPressed: () => context.push('/checkout'),
                     child: Text(
-                        'Proceder al Checkout  •  \$${cart.subtotal.toStringAsFixed(2)}'),
+                      'Proceder al Checkout  •  \$${cart.subtotal.toStringAsFixed(2)}',
+                    ),
                   ),
                 ),
               ],
@@ -176,7 +200,10 @@ class CartScreen extends ConsumerWidget {
               Navigator.pop(ctx);
               ref.read(cartProvider.notifier).clear();
             },
-            child: const Text('Vaciar', style: TextStyle(color: AppColors.error)),
+            child: const Text(
+              'Vaciar',
+              style: TextStyle(color: AppColors.error),
+            ),
           ),
         ],
       ),
@@ -195,7 +222,9 @@ class _CartItemCard extends ConsumerWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,18 +239,23 @@ class _CartItemCard extends ConsumerWidget {
                   ? CachedNetworkImage(
                       imageUrl: item.imageUrl!,
                       fit: BoxFit.cover,
-                      placeholder: (_, __) =>
+                      placeholder: (context, url) =>
                           Container(color: AppColors.divider),
-                      errorWidget: (_, __, ___) => Container(
+                      errorWidget: (context, url, error) => Container(
                         color: AppColors.divider,
-                        child: const Icon(Icons.image_outlined,
-                            color: AppColors.textLight),
+                        child: const Icon(
+                          Icons.image_outlined,
+                          color: AppColors.textLight,
+                        ),
                       ),
                     )
                   : Container(
                       color: AppColors.divider,
-                      child: const Icon(Icons.image_outlined,
-                          size: 32, color: AppColors.textLight),
+                      child: const Icon(
+                        Icons.image_outlined,
+                        size: 32,
+                        color: AppColors.textLight,
+                      ),
                     ),
             ),
           ),
@@ -241,9 +275,9 @@ class _CartItemCard extends ConsumerWidget {
                 Text(
                   '\$${(item.productPrice ?? 0).toStringAsFixed(2)}',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -269,8 +303,8 @@ class _CartItemCard extends ConsumerWidget {
                     Text(
                       '\$${item.lineTotal.toStringAsFixed(2)}',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ],
                 ),
@@ -319,10 +353,9 @@ class _QuantitySelector extends StatelessWidget {
             alignment: Alignment.center,
             child: Text(
               '$quantity',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
           _qtyButton(context, Icons.add, onIncrement, false),
@@ -331,7 +364,12 @@ class _QuantitySelector extends StatelessWidget {
     );
   }
 
-  Widget _qtyButton(BuildContext context, IconData icon, VoidCallback onTap, bool disabled) {
+  Widget _qtyButton(
+    BuildContext context,
+    IconData icon,
+    VoidCallback onTap,
+    bool disabled,
+  ) {
     return GestureDetector(
       onTap: disabled ? null : onTap,
       child: Container(
@@ -339,7 +377,9 @@ class _QuantitySelector extends StatelessWidget {
         child: Icon(
           icon,
           size: 18,
-          color: disabled ? Theme.of(context).hintColor : Theme.of(context).colorScheme.onSurface,
+          color: disabled
+              ? Theme.of(context).hintColor
+              : Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );

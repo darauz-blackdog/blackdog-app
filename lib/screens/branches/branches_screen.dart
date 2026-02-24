@@ -158,7 +158,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                 child: ListView.separated(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                   itemCount: branches.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
                     final branch = branches[index] as Map<String, dynamic>;
                     final isSelected = _selectedIndex == index;

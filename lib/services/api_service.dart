@@ -138,8 +138,8 @@ class ApiService {
 
   Future<Map<String, dynamic>> updateProfile({String? fullName, String? phone}) async {
     final response = await _dio.put('/auth/profile', data: {
-      if (fullName != null) 'full_name': fullName,
-      if (phone != null) 'phone': phone,
+      'full_name': ?fullName,
+      'phone': ?phone,
     });
     return response.data as Map<String, dynamic>;
   }
@@ -187,8 +187,8 @@ class ApiService {
       'delivery_type': deliveryType,
       'branch_id': branchId,
       'payment_method': paymentMethod,
-      if (addressId != null) 'address_id': addressId,
-      if (notes != null) 'notes': notes,
+      'address_id': ?addressId,
+      'notes': ?notes,
     });
     return response.data as Map<String, dynamic>;
   }
@@ -239,10 +239,10 @@ class ApiService {
     final response = await _dio.post('/addresses', data: {
       'label': label,
       'address_line': addressLine,
-      if (city != null) 'city': city,
-      if (zone != null) 'zone': zone,
-      if (latitude != null) 'latitude': latitude,
-      if (longitude != null) 'longitude': longitude,
+      'city': ?city,
+      'zone': ?zone,
+      'latitude': ?latitude,
+      'longitude': ?longitude,
     });
     return response.data as Map<String, dynamic>;
   }
