@@ -19,8 +19,6 @@ class OrderConfirmationScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final order = orderData?['order'] as Map<String, dynamic>? ?? {};
     final paymentUrl = orderData?['payment_url'] as String?;
-    final yappy = orderData?['yappy'] as Map<String, dynamic>?;
-    final paymentMethod = order['payment_method'] as String? ?? '';
     final orderNumber = orderData?['odoo_order_name'] as String? ??
         order['payment_reference'] as String? ??
         orderId.substring(0, 8).toUpperCase();
@@ -40,19 +38,15 @@ class OrderConfirmationScreen extends ConsumerWidget {
                   color: AppColors.success.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  paymentMethod == 'in_store'
-                      ? Icons.check_circle_outline
-                      : Icons.receipt_long_outlined,
+                child: const Icon(
+                  Icons.receipt_long_outlined,
                   size: 80,
                   color: AppColors.success,
                 ),
               ),
               const SizedBox(height: 24),
               Text(
-                paymentMethod == 'in_store'
-                    ? '¡Pedido Confirmado!'
-                    : '¡Pedido Creado!',
+                '¡Pedido Creado!',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -74,15 +68,9 @@ class OrderConfirmationScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 32),
 
-              // Payment-specific content
-              if (paymentMethod == 'tilopay' && paymentUrl != null)
+              // Payment section
+              if (paymentUrl != null)
                 _buildTilopaySection(context, paymentUrl),
-
-              if (paymentMethod == 'yappy' && yappy != null)
-                _buildYappySection(context, yappy, orderNumber, total),
-
-              if (paymentMethod == 'in_store')
-                _buildInStoreSection(context),
 
               const SizedBox(height: 40),
 
@@ -141,98 +129,6 @@ class OrderConfirmationScreen extends ConsumerWidget {
                 foregroundColor: Colors.white,
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildYappySection(
-    BuildContext context,
-    Map<String, dynamic> yappy,
-    String orderNumber,
-    double total,
-  ) {
-    final phone = yappy['phone'] as String? ?? '';
-    final bankName = yappy['bank_name'] as String? ?? 'Banco General';
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0FFF4),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF68D391)),
-      ),
-      child: Column(
-        children: [
-          const Icon(Icons.phone_android, size: 40, color: Color(0xFF38A169)),
-          const SizedBox(height: 12),
-          Text('Pagar con Yappy',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600)),
-          const SizedBox(height: 16),
-          _yappyRow(context, 'Número', phone),
-          _yappyRow(context, 'Banco', bankName),
-          _yappyRow(context, 'Referencia', orderNumber),
-          _yappyRow(context, 'Monto exacto', '\$${total.toStringAsFixed(2)}'),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.warningLight,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.info_outline, color: AppColors.warning, size: 18),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text(
-                    'Envía el monto EXACTO e incluye la referencia en la descripción.',
-                    style: TextStyle(fontSize: 12),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _yappyRow(BuildContext context, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: TextStyle(color: Theme.of(context).hintColor)),
-          SelectableText(value,
-              style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInStoreSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        children: [
-          Icon(Icons.storefront_outlined, size: 40, color: AppColors.primary),
-          const SizedBox(height: 12),
-          Text('Pago en tienda',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          const Text(
-            'Tu pedido está confirmado. Paga directamente al momento de recogerlo en la sucursal.',
-            textAlign: TextAlign.center,
           ),
         ],
       ),

@@ -32,11 +32,11 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 }
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
-  int _step = 0; // 0=delivery, 1=payment, 2=summary
+  int _step = 0; // 0=delivery, 1=summary
   String _deliveryType = 'pickup';
   int? _selectedBranchId;
   String? _selectedAddressId;
-  String _paymentMethod = 'tilopay';
+  final String _paymentMethod = 'tilopay';
   String? _notes;
   bool _isSubmitting = false;
 
@@ -73,8 +73,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       case 0:
         return 'Método de entrega';
       case 1:
-        return 'Método de pago';
-      case 2:
         return 'Resumen del pedido';
       default:
         return 'Checkout';
@@ -98,14 +96,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           onNext: _canProceedDelivery ? () => setState(() => _step = 1) : null,
         );
       case 1:
-        return _PaymentStep(
-          key: const ValueKey('payment'),
-          paymentMethod: _paymentMethod,
-          deliveryType: _deliveryType,
-          onPaymentMethodChanged: (v) => setState(() => _paymentMethod = v),
-          onNext: () => setState(() => _step = 2),
-        );
-      case 2:
         return _SummaryStep(
           key: const ValueKey('summary'),
           cart: cart,
@@ -319,65 +309,7 @@ class _DeliveryStep extends ConsumerWidget {
   }
 }
 
-// ── Step 2: Payment ───────────────────────────────────────────────
-
-class _PaymentStep extends StatelessWidget {
-  final String paymentMethod;
-  final String deliveryType;
-  final ValueChanged<String> onPaymentMethodChanged;
-  final VoidCallback onNext;
-
-  const _PaymentStep({
-    super.key,
-    required this.paymentMethod,
-    required this.deliveryType,
-    required this.onPaymentMethodChanged,
-    required this.onNext,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              _RadioCard(
-                title: 'Tarjeta de crédito / débito',
-                subtitle: 'Pago seguro vía Tilopay',
-                icon: Icons.credit_card_outlined,
-                selected: paymentMethod == 'tilopay',
-                onTap: () => onPaymentMethodChanged('tilopay'),
-              ),
-              const SizedBox(height: 12),
-              _RadioCard(
-                title: 'Yappy',
-                subtitle: 'Transferencia vía Yappy',
-                icon: Icons.phone_android_outlined,
-                selected: paymentMethod == 'yappy',
-                onTap: () => onPaymentMethodChanged('yappy'),
-              ),
-              if (deliveryType == 'pickup') ...[
-                const SizedBox(height: 12),
-                _RadioCard(
-                  title: 'Pago en tienda',
-                  subtitle: 'Paga al recoger tu pedido',
-                  icon: Icons.storefront_outlined,
-                  selected: paymentMethod == 'in_store',
-                  onTap: () => onPaymentMethodChanged('in_store'),
-                ),
-              ],
-            ],
-          ),
-        ),
-        _BottomButton(label: 'Continuar', onPressed: onNext),
-      ],
-    );
-  }
-}
-
-// ── Step 3: Summary ───────────────────────────────────────────────
+// ── Step 2: Summary ───────────────────────────────────────────────
 
 class _SummaryStep extends ConsumerWidget {
   final Cart cart;
@@ -510,16 +442,7 @@ class _SummaryStep extends ConsumerWidget {
   }
 
   String _paymentLabel(String method) {
-    switch (method) {
-      case 'tilopay':
-        return 'Tarjeta (Tilopay)';
-      case 'yappy':
-        return 'Yappy';
-      case 'in_store':
-        return 'Pago en tienda';
-      default:
-        return method;
-    }
+    return 'Tarjeta de crédito / débito';
   }
 }
 
