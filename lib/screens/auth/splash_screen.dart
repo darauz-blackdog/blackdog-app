@@ -126,7 +126,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppColors.secondary,
       body: Center(
         child: AnimatedBuilder(
           animation: Listenable.merge([
@@ -163,9 +163,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     // We only show the text during the standard entry/pulse, and scale it,
                     // or we could let the exit animation scale everything.
                     Text(
-                      'Pet Shop Panamá',
+                      'Vive la experiencia Black Dog',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppColors.secondary.withValues(alpha: 0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         fontWeight: FontWeight.bold,
                       ),
                     ),

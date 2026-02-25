@@ -60,28 +60,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               children: [
                 const SizedBox(height: 40),
                 Center(
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        fit: BoxFit.contain,
-                        color: AppColors.secondary,
-                      ),
-                    ),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 320,
+                    fit: BoxFit.contain,
                   ),
                 ),
-                const SizedBox(height: 32),
-                Text('Bienvenido',
-                    style: Theme.of(context).textTheme.headlineMedium,
-                    textAlign: TextAlign.center),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Text('Inicia sesión para continuar',
                     style: Theme.of(context).textTheme.bodyMedium,
                     textAlign: TextAlign.center),
