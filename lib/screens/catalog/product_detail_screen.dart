@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/product.dart';
 import '../../providers/cart_provider.dart';
@@ -20,6 +21,7 @@ class ProductDetailScreen extends ConsumerStatefulWidget {
 class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   int _currentImageIndex = 0;
   late int _activeProductId;
+  bool _addingToCart = false;
 
   @override
   void initState() {
@@ -44,6 +46,33 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     });
   }
 
+  Future<void> _addToCart(ProductDetail p) async {
+    setState(() => _addingToCart = true);
+    try {
+      await ref.read(cartProvider.notifier).addItem(p.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Agregado al carrito'),
+            action: SnackBarAction(
+              label: 'Ver carrito',
+              textColor: AppColors.primary,
+              onPressed: () => context.go('/cart'),
+            ),
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al agregar al carrito')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _addingToCart = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final product = ref.watch(productDetailProvider(_activeProductId));
@@ -62,56 +91,55 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 200),
         child: product.when(
-          data: (p) => SingleChildScrollView(
+          data: (p) => Column(
             key: ValueKey(p.id),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildImageGallery(p),
-                Padding(
-                  padding: const EdgeInsets.all(20),
+            children: [
+              // Scrollable content
+              Expanded(
+                child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Category + Tags
-                      _buildTags(context, p),
-                      const SizedBox(height: 12),
-
-                      // Name
-                      Text(p.name, style: Theme.of(context).textTheme.headlineSmall),
-                      if (p.defaultCode != null) ...[
-                        const SizedBox(height: 4),
-                        Text('SKU: ${p.defaultCode}',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppColors.textLight,
-                                )),
-                      ],
-                      const SizedBox(height: 16),
-
-                      // Variant chips
-                      if (p.variants.length > 1) ...[
-                        _buildVariantChips(context, p),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // Price
-                      _buildPrice(context, p),
-                      const SizedBox(height: 20),
-
-                      // Stock + Description in compact cards
-                      _buildStockCard(context, p),
-
-                      if (_hasDescription(p)) ...[
-                        const SizedBox(height: 12),
-                        _buildDescriptionCard(context, p),
-                      ],
-
-                      const SizedBox(height: 100), // space for FAB
+                      _buildImageGallery(p),
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildTags(context, p),
+                            const SizedBox(height: 12),
+                            Text(p.name, style: Theme.of(context).textTheme.headlineSmall),
+                            if (p.defaultCode != null) ...[
+                              const SizedBox(height: 4),
+                              Text('SKU: ${p.defaultCode}',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: AppColors.textLight,
+                                      )),
+                            ],
+                            const SizedBox(height: 16),
+                            if (p.variants.length > 1) ...[
+                              _buildVariantChips(context, p),
+                              const SizedBox(height: 16),
+                            ],
+                            _buildPrice(context, p),
+                            const SizedBox(height: 20),
+                            _buildStockDropdown(context, p),
+                            if (_hasDescription(p)) ...[
+                              const SizedBox(height: 12),
+                              _buildDescriptionCard(context, p),
+                            ],
+                            const SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+
+              // Sticky bottom bar
+              _buildBottomBar(context, p),
+            ],
           ),
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (err, _) => Center(
@@ -130,41 +158,62 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           ),
         ),
       ),
-      floatingActionButton: product.whenOrNull(
-        data: (p) => p.inStock
-            ? FloatingActionButton.extended(
-                onPressed: () async {
-                  try {
-                    await ref.read(cartProvider.notifier).addItem(p.id);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('Agregado al carrito'),
-                          action: SnackBarAction(
-                            label: 'Ver carrito',
-                            textColor: AppColors.primary,
-                            onPressed: () => context.go('/cart'),
-                          ),
-                        ),
-                      );
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Error al agregar al carrito')),
-                      );
-                    }
-                  }
-                },
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.secondary,
-                icon: const Icon(Icons.add_shopping_cart),
-                label: Text('Agregar \$${p.effectivePrice.toStringAsFixed(2)}'),
-              )
-            : null,
-      ),
     );
   }
+
+  // ── Bottom bar with add to cart ──────────────────────────────
+
+  Widget _buildBottomBar(BuildContext context, ProductDetail p) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 12 + bottomPadding),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+          ),
+        ),
+      ),
+      child: p.inStock
+          ? SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton.icon(
+                onPressed: _addingToCart ? null : () => _addToCart(p),
+                icon: _addingToCart
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.add_shopping_cart),
+                label: Text(
+                  _addingToCart
+                      ? 'Agregando...'
+                      : 'Agregar al carrito  \$${p.effectivePrice.toStringAsFixed(2)}',
+                ),
+              ),
+            )
+          : SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: OutlinedButton.icon(
+                onPressed: null,
+                icon: const Icon(Icons.remove_shopping_cart_outlined),
+                label: const Text('Agotado'),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.error),
+                  foregroundColor: AppColors.error,
+                  disabledForegroundColor: AppColors.error.withValues(alpha: 0.5),
+                ),
+              ),
+            ),
+    );
+  }
+
+  // ── Tags ─────────────────────────────────────────────────────
 
   Widget _buildTags(BuildContext context, ProductDetail p) {
     return Wrap(
@@ -204,12 +253,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     );
   }
 
+  // ── Variant chips ────────────────────────────────────────────
+
   Widget _buildVariantChips(BuildContext context, ProductDetail p) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          // Detect variant type: size labels start with digit, color labels start with letter
           p.variants.any((v) => v.variantLabel != null && RegExp(r'^\d').hasMatch(v.variantLabel!))
               ? 'Tamaño'
               : 'Variante',
@@ -253,6 +303,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     );
   }
 
+  // ── Price ────────────────────────────────────────────────────
+
   Widget _buildPrice(BuildContext context, ProductDetail p) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -289,7 +341,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     );
   }
 
-  Widget _buildStockCard(BuildContext context, ProductDetail p) {
+  // ── Stock dropdown ───────────────────────────────────────────
+
+  Widget _buildStockDropdown(BuildContext context, ProductDetail p) {
     if (!p.inStock) {
       return Container(
         padding: const EdgeInsets.all(14),
@@ -309,56 +363,82 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       );
     }
 
+    final branchCount = p.stockByBranch.length;
+
     return Container(
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.success.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.success.withValues(alpha: 0.15)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.check_circle, size: 18, color: AppColors.success),
-              const SizedBox(width: 8),
-              Text(
-                'Disponible en ${p.stockByBranch.length} sucursal${p.stockByBranch.length > 1 ? 'es' : ''}',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: AppColors.success,
-                    ),
-              ),
-            ],
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 14),
+          childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+          shape: const Border(),
+          collapsedShape: const Border(),
+          leading: Icon(Icons.check_circle, size: 18, color: AppColors.success),
+          title: Text(
+            'Disponible en $branchCount sucursal${branchCount > 1 ? 'es' : ''}',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.success,
+            ),
           ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: p.stockByBranch.map((s) {
+          trailing: Icon(
+            Icons.keyboard_arrow_down,
+            color: AppColors.success,
+          ),
+          children: [
+            ...p.stockByBranch.map((s) {
               final qty = s.qtyAvailable.toInt();
               final name = s.branch?.name ?? 'Sucursal';
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
-                ),
-                child: Text(
-                  qty <= 50 ? '$name ($qty)' : name,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w500,
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  children: [
+                    Icon(Icons.store_outlined, size: 16, color: AppColors.textSecondary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        name,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
+                    ),
+                    if (qty <= 50)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: qty <= 5
+                              ? AppColors.warning.withValues(alpha: 0.1)
+                              : AppColors.success.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '$qty uds',
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: qty <= 5 ? AppColors.warning : AppColors.success,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               );
-            }).toList(),
-          ),
-        ],
+            }),
+          ],
+        ),
       ),
     );
   }
+
+  // ── Description ──────────────────────────────────────────────
 
   bool _hasDescription(ProductDetail p) {
     return (p.descriptionPlain != null && p.descriptionPlain!.isNotEmpty) ||
@@ -393,6 +473,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     );
   }
 
+  // ── Image gallery ────────────────────────────────────────────
+
   Widget _buildImageGallery(ProductDetail p) {
     final images = p.imageUrls;
 
@@ -423,7 +505,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       );
     }
 
-    // Multiple images: PageView with indicators
     return Column(
       children: [
         SizedBox(

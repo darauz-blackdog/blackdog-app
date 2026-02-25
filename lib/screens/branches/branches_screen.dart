@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -24,6 +25,67 @@ class BranchesScreen extends ConsumerStatefulWidget {
 class _BranchesScreenState extends ConsumerState<BranchesScreen> {
   final MapController _mapController = MapController();
   int? _selectedIndex;
+  Position? _userPosition;
+  bool _locationLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserLocation();
+  }
+
+  Future<void> _getUserLocation() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        setState(() => _locationLoading = false);
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied ||
+            permission == LocationPermission.deniedForever) {
+          setState(() => _locationLoading = false);
+          return;
+        }
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+      if (mounted) {
+        setState(() {
+          _userPosition = position;
+          _locationLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _locationLoading = false);
+    }
+  }
+
+  double? _distanceKm(Map<String, dynamic> branch) {
+    if (_userPosition == null) return null;
+    final lat = branch['latitude'] as double?;
+    final lng = branch['longitude'] as double?;
+    if (lat == null || lng == null) return null;
+    const distance = Distance();
+    return distance.as(
+      LengthUnit.Kilometer,
+      LatLng(_userPosition!.latitude, _userPosition!.longitude),
+      LatLng(lat, lng),
+    );
+  }
+
+  String _formatDistance(double km) {
+    if (km < 1) return '${(km * 1000).round()} m';
+    return '${km.toStringAsFixed(1)} km';
+  }
 
   void _selectBranch(int index, Map<String, dynamic> branch) {
     final lat = branch['latitude'] as double?;
@@ -64,7 +126,6 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
             final lat = b['latitude'] as double?;
             final lng = b['longitude'] as double?;
             final address = b['address'] as String?;
-            // Skip branches without coords or with Miami placeholder addresses
             if (lat == null || lng == null) return false;
             if (address != null && address.contains('NW 35TH')) return false;
             return true;
@@ -74,8 +135,20 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
             return const Center(child: Text('No hay sucursales disponibles'));
           }
 
-          // Center on Panama City
-          const defaultCenter = LatLng(9.0, -79.5);
+          // Sort by distance if user location is available
+          if (_userPosition != null) {
+            branches.sort((a, b) {
+              final dA = _distanceKm(a) ?? double.infinity;
+              final dB = _distanceKm(b) ?? double.infinity;
+              return dA.compareTo(dB);
+            });
+          }
+
+          // Center on user location or Panama City
+          final mapCenter = _userPosition != null
+              ? LatLng(_userPosition!.latitude, _userPosition!.longitude)
+              : const LatLng(9.0, -79.5);
+          final mapZoom = _userPosition != null ? 12.0 : 10.5;
 
           return Column(
             children: [
@@ -85,8 +158,8 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                 child: FlutterMap(
                   mapController: _mapController,
                   options: MapOptions(
-                    initialCenter: defaultCenter,
-                    initialZoom: 10.5,
+                    initialCenter: mapCenter,
+                    initialZoom: mapZoom,
                     interactionOptions: const InteractionOptions(
                       flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
                     ),
@@ -97,46 +170,73 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                       userAgentPackageName: 'com.blackdog.app',
                     ),
                     MarkerLayer(
-                      markers: List.generate(branches.length, (i) {
-                        final b = branches[i];
-                        final isSelected = _selectedIndex == i;
-                        return Marker(
-                          point: LatLng(
-                            b['latitude'] as double,
-                            b['longitude'] as double,
-                          ),
-                          width: isSelected ? 46 : 38,
-                          height: isSelected ? 46 : 38,
-                          child: GestureDetector(
-                            onTap: () => _selectBranch(i, b),
+                      markers: [
+                        // User location marker
+                        if (_userPosition != null)
+                          Marker(
+                            point: LatLng(
+                              _userPosition!.latitude,
+                              _userPosition!.longitude,
+                            ),
+                            width: 24,
+                            height: 24,
                             child: Container(
                               decoration: BoxDecoration(
-                                color: isSelected ? AppColors.primary : AppColors.secondary,
+                                color: Colors.blue,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2.5),
+                                border: Border.all(color: Colors.white, width: 3),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.3),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 2),
+                                    color: Colors.blue.withValues(alpha: 0.4),
+                                    blurRadius: 8,
+                                    spreadRadius: 2,
                                   ),
                                 ],
                               ),
-                              child: Icon(
-                                Icons.pets,
-                                color: isSelected ? AppColors.secondary : Colors.white,
-                                size: isSelected ? 20 : 16,
-                              ),
                             ),
                           ),
-                        );
-                      }),
+                        // Branch markers
+                        ...List.generate(branches.length, (i) {
+                          final b = branches[i];
+                          final isSelected = _selectedIndex == i;
+                          return Marker(
+                            point: LatLng(
+                              b['latitude'] as double,
+                              b['longitude'] as double,
+                            ),
+                            width: isSelected ? 46 : 38,
+                            height: isSelected ? 46 : 38,
+                            child: GestureDetector(
+                              onTap: () => _selectBranch(i, b),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: isSelected ? AppColors.primary : AppColors.secondary,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 2.5),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.3),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.pets,
+                                  color: isSelected ? AppColors.secondary : Colors.white,
+                                  size: isSelected ? 20 : 16,
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
                     ),
                   ],
                 ),
               ),
 
-              // Branch count
+              // Branch count + location status
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                 child: Row(
@@ -149,6 +249,31 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
+                    const Spacer(),
+                    if (_locationLoading)
+                      SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.textLight,
+                        ),
+                      )
+                    else if (_userPosition != null)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.near_me, size: 14, color: Colors.blue),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Ordenado por cercanía',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: AppColors.textLight,
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),
@@ -162,9 +287,12 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                   itemBuilder: (context, index) {
                     final branch = branches[index] as Map<String, dynamic>;
                     final isSelected = _selectedIndex == index;
+                    final dist = _distanceKm(branch);
                     return _BranchCard(
                       branch: branch,
                       isSelected: isSelected,
+                      distanceKm: dist,
+                      formatDistance: dist != null ? _formatDistance(dist) : null,
                       onTap: () => _selectBranch(index, branch),
                       onGoogleMaps: () => _openGoogleMaps(
                         branch['latitude'] as double,
@@ -191,6 +319,8 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
 class _BranchCard extends StatelessWidget {
   final Map<String, dynamic> branch;
   final bool isSelected;
+  final double? distanceKm;
+  final String? formatDistance;
   final VoidCallback onTap;
   final VoidCallback onGoogleMaps;
   final VoidCallback onWaze;
@@ -198,6 +328,8 @@ class _BranchCard extends StatelessWidget {
   const _BranchCard({
     required this.branch,
     required this.isSelected,
+    this.distanceKm,
+    this.formatDistance,
     required this.onTap,
     required this.onGoogleMaps,
     required this.onWaze,
@@ -230,7 +362,7 @@ class _BranchCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Name + icon
+            // Name + icon + distance
             Row(
               children: [
                 Container(
@@ -271,6 +403,29 @@ class _BranchCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (formatDistance != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.near_me, size: 12, color: AppColors.primary),
+                        const SizedBox(width: 4),
+                        Text(
+                          formatDistance!,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
 

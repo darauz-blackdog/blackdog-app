@@ -39,7 +39,9 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
             title: Image.asset(
-              'assets/images/logo_dark.png',
+              Theme.of(context).brightness == Brightness.dark
+                  ? 'assets/images/logo.png'
+                  : 'assets/images/logo_dark.png',
               height: 32,
               fit: BoxFit.contain,
               filterQuality: FilterQuality.high,

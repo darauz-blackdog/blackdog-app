@@ -16,6 +16,8 @@ import '../screens/checkout/checkout_screen.dart';
 import '../screens/checkout/order_confirmation_screen.dart';
 import '../screens/branches/branches_screen.dart';
 import '../screens/profile/profile_screen.dart';
+import '../screens/profile/edit_profile_screen.dart';
+import '../screens/profile/addresses_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/common/main_shell.dart';
 import '../providers/auth_provider.dart';
@@ -160,6 +162,25 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/profile',
             pageBuilder: (context, state) => _fadeThrough(state, const ProfileScreen()),
+            routes: [
+              GoRoute(
+                path: 'edit',
+                pageBuilder: (context, state) => _sharedAxisY(state, const EditProfileScreen()),
+              ),
+              GoRoute(
+                path: 'addresses',
+                pageBuilder: (context, state) => _sharedAxisY(state, const AddressesScreen()),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/product/:id',
+            pageBuilder: (context, state) => _sharedAxisY(
+              state,
+              ProductDetailScreen(
+                productId: int.parse(state.pathParameters['id']!),
+              ),
+            ),
           ),
         ],
       ),
@@ -174,15 +195,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           OrderConfirmationScreen(
             orderId: state.pathParameters['id']!,
             orderData: state.extra as Map<String, dynamic>?,
-          ),
-        ),
-      ),
-      GoRoute(
-        path: '/product/:id',
-        pageBuilder: (context, state) => _sharedAxisY(
-          state,
-          ProductDetailScreen(
-            productId: int.parse(state.pathParameters['id']!),
           ),
         ),
       ),
