@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/cart_badge.dart';
+import '../../widgets/fade_in_up.dart';
 
 final branchesProvider = FutureProvider<List<dynamic>>((ref) async {
   final api = ref.read(apiServiceProvider);
@@ -63,6 +64,15 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
           _userPosition = position;
           _locationLoading = false;
         });
+        // Auto-center map on user location
+        try {
+          _mapController.move(
+            LatLng(position.latitude, position.longitude),
+            12.0,
+          );
+        } catch (_) {
+          // Map not yet attached, will use initialCenter on next build
+        }
       }
     } catch (_) {
       if (mounted) setState(() => _locationLoading = false);
@@ -288,7 +298,11 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                     final branch = branches[index] as Map<String, dynamic>;
                     final isSelected = _selectedIndex == index;
                     final dist = _distanceKm(branch);
-                    return _BranchCard(
+                    return FadeInUp(
+                      delay: index * 60,
+                      offset: 15,
+                      duration: const Duration(milliseconds: 400),
+                      child: _BranchCard(
                       branch: branch,
                       isSelected: isSelected,
                       distanceKm: dist,
@@ -302,6 +316,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                         branch['latitude'] as double,
                         branch['longitude'] as double,
                       ),
+                    ),
                     );
                   },
                 ),

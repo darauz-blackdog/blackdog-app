@@ -10,7 +10,8 @@ class MainShell extends StatelessWidget {
 
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith('/catalog') || location.startsWith('/search')) return 1;
+    if (location.startsWith('/catalog') || location.startsWith('/search'))
+      return 1;
     if (location.startsWith('/branches')) return 2;
     if (location.startsWith('/orders')) return 3;
     if (location.startsWith('/profile')) return 4;
@@ -19,11 +20,16 @@ class MainShell extends StatelessWidget {
 
   void _onTap(BuildContext context, int index) {
     switch (index) {
-      case 0: context.go('/home');
-      case 1: context.go('/catalog');
-      case 2: context.go('/branches');
-      case 3: context.go('/orders');
-      case 4: context.go('/profile');
+      case 0:
+        context.go('/home');
+      case 1:
+        context.go('/catalog');
+      case 2:
+        context.go('/branches');
+      case 3:
+        context.go('/orders');
+      case 4:
+        context.go('/profile');
     }
   }
 
@@ -99,14 +105,17 @@ class MainShell extends StatelessWidget {
               backgroundColor: Theme.of(context).colorScheme.surface,
               indicatorColor: AppColors.primary.withValues(alpha: 0.15),
               selectedIconTheme: const IconThemeData(color: AppColors.primary),
-              unselectedIconTheme: const IconThemeData(color: AppColors.textLight),
-              selectedLabelTextStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-              unselectedLabelTextStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
+              unselectedIconTheme: const IconThemeData(
                 color: AppColors.textLight,
               ),
+              selectedLabelTextStyle: Theme.of(context).textTheme.labelSmall
+                  ?.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+              unselectedLabelTextStyle: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(color: AppColors.textLight),
               destinations: railDestinations,
             ),
             const VerticalDivider(width: 1, thickness: 1),
@@ -118,7 +127,6 @@ class MainShell extends StatelessWidget {
 
     return Scaffold(
       body: child,
-      extendBody: true,
       bottomNavigationBar: NavigationBar(
         selectedIndex: currentIdx,
         onDestinationSelected: (index) => _onTap(context, index),

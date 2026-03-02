@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../models/cart.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/fade_in_up.dart';
 
@@ -217,6 +218,15 @@ class _CartItemCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Use cart image if available, otherwise fetch from product detail
+    var imageUrl = item.imageUrl;
+    if (imageUrl == null) {
+      final productAsync = ref.watch(productDetailProvider(item.productId));
+      imageUrl = productAsync.whenOrNull(
+        data: (p) => p.imageUrls.isNotEmpty ? p.imageUrls.first : null,
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -235,9 +245,9 @@ class _CartItemCard extends ConsumerWidget {
             child: SizedBox(
               width: 80,
               height: 80,
-              child: item.imageUrl != null
+              child: imageUrl != null
                   ? CachedNetworkImage(
-                      imageUrl: item.imageUrl!,
+                      imageUrl: imageUrl,
                       fit: BoxFit.cover,
                       placeholder: (context, url) =>
                           Container(color: AppColors.divider),

@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/fade_in_up.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -99,32 +100,47 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 28),
 
             // Section: Cuenta
-            _SectionHeader(title: 'Cuenta'),
+            FadeInUp(delay: 100, offset: 15, duration: const Duration(milliseconds: 400), child: _SectionHeader(title: 'Cuenta')),
             const SizedBox(height: 8),
-            _MenuItem(
-              icon: Icons.person_outlined,
-              title: 'Datos personales',
-              subtitle: 'Nombre y teléfono',
-              onTap: () => context.push('/profile/edit'),
+            FadeInUp(
+              delay: 150,
+              offset: 15,
+              duration: const Duration(milliseconds: 400),
+              child: _MenuItem(
+                icon: Icons.person_outlined,
+                title: 'Datos personales',
+                subtitle: 'Nombre y teléfono',
+                onTap: () => context.push('/profile/edit'),
+              ),
             ),
-            _MenuItem(
-              icon: Icons.location_on_outlined,
-              title: 'Mis direcciones',
-              subtitle: 'Direcciones de envío',
-              onTap: () => context.push('/profile/addresses'),
+            FadeInUp(
+              delay: 200,
+              offset: 15,
+              duration: const Duration(milliseconds: 400),
+              child: _MenuItem(
+                icon: Icons.location_on_outlined,
+                title: 'Mis direcciones',
+                subtitle: 'Direcciones de envío',
+                onTap: () => context.push('/profile/addresses'),
+              ),
             ),
-            _MenuItem(
-              icon: Icons.receipt_long_outlined,
-              title: 'Mis pedidos',
-              subtitle: 'Historial de compras',
-              onTap: () => context.go('/orders'),
+            FadeInUp(
+              delay: 250,
+              offset: 15,
+              duration: const Duration(milliseconds: 400),
+              child: _MenuItem(
+                icon: Icons.receipt_long_outlined,
+                title: 'Mis pedidos',
+                subtitle: 'Historial de compras',
+                onTap: () => context.go('/orders'),
+              ),
             ),
             const SizedBox(height: 20),
 
             // Section: Preferencias
-            _SectionHeader(title: 'Preferencias'),
+            FadeInUp(delay: 300, offset: 15, duration: const Duration(milliseconds: 400), child: _SectionHeader(title: 'Preferencias')),
             const SizedBox(height: 8),
-            _ThemeToggle(),
+            FadeInUp(delay: 350, offset: 15, duration: const Duration(milliseconds: 400), child: _ThemeToggle()),
             const SizedBox(height: 28),
 
             // Logout

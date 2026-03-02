@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../models/product.dart';
 import '../theme/app_theme.dart';
+import 'fade_in_up.dart';
 import 'product_card.dart';
 
 class ProductCarouselSection extends StatelessWidget {
@@ -79,7 +80,11 @@ class ProductCarouselSection extends StatelessWidget {
             separatorBuilder: (_, _) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
               final product = products[index];
-              return SizedBox(
+              return FadeInUp(
+                delay: index * 60,
+                duration: const Duration(milliseconds: 400),
+                offset: 20,
+                child: SizedBox(
                 width: 130,
                 child: ProductCard(
                   product: product,
@@ -87,6 +92,7 @@ class ProductCarouselSection extends StatelessWidget {
                   onTap: () => onTap(product),
                   onAddToCart: () => onAddToCart(product),
                 ),
+              ),
               );
             },
           ),

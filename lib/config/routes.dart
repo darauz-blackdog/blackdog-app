@@ -17,6 +17,7 @@ import '../screens/checkout/order_confirmation_screen.dart';
 import '../screens/branches/branches_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
+import '../screens/profile/add_address_screen.dart';
 import '../screens/profile/addresses_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/common/main_shell.dart';
@@ -170,6 +171,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'addresses',
                 pageBuilder: (context, state) => _sharedAxisY(state, const AddressesScreen()),
+                routes: [
+                  GoRoute(
+                    path: 'add',
+                    pageBuilder: (context, state) => _sharedAxisY(state, const AddAddressScreen()),
+                  ),
+                ],
               ),
             ],
           ),

@@ -8,6 +8,7 @@ import '../../providers/products_provider.dart';
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/responsive_grid.dart';
+import '../../widgets/fade_in_up.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/category_chip.dart';
 import '../../widgets/cart_badge.dart';
@@ -261,7 +262,11 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                       );
                     }
                     final product = products[i];
-                    return ProductCard(
+                    return FadeInUp(
+                      delay: (i % 6) * 60,
+                      duration: const Duration(milliseconds: 400),
+                      offset: 20,
+                      child: ProductCard(
                       product: product,
                       onTap: () => context.push('/product/${product.id}'),
                       onAddToCart: () async {
@@ -288,6 +293,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                           }
                         }
                       },
+                    ),
                     );
                   },
                 );

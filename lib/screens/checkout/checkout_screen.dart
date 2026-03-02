@@ -7,7 +7,6 @@ import '../../models/cart.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
-import 'add_address_sheet.dart';
 
 /// Providers local to checkout
 final _branchesProvider = FutureProvider<List<Branch>>((ref) async {
@@ -244,11 +243,7 @@ class _DeliveryStep extends ConsumerWidget {
                     ),
                     TextButton.icon(
                       onPressed: () async {
-                        final result = await showModalBottomSheet<bool>(
-                          context: context,
-                          isScrollControlled: true,
-                          builder: (context) => const AddAddressSheet(),
-                        );
+                        final result = await context.push<bool>('/profile/addresses/add');
                         if (result == true) {
                           ref.invalidate(_addressesProvider);
                         }

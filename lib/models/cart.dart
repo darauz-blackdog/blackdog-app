@@ -18,6 +18,11 @@ class CartItem {
   });
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
+    // Try multiple image fields: image_url, image_urls array, nested product
+    final imageUrls = (json['image_urls'] as List?)?.cast<String>() ?? [];
+    final productImageUrls =
+        (json['product']?['image_urls'] as List?)?.cast<String>() ?? [];
+
     return CartItem(
       id: json['id'] as String,
       cartId: json['cart_id'] as String,
@@ -26,7 +31,11 @@ class CartItem {
       productPrice: json['product_price'] != null
           ? (json['product_price'] as num).toDouble()
           : null,
-      imageUrl: json['image_url'] as String?,
+      imageUrl: json['image_url'] as String? ??
+          (imageUrls.isNotEmpty ? imageUrls.first : null) ??
+          json['product_image_url'] as String? ??
+          json['product']?['image_url'] as String? ??
+          (productImageUrls.isNotEmpty ? productImageUrls.first : null),
       quantity: json['quantity'] as int? ?? 1,
     );
   }

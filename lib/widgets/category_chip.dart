@@ -18,7 +18,9 @@ class CategoryChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.surface,
@@ -27,13 +29,14 @@ class CategoryChip extends StatelessWidget {
             color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.outline,
           ),
         ),
-        child: Text(
-          label,
+        child: AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 200),
           style: TextStyle(
-            color: isSelected ? AppColors.secondary : Theme.of(context).textTheme.bodyMedium?.color,
+            color: isSelected ? AppColors.secondary : Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
             fontSize: 13,
           ),
+          child: Text(label),
         ),
       ),
     );

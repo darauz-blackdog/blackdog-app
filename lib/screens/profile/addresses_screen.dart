@@ -4,8 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../providers/profile_provider.dart';
 import '../../providers/service_providers.dart';
-import '../../screens/checkout/add_address_sheet.dart';
+import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/fade_in_up.dart';
 
 class AddressesScreen extends ConsumerWidget {
   const AddressesScreen({super.key});
@@ -73,9 +74,14 @@ class AddressesScreen extends ConsumerWidget {
             separatorBuilder: (_, _) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
               final addr = addresses[index] as Map<String, dynamic>;
-              return _AddressCard(
-                address: addr,
-                onDelete: () => _deleteAddress(context, ref, addr['id'].toString()),
+              return FadeInUp(
+                delay: index * 80,
+                offset: 15,
+                duration: const Duration(milliseconds: 400),
+                child: _AddressCard(
+                  address: addr,
+                  onDelete: () => _deleteAddress(context, ref, addr['id'].toString()),
+                ),
               );
             },
           );
@@ -102,14 +108,7 @@ class AddressesScreen extends ConsumerWidget {
   }
 
   Future<void> _addAddress(BuildContext context, WidgetRef ref) async {
-    final result = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => const AddAddressSheet(),
-    );
+    final result = await context.push<bool>('/profile/addresses/add');
     if (result == true) {
       ref.invalidate(addressesProvider);
     }

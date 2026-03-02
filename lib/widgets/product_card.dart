@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../models/product.dart';
 import '../theme/app_theme.dart';
+import 'scale_on_tap.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -27,7 +28,7 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return ScaleOnTap(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(

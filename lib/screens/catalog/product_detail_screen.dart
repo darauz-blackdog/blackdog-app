@@ -532,7 +532,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
             images.length,
-            (i) => Container(
+            (i) => AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOut,
               width: i == _currentImageIndex ? 20 : 8,
               height: 8,
               margin: const EdgeInsets.symmetric(horizontal: 3),

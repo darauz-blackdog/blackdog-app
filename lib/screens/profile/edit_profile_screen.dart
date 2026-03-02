@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../providers/profile_provider.dart';
@@ -44,18 +45,19 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         fullName: _nameCtrl.text.trim(),
         phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
       );
-      ref.invalidate(profileProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Perfil actualizado')),
         );
-        Navigator.pop(context);
+        context.pop();
       }
+      ref.invalidate(profileProvider);
     } catch (e) {
       setState(() => _saving = false);
       if (mounted) {
+        final msg = e.toString().replaceAll('Exception: ', '');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('Error al guardar: $msg')),
         );
       }
     }

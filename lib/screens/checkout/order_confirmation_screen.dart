@@ -4,8 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/app_theme.dart';
+import '../../widgets/fade_in_up.dart';
 
-class OrderConfirmationScreen extends ConsumerWidget {
+class OrderConfirmationScreen extends ConsumerStatefulWidget {
   final String orderId;
   final Map<String, dynamic>? orderData;
 
@@ -16,12 +17,49 @@ class OrderConfirmationScreen extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final order = orderData?['order'] as Map<String, dynamic>? ?? {};
-    final paymentUrl = orderData?['payment_url'] as String?;
-    final orderNumber = orderData?['odoo_order_name'] as String? ??
+  ConsumerState<OrderConfirmationScreen> createState() =>
+      _OrderConfirmationScreenState();
+}
+
+class _OrderConfirmationScreenState
+    extends ConsumerState<OrderConfirmationScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _iconCtrl;
+  late Animation<double> _iconScale;
+  late Animation<double> _iconRotation;
+
+  @override
+  void initState() {
+    super.initState();
+    _iconCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _iconScale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.2), weight: 60),
+      TweenSequenceItem(tween: Tween(begin: 1.2, end: 0.9), weight: 20),
+      TweenSequenceItem(tween: Tween(begin: 0.9, end: 1.0), weight: 20),
+    ]).animate(CurvedAnimation(parent: _iconCtrl, curve: Curves.easeOutCubic));
+    _iconRotation = Tween<double>(begin: -0.1, end: 0.0).animate(
+      CurvedAnimation(parent: _iconCtrl, curve: Curves.elasticOut),
+    );
+    _iconCtrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _iconCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final order =
+        widget.orderData?['order'] as Map<String, dynamic>? ?? {};
+    final paymentUrl = widget.orderData?['payment_url'] as String?;
+    final orderNumber = widget.orderData?['odoo_order_name'] as String? ??
         order['payment_reference'] as String? ??
-        orderId.substring(0, 8).toUpperCase();
+        widget.orderId.substring(0, 8).toUpperCase();
     final total = (order['total'] as num?)?.toDouble() ?? 0;
 
     return Scaffold(
@@ -31,63 +69,102 @@ class OrderConfirmationScreen extends ConsumerWidget {
           child: Column(
             children: [
               const SizedBox(height: 40),
-              // Success animation / icon
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
+              // Animated success icon
+              AnimatedBuilder(
+                animation: _iconCtrl,
+                builder: (context, child) => Transform.scale(
+                  scale: _iconScale.value,
+                  child: Transform.rotate(
+                    angle: _iconRotation.value,
+                    child: child,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.receipt_long_outlined,
-                  size: 80,
-                  color: AppColors.success,
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_circle_rounded,
+                    size: 80,
+                    color: AppColors.success,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
-              Text(
-                '¡Pedido Creado!',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+              FadeInUp(
+                delay: 300,
+                offset: 20,
+                duration: const Duration(milliseconds: 500),
+                child: Text(
+                  '¡Pedido Creado!',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
               ),
               const SizedBox(height: 8),
-              Text(
-                'Pedido #$orderNumber',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).hintColor,
-                    ),
+              FadeInUp(
+                delay: 400,
+                offset: 20,
+                duration: const Duration(milliseconds: 500),
+                child: Text(
+                  'Pedido #$orderNumber',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).hintColor,
+                      ),
+                ),
               ),
               const SizedBox(height: 8),
-              Text(
-                'Total: \$${total.toStringAsFixed(2)}',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
-                    ),
+              FadeInUp(
+                delay: 500,
+                offset: 20,
+                duration: const Duration(milliseconds: 500),
+                child: Text(
+                  'Total: \$${total.toStringAsFixed(2)}',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                      ),
+                ),
               ),
               const SizedBox(height: 32),
 
               // Payment section
               if (paymentUrl != null)
-                _buildTilopaySection(context, paymentUrl),
+                FadeInUp(
+                  delay: 600,
+                  offset: 20,
+                  duration: const Duration(milliseconds: 500),
+                  child: _buildTilopaySection(context, paymentUrl),
+                ),
 
               const SizedBox(height: 40),
 
               // Actions
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => context.go('/home'),
-                  child: const Text('Seguir comprando'),
-                ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => context.go('/orders'),
-                  child: const Text('Mis pedidos'),
+              FadeInUp(
+                delay: 700,
+                offset: 20,
+                duration: const Duration(milliseconds: 500),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => context.go('/home'),
+                        child: const Text('Seguir comprando'),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () => context.go('/orders'),
+                        child: const Text('Mis pedidos'),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
