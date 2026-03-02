@@ -106,6 +106,10 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Image.asset('assets/icons/Black_Dog_Logo_V.png'),
+        ),
         title: const Text('Catálogo'),
         actions: [
           IconButton(

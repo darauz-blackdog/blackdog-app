@@ -126,6 +126,10 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Image.asset('assets/icons/Black_Dog_Logo_V.png'),
+        ),
         title: const Text('Sucursales'),
         actions: const [CartBadge(), SizedBox(width: 8)],
       ),

@@ -383,6 +383,12 @@ class _BranchSelectorHeader extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Image.asset(
+              'assets/icons/Black_Dog_Logo_V.png',
+              height: 32,
+              width: 32,
+            ),
+            const SizedBox(width: 8),
             Icon(
               Icons.location_on_rounded,
               color: AppColors.primary,

@@ -18,7 +18,13 @@ class OrdersScreen extends ConsumerWidget {
     final ordersAsync = ref.watch(orderListProvider(const OrderListParams()));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Mis Pedidos')),
+      appBar: AppBar(
+        leading: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Image.asset('assets/icons/Black_Dog_Logo_V.png'),
+        ),
+        title: const Text('Mis Pedidos'),
+      ),
       body: ordersAsync.when(
         data: (result) {
           if (result.orders.isEmpty) {

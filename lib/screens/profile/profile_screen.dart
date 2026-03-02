@@ -29,11 +29,15 @@ class ProfileScreen extends ConsumerWidget {
         user?.email ??
         '';
     final displayEmail = user?.email ?? '';
-    final initial =
-        (displayName.isNotEmpty ? displayName[0] : 'U').toUpperCase();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Mi Perfil')),
+      appBar: AppBar(
+        leading: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Image.asset('assets/icons/Black_Dog_Logo_V.png'),
+        ),
+        title: const Text('Mi Perfil'),
+      ),
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: () async {
@@ -49,14 +53,7 @@ class ProfileScreen extends ConsumerWidget {
               child: CircleAvatar(
                 radius: 48,
                 backgroundColor: AppColors.primary,
-                child: Text(
-                  initial,
-                  style: const TextStyle(
-                    fontSize: 32,
-                    color: AppColors.secondary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                backgroundImage: const AssetImage('assets/icons/Black_Dog_Logo_V.png'),
               ),
             ),
             const SizedBox(height: 16),

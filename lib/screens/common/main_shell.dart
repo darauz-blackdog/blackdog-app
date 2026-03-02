@@ -50,9 +50,9 @@ class MainShell extends StatelessWidget {
         label: 'Catálogo',
       ),
       NavigationDestination(
-        icon: Icon(Icons.map_outlined),
-        selectedIcon: Icon(Icons.map_rounded),
-        label: 'Mapa',
+        icon: Icon(Icons.store_outlined),
+        selectedIcon: Icon(Icons.store_rounded),
+        label: 'Sucursales',
       ),
       NavigationDestination(
         icon: Icon(Icons.receipt_long_outlined),
@@ -78,9 +78,9 @@ class MainShell extends StatelessWidget {
         label: Text('Catálogo'),
       ),
       NavigationRailDestination(
-        icon: Icon(Icons.map_outlined),
-        selectedIcon: Icon(Icons.map_rounded),
-        label: Text('Mapa'),
+        icon: Icon(Icons.store_outlined),
+        selectedIcon: Icon(Icons.store_rounded),
+        label: Text('Sucursales'),
       ),
       NavigationRailDestination(
         icon: Icon(Icons.receipt_long_outlined),
