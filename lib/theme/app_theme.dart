@@ -137,7 +137,7 @@ class AppTheme {
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
         scrolledUnderElevation: 0.5,
-        surfaceTintColor: AppColors.primary,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
         titleTextStyle: GoogleFonts.montserrat(
           fontSize: 18,
@@ -165,7 +165,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: const Color(0xFFF9FAFB),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
@@ -178,7 +178,7 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+          side: const BorderSide(color: AppColors.border),
         ),
         color: Colors.white,
       ),
@@ -203,9 +203,9 @@ class AppTheme {
       ),
       navigationBarTheme: _navBarTheme(
         bg: Colors.white,
-        indicatorColor: AppColors.primary.withValues(alpha: 0.15),
+        indicatorColor: AppColors.primary.withValues(alpha: 0.2),
         selectedColor: AppColors.primary,
-        unselectedColor: AppColors.textLight,
+        unselectedColor: AppColors.textSecondary,
       ),
     );
   }

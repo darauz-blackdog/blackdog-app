@@ -113,12 +113,14 @@ class ApiService {
     required String password,
     String? fullName,
     String? phone,
+    List<String>? petTypes,
   }) async {
     final response = await _dio.post('/auth/register', data: {
       'email': email,
       'password': password,
       'full_name': fullName,
       'phone': phone,
+      if (petTypes != null) 'pet_types': petTypes,
     });
     return response.data as Map<String, dynamic>;
   }

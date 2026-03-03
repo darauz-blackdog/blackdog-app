@@ -35,6 +35,7 @@ class AuthNotifier extends Notifier<AsyncValue<void>> {
     required String password,
     String? fullName,
     String? phone,
+    List<String>? petTypes,
   }) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
@@ -44,6 +45,7 @@ class AuthNotifier extends Notifier<AsyncValue<void>> {
         password: password,
         fullName: fullName,
         phone: phone,
+        petTypes: petTypes,
       );
       // Auto-login after registration
       await Supabase.instance.client.auth.signInWithPassword(

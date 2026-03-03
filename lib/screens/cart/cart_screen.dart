@@ -218,14 +218,17 @@ class _CartItemCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final productAsync = ref.watch(productDetailProvider(item.productId));
     // Use cart image if available, otherwise fetch from product detail
     var imageUrl = item.imageUrl;
     if (imageUrl == null) {
-      final productAsync = ref.watch(productDetailProvider(item.productId));
       imageUrl = productAsync.whenOrNull(
         data: (p) => p.imageUrls.isNotEmpty ? p.imageUrls.first : null,
       );
     }
+    final maxStock = productAsync.whenOrNull(
+      data: (p) => p.totalStock.toInt(),
+    ) ?? 999;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -295,6 +298,7 @@ class _CartItemCard extends ConsumerWidget {
                     // Quantity selector
                     _QuantitySelector(
                       quantity: item.quantity,
+                      maxQuantity: maxStock,
                       onDecrement: () {
                         if (item.quantity > 1) {
                           ref
@@ -303,6 +307,19 @@ class _CartItemCard extends ConsumerWidget {
                         }
                       },
                       onIncrement: () {
+                        if (item.quantity >= maxStock) {
+                          ScaffoldMessenger.of(context).clearSnackBars();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Solo $maxStock unidades disponibles',
+                              ),
+                              backgroundColor: AppColors.primary,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                          return;
+                        }
                         ref
                             .read(cartProvider.notifier)
                             .updateItemQuantity(item.id, item.quantity + 1);
@@ -338,11 +355,13 @@ class _CartItemCard extends ConsumerWidget {
 
 class _QuantitySelector extends StatelessWidget {
   final int quantity;
+  final int maxQuantity;
   final VoidCallback onDecrement;
   final VoidCallback onIncrement;
 
   const _QuantitySelector({
     required this.quantity,
+    this.maxQuantity = 999,
     required this.onDecrement,
     required this.onIncrement,
   });
@@ -368,7 +387,7 @@ class _QuantitySelector extends StatelessWidget {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
-          _qtyButton(context, Icons.add, onIncrement, false),
+          _qtyButton(context, Icons.add, onIncrement, quantity >= maxQuantity),
         ],
       ),
     );

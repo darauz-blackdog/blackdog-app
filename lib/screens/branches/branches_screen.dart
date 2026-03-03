@@ -196,12 +196,12 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                             height: 24,
                             child: Container(
                               decoration: BoxDecoration(
-                                color: Colors.blue,
+                                color: AppColors.primary,
                                 shape: BoxShape.circle,
                                 border: Border.all(color: Colors.white, width: 3),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.blue.withValues(alpha: 0.4),
+                                    color: AppColors.primary.withValues(alpha: 0.4),
                                     blurRadius: 8,
                                     spreadRadius: 2,
                                   ),
@@ -277,7 +277,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.near_me, size: 14, color: Colors.blue),
+                          const Icon(Icons.near_me, size: 14, color: AppColors.primary),
                           const SizedBox(width: 4),
                           Text(
                             'Ordenado por cercanía',

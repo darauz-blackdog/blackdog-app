@@ -22,6 +22,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _confirmController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
+  bool _hasDog = false;
+  bool _hasCat = false;
+  bool _hasOther = false;
 
   @override
   void initState() {
@@ -69,11 +72,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     final fullName = '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}';
 
+    final petTypes = <String>[
+      if (_hasDog) 'perro',
+      if (_hasCat) 'gato',
+      if (_hasOther) 'otro',
+    ];
+
     await ref.read(authNotifierProvider.notifier).signUpWithEmail(
           email: _emailController.text.trim(),
           password: _passwordController.text,
           fullName: fullName,
           phone: _fullPhone,
+          petTypes: petTypes.isNotEmpty ? petTypes : null,
         );
 
     final state = ref.read(authNotifierProvider);
@@ -218,7 +228,39 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   validator: (v) => v != _passwordController.text ? 'Las contraseñas no coinciden' : null,
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 20),
+                // Mascotas checkboxes
+                Text(
+                  '¿Qué mascotas tienes?',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Wrap(
+                  spacing: 4,
+                  children: [
+                    _PetCheckbox(
+                      label: 'Perro',
+                      icon: Icons.pets_rounded,
+                      value: _hasDog,
+                      onChanged: (v) => setState(() => _hasDog = v ?? false),
+                    ),
+                    _PetCheckbox(
+                      label: 'Gato',
+                      icon: Icons.pets_rounded,
+                      value: _hasCat,
+                      onChanged: (v) => setState(() => _hasCat = v ?? false),
+                    ),
+                    _PetCheckbox(
+                      label: 'Otro',
+                      icon: Icons.cruelty_free_rounded,
+                      value: _hasOther,
+                      onChanged: (v) => setState(() => _hasOther = v ?? false),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: isLoading ? null : _handleRegister,
                   child: isLoading
@@ -267,6 +309,55 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PetCheckbox extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool value;
+  final ValueChanged<bool?> onChanged;
+
+  const _PetCheckbox({
+    required this.label,
+    required this.icon,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => onChanged(!value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: value ? AppColors.primary.withValues(alpha: 0.12) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: value ? AppColors.primary : Theme.of(context).colorScheme.outline,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: value ? AppColors.primary : AppColors.textLight),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: value ? FontWeight.w600 : FontWeight.w400,
+                color: value
+                    ? AppColors.primary
+                    : Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+            ),
+          ],
         ),
       ),
     );

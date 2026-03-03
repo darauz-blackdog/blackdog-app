@@ -47,6 +47,15 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   }
 
   Future<void> _addToCart(ProductDetail p) async {
+    if (p.totalStock <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Producto sin stock disponible'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
     setState(() => _addingToCart = true);
     try {
       await ref.read(cartProvider.notifier).addItem(p.id);
