@@ -210,84 +210,95 @@ class CategoryStyle {
     if (lower.contains('servicio') || lower.contains('service')) {
       return const CategoryStyle(
         icon: Icons.build_rounded,
-        backgroundColor: Color(0xFFE0F2FE),
-        iconColor: Color(0xFF0EA5E9),
+        backgroundColor: _darkBg,
+        iconColor: _goldIcon,
       );
     }
     return _defaultStyle;
   }
 
+  // Brand palette only: yellow #F7B104, dark #1A1A1A, neutrals
+  static const _goldBg = Color(0xFFFFF3D0);     // light yellow bg
+  static const _goldIcon = Color(0xFFF7B104);    // primary yellow
+  static const _darkBg = Color(0xFF1A1A1A);      // near-black bg
+  static const _darkIcon = Color(0xFF1A1A1A);    // near-black icon
+  static const _warmBg = Color(0xFFFEF3C7);      // warm cream bg
+  static const _neutralBg = Color(0xFFF3F4F6);   // light gray bg
+
   static const _defaultStyle = CategoryStyle(
     icon: Icons.shopping_bag_rounded,
-    backgroundColor: Color(0xFFF3F4F6),
-    iconColor: Color(0xFF6B7280),
+    backgroundColor: _neutralBg,
+    iconColor: _goldIcon,
   );
 
   static final Map<String, CategoryStyle> _iconStyles = {
+    // Variante 1: fondo amarillo claro + ícono negro
     'restaurant': const CategoryStyle(
       icon: Icons.restaurant_rounded,
-      backgroundColor: Color(0xFFFEF3C7),
-      iconColor: Color(0xFFF59E0B),
+      backgroundColor: _goldBg,
+      iconColor: _darkIcon,
     ),
     'cookie': const CategoryStyle(
       icon: Icons.cookie_rounded,
-      backgroundColor: Color(0xFFFED7AA),
-      iconColor: Color(0xFFEA580C),
-    ),
-    'sports_baseball': const CategoryStyle(
-      icon: Icons.sports_baseball_rounded,
-      backgroundColor: Color(0xFFDBEAFE),
-      iconColor: Color(0xFF3B82F6),
-    ),
-    'favorite': const CategoryStyle(
-      icon: Icons.favorite_rounded,
-      backgroundColor: Color(0xFFEDE9FE),
-      iconColor: Color(0xFF8B5CF6),
-    ),
-    'bed': const CategoryStyle(
-      icon: Icons.bed_rounded,
-      backgroundColor: Color(0xFFFEE2E2),
-      iconColor: Color(0xFFEF4444),
-    ),
-    'checkroom': const CategoryStyle(
-      icon: Icons.checkroom_rounded,
-      backgroundColor: Color(0xFFD1FAE5),
-      iconColor: Color(0xFF10B981),
-    ),
-    'water_drop': const CategoryStyle(
-      icon: Icons.water_drop_rounded,
-      backgroundColor: Color(0xFFCFFAFE),
-      iconColor: Color(0xFF0891B2),
-    ),
-    'pets': const CategoryStyle(
-      icon: Icons.pets_rounded,
-      backgroundColor: Color(0xFFE0F2FE),
-      iconColor: Color(0xFF0EA5E9),
+      backgroundColor: _warmBg,
+      iconColor: _darkIcon,
     ),
     'fitness_center': const CategoryStyle(
       icon: Icons.fitness_center_rounded,
-      backgroundColor: Color(0xFFD1FAE5),
-      iconColor: Color(0xFF059669),
+      backgroundColor: _goldBg,
+      iconColor: _darkIcon,
     ),
     'luggage': const CategoryStyle(
       icon: Icons.luggage_rounded,
-      backgroundColor: Color(0xFFFEF9C3),
-      iconColor: Color(0xFFCA8A04),
+      backgroundColor: _warmBg,
+      iconColor: _darkIcon,
     ),
-    'cleaning_services': const CategoryStyle(
-      icon: Icons.cleaning_services_rounded,
-      backgroundColor: Color(0xFFE0E7FF),
-      iconColor: Color(0xFF6366F1),
+    // Variante 2: fondo negro + ícono amarillo
+    'sports_baseball': const CategoryStyle(
+      icon: Icons.sports_baseball_rounded,
+      backgroundColor: _darkBg,
+      iconColor: _goldIcon,
+    ),
+    'pets': const CategoryStyle(
+      icon: Icons.pets_rounded,
+      backgroundColor: _darkBg,
+      iconColor: _goldIcon,
     ),
     'medical_services': const CategoryStyle(
       icon: Icons.medical_services_rounded,
-      backgroundColor: Color(0xFFFCE7F3),
-      iconColor: Color(0xFFDB2777),
+      backgroundColor: _darkBg,
+      iconColor: _goldIcon,
+    ),
+    // Variante 3: fondo gris claro + ícono amarillo dorado
+    'favorite': const CategoryStyle(
+      icon: Icons.favorite_rounded,
+      backgroundColor: _neutralBg,
+      iconColor: _goldIcon,
+    ),
+    'bed': const CategoryStyle(
+      icon: Icons.bed_rounded,
+      backgroundColor: _neutralBg,
+      iconColor: _goldIcon,
+    ),
+    'checkroom': const CategoryStyle(
+      icon: Icons.checkroom_rounded,
+      backgroundColor: _neutralBg,
+      iconColor: _goldIcon,
+    ),
+    'water_drop': const CategoryStyle(
+      icon: Icons.water_drop_rounded,
+      backgroundColor: _goldBg,
+      iconColor: _darkIcon,
+    ),
+    'cleaning_services': const CategoryStyle(
+      icon: Icons.cleaning_services_rounded,
+      backgroundColor: _warmBg,
+      iconColor: _darkIcon,
     ),
     'auto_awesome': const CategoryStyle(
       icon: Icons.auto_awesome_rounded,
-      backgroundColor: Color(0xFFFCE7F3),
-      iconColor: Color(0xFFEC4899),
+      backgroundColor: _darkBg,
+      iconColor: _goldIcon,
     ),
   };
 }

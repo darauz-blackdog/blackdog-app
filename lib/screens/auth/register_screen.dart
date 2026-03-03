@@ -14,7 +14,8 @@ class RegisterScreen extends ConsumerStatefulWidget {
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -23,7 +24,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
@@ -31,14 +33,22 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     super.dispose();
   }
 
+  String get _fullPhone {
+    final digits = _phoneController.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.isEmpty) return '';
+    return '+507$digits';
+  }
+
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final fullName = '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}';
 
     await ref.read(authNotifierProvider.notifier).signUpWithEmail(
           email: _emailController.text.trim(),
           password: _passwordController.text,
-          fullName: _nameController.text.trim(),
-          phone: _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : null,
+          fullName: fullName,
+          phone: _fullPhone,
         );
 
     final state = ref.read(authNotifierProvider);
@@ -71,13 +81,34 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 Text('Completa tus datos para registrarte',
                     style: Theme.of(context).textTheme.bodyMedium),
                 const SizedBox(height: 32),
-                TextFormField(
-                  controller: _nameController,
-                  textInputAction: TextInputAction.next,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(
-                      labelText: 'Nombre completo', prefixIcon: Icon(Icons.person_outlined)),
-                  validator: (v) => (v == null || v.isEmpty) ? 'Ingresa tu nombre' : null,
+                // Nombre y Apellido en una fila
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _firstNameController,
+                        textInputAction: TextInputAction.next,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre',
+                          prefixIcon: Icon(Icons.person_outlined),
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _lastNameController,
+                        textInputAction: TextInputAction.next,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: const InputDecoration(
+                          labelText: 'Apellido',
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -93,15 +124,39 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
+                // Teléfono con +507 pre-set y bandera
                 TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    labelText: 'Teléfono (opcional)',
-                    prefixIcon: Icon(Icons.phone_outlined),
-                    hintText: '+507 6000-0000',
+                  decoration: InputDecoration(
+                    labelText: 'Teléfono',
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.only(left: 12, right: 4),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('🇵🇦', style: const TextStyle(fontSize: 20)),
+                          const SizedBox(width: 6),
+                          Text(
+                            '+507',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    hintText: '6000-0000',
                   ),
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Ingresa tu teléfono';
+                    final digits = v.replaceAll(RegExp(r'[^0-9]'), '');
+                    if (digits.length < 7 || digits.length > 8) return 'Teléfono inválido';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
