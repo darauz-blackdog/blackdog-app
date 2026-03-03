@@ -21,9 +21,34 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
   bool _obscurePassword = true;
+  bool _obscureConfirm = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _phoneController.addListener(_formatPhone);
+  }
+
+  void _formatPhone() {
+    final text = _phoneController.text;
+    final digits = text.replaceAll(RegExp(r'[^0-9]'), '');
+    String formatted;
+    if (digits.length <= 4) {
+      formatted = digits;
+    } else {
+      formatted = '${digits.substring(0, 4)}-${digits.substring(4, digits.length > 8 ? 8 : digits.length)}';
+    }
+    if (formatted != text) {
+      _phoneController.value = TextEditingValue(
+        text: formatted,
+        selection: TextSelection.collapsed(offset: formatted.length),
+      );
+    }
+  }
 
   @override
   void dispose() {
+    _phoneController.removeListener(_formatPhone);
     _firstNameController.dispose();
     _lastNameController.dispose();
     _emailController.dispose();
@@ -180,11 +205,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _confirmController,
-                  obscureText: true,
+                  obscureText: _obscureConfirm,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _handleRegister(),
-                  decoration: const InputDecoration(
-                      labelText: 'Confirmar contraseña', prefixIcon: Icon(Icons.lock_outlined)),
+                  decoration: InputDecoration(
+                    labelText: 'Confirmar contraseña',
+                    prefixIcon: const Icon(Icons.lock_outlined),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                    ),
+                  ),
                   validator: (v) => v != _passwordController.text ? 'Las contraseñas no coinciden' : null,
                 ),
                 const SizedBox(height: 32),
