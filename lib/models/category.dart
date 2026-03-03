@@ -47,6 +47,25 @@ class AppCategory {
     this.productCount = 0,
   });
 
+  /// Short display name for UI (one word)
+  String get shortName => _shortNames[name] ?? name;
+
+  static const _shortNames = {
+    'Alimentos Perro': 'Perro',
+    'Alimentos Gato': 'Gato',
+    'Treats & Snacks': 'Snacks',
+    'Higiene & Cuidado': 'Higiene',
+    'Camas & Hogar': 'Camas',
+    'Collares & Correas': 'Collares',
+    'Bowls & Comederos': 'Comederos',
+    'Arena & Areneros': 'Arena',
+    'Rascadores & Gimnasios': 'Rascadores',
+    'Bolsos & Transporte': 'Transporte',
+    'Pañales & Pads': 'Pañales',
+    'Medicamentos': 'Medicinas',
+    'Ropa & Accesorios': 'Ropa',
+  };
+
   factory AppCategory.fromJson(Map<String, dynamic> json) {
     return AppCategory(
       id: json['id'] as int,

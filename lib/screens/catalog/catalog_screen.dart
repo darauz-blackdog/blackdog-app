@@ -160,7 +160,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                   }
                   final cat = cats[i - 1];
                   return CategoryChip(
-                    label: cat.name,
+                    label: cat.shortName,
                     isSelected: _selectedAppCategoryId == cat.id,
                     onTap: () {
                       setState(() {

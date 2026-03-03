@@ -190,7 +190,7 @@ class HomeScreen extends ConsumerWidget {
                               offset: 15,
                               duration: const Duration(milliseconds: 400),
                               child: CategoryIconBox(
-                                label: cat.name,
+                                label: cat.shortName,
                                 icon: style.icon,
                                 backgroundColor: style.backgroundColor,
                                 iconColor: style.iconColor,
@@ -223,7 +223,7 @@ class HomeScreen extends ConsumerWidget {
                               final style =
                                   CategoryStyle.forAppCategory(cat.icon);
                               return CategoryIconBox(
-                                label: cat.name,
+                                label: cat.shortName,
                                 icon: style.icon,
                                 backgroundColor: style.backgroundColor,
                                 iconColor: style.iconColor,
