@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- LIST -->
+    <record id="view_app_log_list" model="ir.ui.view">
+        <field name="name">blackdog.app.log.list</field>
+        <field name="model">blackdog.app.log</field>
+        <field name="arch" type="xml">
+            <list string="Logs App" create="0"
+                  decoration-danger="level == 'error'"
+                  decoration-warning="level == 'warning'">
+                <field name="create_date" string="Fecha"/>
+                <field name="log_type" widget="badge"/>
+                <field name="level" widget="badge"
+                       decoration-info="level == 'info'"
+                       decoration-warning="level == 'warning'"
+                       decoration-danger="level == 'error'"/>
+                <field name="summary"/>
+                <field name="queue_id" optional="show"/>
+                <field name="app_order_id" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- FORM -->
+    <record id="view_app_log_form" model="ir.ui.view">
+        <field name="name">blackdog.app.log.form</field>
+        <field name="model">blackdog.app.log</field>
+        <field name="arch" type="xml">
+            <form string="Log" create="0" edit="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="log_type"/>
+                            <field name="level"/>
+                            <field name="create_date"/>
+                        </group>
+                        <group>
+                            <field name="queue_id"/>
+                            <field name="queue_line_id"/>
+                            <field name="app_order_id"/>
+                        </group>
+                    </group>
+                    <group string="Resumen">
+                        <field name="summary" nolabel="1"/>
+                    </group>
+                    <group string="Detalle" invisible="not detail">
+                        <field name="detail" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- SEARCH -->
+    <record id="view_app_log_search" model="ir.ui.view">
+        <field name="name">blackdog.app.log.search</field>
+        <field name="model">blackdog.app.log</field>
+        <field name="arch" type="xml">
+            <search string="Logs">
+                <field name="summary"/>
+                <field name="detail"/>
+                <separator/>
+                <filter string="Errores" name="filter_errors"
+                        domain="[('level','=','error')]"/>
+                <filter string="Advertencias" name="filter_warnings"
+                        domain="[('level','=','warning')]"/>
+                <separator/>
+                <filter string="Sync" name="filter_sync"
+                        domain="[('log_type','=','sync')]"/>
+                <filter string="Pedidos" name="filter_orders"
+                        domain="[('log_type','=','order')]"/>
+                <filter string="Pagos" name="filter_payments"
+                        domain="[('log_type','=','payment')]"/>
+                <filter string="Webhooks" name="filter_webhooks"
+                        domain="[('log_type','=','webhook')]"/>
+                <separator/>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Tipo" name="group_type"
+                            context="{'group_by': 'log_type'}"/>
+                    <filter string="Nivel" name="group_level"
+                            context="{'group_by': 'level'}"/>
+                    <filter string="Fecha" name="group_date"
+                            context="{'group_by': 'create_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_app_logs" model="ir.actions.act_window">
+        <field name="name">Sync Logs</field>
+        <field name="res_model">blackdog.app.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_app_log_search"/>
+    </record>
+
+</odoo>

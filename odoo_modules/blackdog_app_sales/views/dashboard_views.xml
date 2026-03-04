@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         PIVOT VIEW — Análisis de ventas de la app
-         ═══════════════════════════════════════════════════════════ -->
+    <!-- Pivot: Ventas por sucursal y mes -->
     <record id="view_app_order_pivot" model="ir.ui.view">
-        <field name="name">sale.order.app.pivot</field>
-        <field name="model">sale.order</field>
+        <field name="name">blackdog.app.order.pivot</field>
+        <field name="model">blackdog.app.order</field>
         <field name="arch" type="xml">
             <pivot string="Análisis Ventas App" sample="1">
                 <field name="create_date" type="col" interval="month"/>
@@ -16,53 +14,59 @@
         </field>
     </record>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         GRAPH VIEW — Gráficos de ventas de la app
-         ═══════════════════════════════════════════════════════════ -->
+    <!-- Graph: Ventas por semana -->
     <record id="view_app_order_graph" model="ir.ui.view">
-        <field name="name">sale.order.app.graph</field>
-        <field name="model">sale.order</field>
+        <field name="name">blackdog.app.order.graph</field>
+        <field name="model">blackdog.app.order</field>
         <field name="arch" type="xml">
             <graph string="Ventas App" type="bar" sample="1">
-                <field name="create_date" type="col" interval="week"/>
+                <field name="create_date" interval="week"/>
                 <field name="amount_total" type="measure"/>
             </graph>
         </field>
     </record>
 
-    <!-- Graph: By warehouse -->
+    <!-- Graph: Ventas por sucursal -->
     <record id="view_app_order_graph_warehouse" model="ir.ui.view">
-        <field name="name">sale.order.app.graph.warehouse</field>
-        <field name="model">sale.order</field>
+        <field name="name">blackdog.app.order.graph.warehouse</field>
+        <field name="model">blackdog.app.order</field>
         <field name="arch" type="xml">
             <graph string="Ventas por Sucursal" type="bar" sample="1">
-                <field name="warehouse_id" type="col"/>
+                <field name="warehouse_id"/>
                 <field name="amount_total" type="measure"/>
             </graph>
         </field>
     </record>
 
-    <!-- Graph: Fulfillment states pie -->
-    <record id="view_app_order_graph_fulfillment" model="ir.ui.view">
-        <field name="name">sale.order.app.graph.fulfillment</field>
-        <field name="model">sale.order</field>
+    <!-- Graph: Estados (pie) -->
+    <record id="view_app_order_graph_state" model="ir.ui.view">
+        <field name="name">blackdog.app.order.graph.state</field>
+        <field name="model">blackdog.app.order</field>
         <field name="arch" type="xml">
             <graph string="Estados de Pedidos" type="pie" sample="1">
-                <field name="app_fulfillment_state" type="col"/>
+                <field name="state"/>
                 <field name="__count" type="measure"/>
             </graph>
         </field>
     </record>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         DASHBOARD ACTION — Análisis completo
-         ═══════════════════════════════════════════════════════════ -->
+    <!-- Graph: Métodos de pago (pie) -->
+    <record id="view_app_order_graph_payment" model="ir.ui.view">
+        <field name="name">blackdog.app.order.graph.payment</field>
+        <field name="model">blackdog.app.order</field>
+        <field name="arch" type="xml">
+            <graph string="Métodos de Pago" type="pie" sample="1">
+                <field name="payment_method"/>
+                <field name="amount_total" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Action: Dashboard general -->
     <record id="action_app_dashboard" model="ir.actions.act_window">
         <field name="name">Dashboard App</field>
-        <field name="res_model">sale.order</field>
-        <field name="view_mode">graph,pivot,tree</field>
-        <field name="domain">[('is_app_order','=',True)]</field>
-        <field name="context">{}</field>
+        <field name="res_model">blackdog.app.order</field>
+        <field name="view_mode">graph,pivot,list</field>
         <field name="search_view_id" ref="view_app_order_search"/>
     </record>
 
@@ -80,13 +84,11 @@
         <field name="act_window_id" ref="action_app_dashboard"/>
     </record>
 
-    <!-- Dashboard: By warehouse -->
+    <!-- Action: Por sucursal -->
     <record id="action_app_dashboard_warehouse" model="ir.actions.act_window">
         <field name="name">Ventas por Sucursal</field>
-        <field name="res_model">sale.order</field>
-        <field name="view_mode">graph,pivot,tree</field>
-        <field name="domain">[('is_app_order','=',True)]</field>
-        <field name="context">{}</field>
+        <field name="res_model">blackdog.app.order</field>
+        <field name="view_mode">graph,pivot,list</field>
         <field name="search_view_id" ref="view_app_order_search"/>
     </record>
 
@@ -97,56 +99,26 @@
         <field name="act_window_id" ref="action_app_dashboard_warehouse"/>
     </record>
 
-    <!-- Dashboard: Fulfillment -->
-    <record id="action_app_dashboard_fulfillment" model="ir.actions.act_window">
+    <!-- Action: Estados -->
+    <record id="action_app_dashboard_states" model="ir.actions.act_window">
         <field name="name">Estados Fulfillment</field>
-        <field name="res_model">sale.order</field>
-        <field name="view_mode">graph,pivot,tree</field>
-        <field name="domain">[('is_app_order','=',True)]</field>
-        <field name="context">{}</field>
+        <field name="res_model">blackdog.app.order</field>
+        <field name="view_mode">graph,pivot,list</field>
         <field name="search_view_id" ref="view_app_order_search"/>
     </record>
 
-    <record id="action_app_dashboard_fulfillment_view_graph" model="ir.actions.act_window.view">
+    <record id="action_app_dashboard_states_view_graph" model="ir.actions.act_window.view">
         <field name="sequence">1</field>
         <field name="view_mode">graph</field>
-        <field name="view_id" ref="view_app_order_graph_fulfillment"/>
-        <field name="act_window_id" ref="action_app_dashboard_fulfillment"/>
+        <field name="view_id" ref="view_app_order_graph_state"/>
+        <field name="act_window_id" ref="action_app_dashboard_states"/>
     </record>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         Graph: Payment methods pie
-         ═══════════════════════════════════════════════════════════ -->
-    <record id="view_app_order_graph_payment" model="ir.ui.view">
-        <field name="name">sale.order.app.graph.payment</field>
-        <field name="model">sale.order</field>
-        <field name="arch" type="xml">
-            <graph string="Métodos de Pago" type="pie" sample="1">
-                <field name="app_payment_method" type="col"/>
-                <field name="amount_total" type="measure"/>
-            </graph>
-        </field>
-    </record>
-
-    <!-- Graph: Payment status -->
-    <record id="view_app_order_graph_payment_status" model="ir.ui.view">
-        <field name="name">sale.order.app.graph.payment.status</field>
-        <field name="model">sale.order</field>
-        <field name="arch" type="xml">
-            <graph string="Estado de Pagos" type="pie" sample="1">
-                <field name="app_payment_status" type="col"/>
-                <field name="__count" type="measure"/>
-            </graph>
-        </field>
-    </record>
-
-    <!-- Dashboard: Pagos -->
+    <!-- Action: Pagos -->
     <record id="action_app_dashboard_payments" model="ir.actions.act_window">
         <field name="name">Análisis de Pagos</field>
-        <field name="res_model">sale.order</field>
-        <field name="view_mode">graph,pivot,tree</field>
-        <field name="domain">[('is_app_order','=',True)]</field>
-        <field name="context">{}</field>
+        <field name="res_model">blackdog.app.order</field>
+        <field name="view_mode">graph,pivot,list</field>
         <field name="search_view_id" ref="view_app_order_search"/>
     </record>
 

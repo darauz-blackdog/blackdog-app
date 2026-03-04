@@ -5,7 +5,6 @@
         <!-- Sales Team para pedidos de la app -->
         <record id="team_app_movil" model="crm.team">
             <field name="name">App Móvil</field>
-            <field name="use_quotations">True</field>
             <field name="active">True</field>
         </record>
 

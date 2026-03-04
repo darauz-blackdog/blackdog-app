@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         MENU — Entrada principal bajo Ventas
-         ═══════════════════════════════════════════════════════════ -->
-
     <!-- Top-level menu under Sales -->
     <menuitem id="menu_app_sales_root"
               name="App Móvil"
@@ -12,7 +8,7 @@
               sequence="5"
               groups="blackdog_app_sales.group_app_sales_manager,blackdog_app_sales.group_app_branch_operator"/>
 
-    <!-- Submenu: Pedidos -->
+    <!-- ─── Pedidos ──────────────────────────────────────────── -->
     <menuitem id="menu_app_orders"
               name="Pedidos"
               parent="menu_app_sales_root"
@@ -30,7 +26,32 @@
               action="action_app_orders_all"
               sequence="20"/>
 
-    <!-- Submenu: Dashboard -->
+    <menuitem id="menu_app_order_queue"
+              name="Cola de Importación"
+              parent="menu_app_orders"
+              action="action_app_order_queue"
+              sequence="30"
+              groups="blackdog_app_sales.group_app_sales_manager"/>
+
+    <!-- ─── Pagos ────────────────────────────────────────────── -->
+    <menuitem id="menu_app_payments"
+              name="Pagos"
+              parent="menu_app_sales_root"
+              sequence="15"/>
+
+    <menuitem id="menu_app_payments_awaiting"
+              name="Esperando Pago"
+              parent="menu_app_payments"
+              action="action_app_payments_awaiting"
+              sequence="10"/>
+
+    <menuitem id="menu_app_payments_all"
+              name="Todos los Pagos"
+              parent="menu_app_payments"
+              action="action_app_payments_all"
+              sequence="20"/>
+
+    <!-- ─── Dashboard ────────────────────────────────────────── -->
     <menuitem id="menu_app_dashboard"
               name="Dashboard"
               parent="menu_app_sales_root"
@@ -48,10 +69,10 @@
               action="action_app_dashboard_warehouse"
               sequence="20"/>
 
-    <menuitem id="menu_app_dashboard_fulfillment"
+    <menuitem id="menu_app_dashboard_states"
               name="Estados Fulfillment"
               parent="menu_app_dashboard"
-              action="action_app_dashboard_fulfillment"
+              action="action_app_dashboard_states"
               sequence="30"/>
 
     <menuitem id="menu_app_dashboard_payments"
@@ -60,16 +81,20 @@
               action="action_app_dashboard_payments"
               sequence="40"/>
 
-    <!-- Submenu: Pagos pendientes (quick access) -->
-    <menuitem id="menu_app_payments"
-              name="Pagos"
+    <!-- ─── Logs ─────────────────────────────────────────────── -->
+    <menuitem id="menu_app_logs"
+              name="Logs"
               parent="menu_app_sales_root"
-              sequence="15"/>
+              action="action_app_logs"
+              sequence="25"
+              groups="blackdog_app_sales.group_app_sales_manager"/>
 
-    <menuitem id="menu_app_payments_awaiting"
-              name="Esperando Pago"
-              parent="menu_app_payments"
-              action="action_app_orders_awaiting_payment"
-              sequence="10"/>
+    <!-- ─── Configuración ────────────────────────────────────── -->
+    <menuitem id="menu_app_config"
+              name="Configuración"
+              parent="menu_app_sales_root"
+              action="action_app_config"
+              sequence="99"
+              groups="blackdog_app_sales.group_app_sales_manager"/>
 
 </odoo>

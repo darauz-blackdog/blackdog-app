@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_order_import_wizard_form" model="ir.ui.view">
+        <field name="name">blackdog.app.order.import.wizard.form</field>
+        <field name="model">blackdog.app.order.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Importar Pedido JSON">
+                <group>
+                    <field name="auto_process"/>
+                </group>
+                <group string="JSON del Pedido">
+                    <field name="json_data" nolabel="1" widget="ace"
+                           options="{'mode': 'json'}"
+                           placeholder='{"app_ref": "...", "partner_id": 1, "warehouse_id": 1, "lines": [...]}'/>
+                </group>
+                <footer>
+                    <button name="action_import" string="Importar"
+                            type="object" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_order_import_wizard" model="ir.actions.act_window">
+        <field name="name">Importar Pedido (JSON)</field>
+        <field name="res_model">blackdog.app.order.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

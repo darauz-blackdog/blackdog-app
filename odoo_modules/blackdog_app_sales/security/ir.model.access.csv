@@ -1,3 +1,14 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_sale_order_app_manager,sale.order.app.manager,sale.model_sale_order,blackdog_app_sales.group_app_sales_manager,1,1,1,1
-access_sale_order_app_operator,sale.order.app.operator,sale.model_sale_order,blackdog_app_sales.group_app_branch_operator,1,1,0,0
+access_app_config_manager,blackdog.app.config.manager,model_blackdog_app_config,blackdog_app_sales.group_app_sales_manager,1,1,1,1
+access_app_order_manager,blackdog.app.order.manager,model_blackdog_app_order,blackdog_app_sales.group_app_sales_manager,1,1,1,1
+access_app_order_line_manager,blackdog.app.order.line.manager,model_blackdog_app_order_line,blackdog_app_sales.group_app_sales_manager,1,1,1,1
+access_app_order_queue_manager,blackdog.app.order.queue.manager,model_blackdog_app_order_queue,blackdog_app_sales.group_app_sales_manager,1,1,1,1
+access_app_order_queue_line_manager,blackdog.app.order.queue.line.manager,model_blackdog_app_order_queue_line,blackdog_app_sales.group_app_sales_manager,1,1,1,1
+access_app_payment_manager,blackdog.app.payment.manager,model_blackdog_app_payment,blackdog_app_sales.group_app_sales_manager,1,1,1,1
+access_app_log_manager,blackdog.app.log.manager,model_blackdog_app_log,blackdog_app_sales.group_app_sales_manager,1,1,1,1
+access_app_order_operator,blackdog.app.order.operator,model_blackdog_app_order,blackdog_app_sales.group_app_branch_operator,1,1,0,0
+access_app_order_line_operator,blackdog.app.order.line.operator,model_blackdog_app_order_line,blackdog_app_sales.group_app_branch_operator,1,0,0,0
+access_app_order_queue_operator,blackdog.app.order.queue.operator,model_blackdog_app_order_queue,blackdog_app_sales.group_app_branch_operator,1,0,0,0
+access_app_order_queue_line_operator,blackdog.app.order.queue.line.operator,model_blackdog_app_order_queue_line,blackdog_app_sales.group_app_branch_operator,1,0,0,0
+access_app_payment_operator,blackdog.app.payment.operator,model_blackdog_app_payment,blackdog_app_sales.group_app_branch_operator,1,0,0,0
+access_app_log_operator,blackdog.app.log.operator,model_blackdog_app_log,blackdog_app_sales.group_app_branch_operator,1,0,0,0

@@ -6,9 +6,10 @@
         <record id="group_app_sales_manager" model="res.groups">
             <field name="name">BlackDog App - Gestor de Pedidos</field>
             <field name="category_id" ref="base.module_category_sales_sales"/>
+            <field name="implied_ids" eval="[(4, ref('group_app_branch_operator'))]"/>
             <field name="comment">
-                Puede ver y gestionar todos los pedidos de la app móvil.
-                Acceso al dashboard de métricas.
+                Acceso completo a todos los modelos del módulo App Móvil.
+                Puede gestionar configuración, procesar colas, y ver todos los pedidos.
             </field>
         </record>
 
@@ -18,7 +19,7 @@
             <field name="category_id" ref="base.module_category_sales_sales"/>
             <field name="comment">
                 Puede ver pedidos asignados a su sucursal y actualizar
-                el estado de fulfillment.
+                el estado de fulfillment. Lectura en cola, pagos y logs.
             </field>
         </record>
 

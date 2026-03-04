@@ -8,94 +8,95 @@
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
                 <app data-string="App Móvil BlackDog" string="App Móvil BlackDog"
-                     groups="blackdog_app_sales.group_app_sales_manager">
+                     name="blackdog_app_sales">
 
-                    <!-- Tilopay Credentials -->
-                    <block title="Tilopay - Credenciales App"
-                           help="Credenciales de Tilopay exclusivas para pagos desde la app móvil. Separadas de las credenciales de Odoo/Web.">
-                        <setting string="API Tilopay (App)"
-                                 help="Configure las credenciales de la API de Tilopay para la app móvil">
-                            <div class="content-group">
-                                <div class="row mt16">
-                                    <label for="app_tilopay_api_user" class="col-3 col-lg-3 o_light_label"/>
-                                    <field name="app_tilopay_api_user" class="col-9 col-lg-6"/>
-                                </div>
-                                <div class="row">
-                                    <label for="app_tilopay_api_password" class="col-3 col-lg-3 o_light_label"/>
-                                    <field name="app_tilopay_api_password" class="col-9 col-lg-6" password="True"/>
-                                </div>
-                                <div class="row">
-                                    <label for="app_tilopay_api_key" class="col-3 col-lg-3 o_light_label"/>
-                                    <field name="app_tilopay_api_key" class="col-9 col-lg-6" password="True"/>
-                                </div>
-                                <div class="row">
-                                    <label for="app_tilopay_api_base_url" class="col-3 col-lg-3 o_light_label"/>
-                                    <field name="app_tilopay_api_base_url" class="col-9 col-lg-6"
-                                           placeholder="https://app.tilopay.com"/>
-                                </div>
-                            </div>
+                    <block id="blackdog_app_general" title="General"
+                           help="Configuración general de la app móvil.">
+                        <setting string="Almacén por Defecto"
+                                 help="Almacén/sucursal asignado por defecto a pedidos de la app">
+                            <field name="app_default_warehouse_id"/>
                         </setting>
-                        <setting string="URLs de Redirección Tilopay"
-                                 help="Deep links para redirección en la app después del pago">
-                            <div class="content-group">
-                                <div class="row mt16">
-                                    <label for="app_tilopay_success_url" class="col-3 col-lg-3 o_light_label"/>
-                                    <field name="app_tilopay_success_url" class="col-9 col-lg-6"
-                                           placeholder="blackdog://payment/success"/>
-                                </div>
-                                <div class="row">
-                                    <label for="app_tilopay_fail_url" class="col-3 col-lg-3 o_light_label"/>
-                                    <field name="app_tilopay_fail_url" class="col-9 col-lg-6"
-                                           placeholder="blackdog://payment/failed"/>
-                                </div>
-                            </div>
+                        <setting string="Equipo de Ventas"
+                                 help="Equipo de ventas asignado a pedidos creados desde la app">
+                            <field name="app_default_sales_team_id"/>
+                        </setting>
+                        <setting string="Producto Delivery"
+                                 help="Producto tipo servicio para cargos de delivery">
+                            <field name="app_delivery_product_id"/>
+                        </setting>
+                        <setting string="Auto-procesar Cola"
+                                 help="Procesar automáticamente las líneas de cola al recibirlas">
+                            <field name="app_auto_process_queue"/>
+                        </setting>
+                        <setting string="Auto-confirmar Pagados"
+                                 help="Crear sale.order automáticamente cuando el pago se confirma">
+                            <field name="app_auto_confirm_paid"/>
                         </setting>
                     </block>
 
-                    <!-- Yappy Credentials -->
-                    <block title="Yappy - Credenciales App"
+                    <block id="blackdog_app_tilopay" title="Tilopay - Credenciales App"
+                           help="Credenciales de Tilopay exclusivas para pagos desde la app móvil.">
+                        <setting string="Usuario API"
+                                 help="Usuario API de Tilopay para la app">
+                            <field name="app_tilopay_api_user"/>
+                        </setting>
+                        <setting string="Contraseña API"
+                                 help="Contraseña API de Tilopay para la app">
+                            <field name="app_tilopay_api_password" password="True"/>
+                        </setting>
+                        <setting string="API Key"
+                                 help="API Key de Tilopay para la app">
+                            <field name="app_tilopay_api_key" password="True"/>
+                        </setting>
+                        <setting string="URL Base"
+                                 help="URL base de la API de Tilopay">
+                            <field name="app_tilopay_api_base_url"
+                                   placeholder="https://app.tilopay.com"/>
+                        </setting>
+                        <setting string="URL Éxito (Deep Link)"
+                                 help="Deep link para redirección después de pago exitoso">
+                            <field name="app_tilopay_success_url"
+                                   placeholder="blackdog://payment/success"/>
+                        </setting>
+                        <setting string="URL Fallo (Deep Link)"
+                                 help="Deep link para redirección después de pago fallido">
+                            <field name="app_tilopay_fail_url"
+                                   placeholder="blackdog://payment/failed"/>
+                        </setting>
+                    </block>
+
+                    <block id="blackdog_app_yappy" title="Yappy - Credenciales App"
                            help="Credenciales de Yappy exclusivas para pagos desde la app móvil.">
-                        <setting string="API Yappy (App)"
-                                 help="Configure las credenciales de Yappy para la app móvil">
-                            <div class="content-group">
-                                <div class="row mt16">
-                                    <label for="app_yappy_merchant_id" class="col-3 col-lg-3 o_light_label"/>
-                                    <field name="app_yappy_merchant_id" class="col-9 col-lg-6"/>
-                                </div>
-                                <div class="row">
-                                    <label for="app_yappy_secret_key" class="col-3 col-lg-3 o_light_label"/>
-                                    <field name="app_yappy_secret_key" class="col-9 col-lg-6" password="True"/>
-                                </div>
-                                <div class="row">
-                                    <label for="app_yappy_domain" class="col-3 col-lg-3 o_light_label"/>
-                                    <field name="app_yappy_domain" class="col-9 col-lg-6"
-                                           placeholder="https://pagos.blackdogpanama.com"/>
-                                </div>
-                                <div class="row">
-                                    <label for="app_yappy_success_url" class="col-3 col-lg-3 o_light_label"/>
-                                    <field name="app_yappy_success_url" class="col-9 col-lg-6"
-                                           placeholder="blackdog://payment/success"/>
-                                </div>
-                            </div>
+                        <setting string="Merchant ID"
+                                 help="Merchant ID de Yappy para la app">
+                            <field name="app_yappy_merchant_id"/>
+                        </setting>
+                        <setting string="Secret Key"
+                                 help="Secret Key de Yappy para la app">
+                            <field name="app_yappy_secret_key" password="True"/>
+                        </setting>
+                        <setting string="Dominio"
+                                 help="Dominio para links de pago Yappy de la app">
+                            <field name="app_yappy_domain"
+                                   placeholder="https://pagos.blackdogpanama.com"/>
+                        </setting>
+                        <setting string="URL Éxito (Deep Link)"
+                                 help="Deep link para redirección después de pago Yappy exitoso">
+                            <field name="app_yappy_success_url"
+                                   placeholder="blackdog://payment/success"/>
                         </setting>
                     </block>
 
-                    <!-- Backend API -->
-                    <block title="Backend API (Express.js)"
+                    <block id="blackdog_app_backend" title="Backend API (Express.js)"
                            help="Conexión al backend de la app para webhooks y notificaciones push.">
-                        <setting string="Configuración del Backend"
-                                 help="URL y secreto para comunicación Odoo-Backend">
-                            <div class="content-group">
-                                <div class="row mt16">
-                                    <label for="app_backend_api_url" class="col-3 col-lg-3 o_light_label"/>
-                                    <field name="app_backend_api_url" class="col-9 col-lg-6"
-                                           placeholder="http://31.97.211.164:3002/api"/>
-                                </div>
-                                <div class="row">
-                                    <label for="app_backend_api_secret" class="col-3 col-lg-3 o_light_label"/>
-                                    <field name="app_backend_api_secret" class="col-9 col-lg-6" password="True"/>
-                                </div>
-                            </div>
+                        <setting string="URL Backend"
+                                 help="URL del backend Express.js para webhooks">
+                            <field name="app_backend_api_url"
+                                   placeholder="http://31.97.211.164:3002/api"/>
+                        </setting>
+                        <setting string="Secret"
+                                 help="Token secreto para autenticar webhooks desde Odoo al backend">
+                            <field name="app_backend_api_secret" password="True"/>
                         </setting>
                     </block>
 
