@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.blackdog.app</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="App Móvil BlackDog" string="App Móvil BlackDog"
+                     groups="blackdog_app_sales.group_app_sales_manager">
+
+                    <!-- Tilopay Credentials -->
+                    <block title="Tilopay - Credenciales App"
+                           help="Credenciales de Tilopay exclusivas para pagos desde la app móvil. Separadas de las credenciales de Odoo/Web.">
+                        <setting string="API Tilopay (App)"
+                                 help="Configure las credenciales de la API de Tilopay para la app móvil">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="app_tilopay_api_user" class="col-3 col-lg-3 o_light_label"/>
+                                    <field name="app_tilopay_api_user" class="col-9 col-lg-6"/>
+                                </div>
+                                <div class="row">
+                                    <label for="app_tilopay_api_password" class="col-3 col-lg-3 o_light_label"/>
+                                    <field name="app_tilopay_api_password" class="col-9 col-lg-6" password="True"/>
+                                </div>
+                                <div class="row">
+                                    <label for="app_tilopay_api_key" class="col-3 col-lg-3 o_light_label"/>
+                                    <field name="app_tilopay_api_key" class="col-9 col-lg-6" password="True"/>
+                                </div>
+                                <div class="row">
+                                    <label for="app_tilopay_api_base_url" class="col-3 col-lg-3 o_light_label"/>
+                                    <field name="app_tilopay_api_base_url" class="col-9 col-lg-6"
+                                           placeholder="https://app.tilopay.com"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="URLs de Redirección Tilopay"
+                                 help="Deep links para redirección en la app después del pago">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="app_tilopay_success_url" class="col-3 col-lg-3 o_light_label"/>
+                                    <field name="app_tilopay_success_url" class="col-9 col-lg-6"
+                                           placeholder="blackdog://payment/success"/>
+                                </div>
+                                <div class="row">
+                                    <label for="app_tilopay_fail_url" class="col-3 col-lg-3 o_light_label"/>
+                                    <field name="app_tilopay_fail_url" class="col-9 col-lg-6"
+                                           placeholder="blackdog://payment/failed"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+
+                    <!-- Yappy Credentials -->
+                    <block title="Yappy - Credenciales App"
+                           help="Credenciales de Yappy exclusivas para pagos desde la app móvil.">
+                        <setting string="API Yappy (App)"
+                                 help="Configure las credenciales de Yappy para la app móvil">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="app_yappy_merchant_id" class="col-3 col-lg-3 o_light_label"/>
+                                    <field name="app_yappy_merchant_id" class="col-9 col-lg-6"/>
+                                </div>
+                                <div class="row">
+                                    <label for="app_yappy_secret_key" class="col-3 col-lg-3 o_light_label"/>
+                                    <field name="app_yappy_secret_key" class="col-9 col-lg-6" password="True"/>
+                                </div>
+                                <div class="row">
+                                    <label for="app_yappy_domain" class="col-3 col-lg-3 o_light_label"/>
+                                    <field name="app_yappy_domain" class="col-9 col-lg-6"
+                                           placeholder="https://pagos.blackdogpanama.com"/>
+                                </div>
+                                <div class="row">
+                                    <label for="app_yappy_success_url" class="col-3 col-lg-3 o_light_label"/>
+                                    <field name="app_yappy_success_url" class="col-9 col-lg-6"
+                                           placeholder="blackdog://payment/success"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+
+                    <!-- Backend API -->
+                    <block title="Backend API (Express.js)"
+                           help="Conexión al backend de la app para webhooks y notificaciones push.">
+                        <setting string="Configuración del Backend"
+                                 help="URL y secreto para comunicación Odoo-Backend">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="app_backend_api_url" class="col-3 col-lg-3 o_light_label"/>
+                                    <field name="app_backend_api_url" class="col-9 col-lg-6"
+                                           placeholder="http://31.97.211.164:3002/api"/>
+                                </div>
+                                <div class="row">
+                                    <label for="app_backend_api_secret" class="col-3 col-lg-3 o_light_label"/>
+                                    <field name="app_backend_api_secret" class="col-9 col-lg-6" password="True"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Grupo: Gestor de Pedidos App -->
+        <record id="group_app_sales_manager" model="res.groups">
+            <field name="name">BlackDog App - Gestor de Pedidos</field>
+            <field name="category_id" ref="base.module_category_sales_sales"/>
+            <field name="comment">
+                Puede ver y gestionar todos los pedidos de la app móvil.
+                Acceso al dashboard de métricas.
+            </field>
+        </record>
+
+        <!-- Grupo: Operador de Sucursal (fulfillment) -->
+        <record id="group_app_branch_operator" model="res.groups">
+            <field name="name">BlackDog App - Operador Sucursal</field>
+            <field name="category_id" ref="base.module_category_sales_sales"/>
+            <field name="comment">
+                Puede ver pedidos asignados a su sucursal y actualizar
+                el estado de fulfillment.
+            </field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         TREE VIEW — Lista de pedidos de la app
+         ═══════════════════════════════════════════════════════════ -->
+    <record id="view_app_order_tree" model="ir.ui.view">
+        <field name="name">sale.order.app.tree</field>
+        <field name="model">sale.order</field>
+        <field name="arch" type="xml">
+            <tree string="Pedidos App"
+                  decoration-info="app_fulfillment_state in ('pending','awaiting_payment')"
+                  decoration-warning="app_fulfillment_state in ('confirmed','preparing')"
+                  decoration-success="app_fulfillment_state in ('ready','delivered','paid')"
+                  decoration-danger="app_fulfillment_state == 'cancelled'"
+                  default_order="create_date desc">
+                <field name="name" string="Pedido"/>
+                <field name="app_order_ref" string="Ref. App" optional="show"/>
+                <field name="create_date" string="Fecha"/>
+                <field name="partner_id" string="Cliente"/>
+                <field name="app_customer_phone" string="Teléfono" optional="show"/>
+                <field name="warehouse_id" string="Sucursal"/>
+                <field name="app_delivery_method" string="Entrega"
+                       widget="badge"
+                       decoration-info="app_delivery_method == 'delivery'"
+                       decoration-success="app_delivery_method == 'pickup'"/>
+                <field name="app_payment_method" string="Método Pago" optional="show"/>
+                <field name="app_payment_status" string="Estado Pago"
+                       widget="badge"
+                       decoration-success="app_payment_status == 'paid'"
+                       decoration-info="app_payment_status == 'pending'"
+                       decoration-danger="app_payment_status in ('failed','expired')"
+                       decoration-warning="app_payment_status == 'refunded'"/>
+                <field name="amount_total" string="Total" sum="Total"/>
+                <field name="app_fulfillment_state" string="Fulfillment"
+                       widget="badge"
+                       decoration-info="app_fulfillment_state in ('pending','awaiting_payment')"
+                       decoration-warning="app_fulfillment_state in ('confirmed','preparing')"
+                       decoration-success="app_fulfillment_state in ('ready','delivered','dispatched','paid')"
+                       decoration-danger="app_fulfillment_state == 'cancelled'"/>
+                <field name="state" string="Estado Venta" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         KANBAN VIEW — Visual board por estado fulfillment
+         ═══════════════════════════════════════════════════════════ -->
+    <record id="view_app_order_kanban" model="ir.ui.view">
+        <field name="name">sale.order.app.kanban</field>
+        <field name="model">sale.order</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="app_fulfillment_state"
+                    default_order="create_date desc"
+                    class="o_kanban_small_column">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="amount_total"/>
+                <field name="warehouse_id"/>
+                <field name="app_delivery_method"/>
+                <field name="app_fulfillment_state"/>
+                <field name="app_payment_method"/>
+                <field name="app_payment_status"/>
+                <field name="app_customer_phone"/>
+                <field name="create_date"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between mb-1">
+                            <strong>
+                                <field name="name"/>
+                            </strong>
+                            <span class="badge rounded-pill"
+                                  t-attf-class="#{record.app_delivery_method.raw_value == 'delivery' ? 'text-bg-info' : 'text-bg-success'}">
+                                <field name="app_delivery_method"/>
+                            </span>
+                        </div>
+                        <div class="text-muted mb-1">
+                            <field name="partner_id"/>
+                        </div>
+                        <div class="mb-1" t-if="record.app_customer_phone.raw_value">
+                            <i class="fa fa-phone me-1"/>
+                            <field name="app_customer_phone"/>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-muted">
+                                <i class="fa fa-building me-1"/>
+                                <field name="warehouse_id"/>
+                            </span>
+                            <strong class="fs-5 text-primary">
+                                $<field name="amount_total"/>
+                            </strong>
+                        </div>
+                        <!-- Payment badge -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge rounded-pill"
+                                  t-attf-class="#{record.app_payment_status.raw_value == 'paid' ? 'text-bg-success' : record.app_payment_status.raw_value == 'pending' ? 'text-bg-warning' : 'text-bg-secondary'}">
+                                <field name="app_payment_method"/>:
+                                <field name="app_payment_status"/>
+                            </span>
+                            <span class="text-muted" style="font-size: 0.8em;">
+                                <field name="create_date" widget="date"/>
+                            </span>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         FORM VIEW — Detalle del pedido con botones de fulfillment
+         ═══════════════════════════════════════════════════════════ -->
+    <record id="view_app_order_form" model="ir.ui.view">
+        <field name="name">sale.order.app.form</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <!-- Add fulfillment buttons in the header -->
+            <xpath expr="//form/header" position="inside">
+                <!-- Payment actions -->
+                <button name="action_create_app_payment_link"
+                        string="Crear Link de Pago"
+                        type="object"
+                        class="btn-warning"
+                        invisible="not is_app_order or app_payment_method == 'cash' or app_payment_status == 'paid'"
+                        groups="blackdog_app_sales.group_app_sales_manager"/>
+                <button name="action_resend_payment_link"
+                        string="Reenviar Link"
+                        type="object"
+                        class="btn-secondary"
+                        invisible="not is_app_order or not app_payment_link"
+                        groups="blackdog_app_sales.group_app_sales_manager,blackdog_app_sales.group_app_branch_operator"/>
+                <!-- Fulfillment actions -->
+                <button name="action_confirm_branch"
+                        string="Confirmar Sucursal"
+                        type="object"
+                        class="btn-primary"
+                        invisible="not is_app_order or app_fulfillment_state not in ('pending','awaiting_payment','paid')"
+                        groups="blackdog_app_sales.group_app_branch_operator,blackdog_app_sales.group_app_sales_manager"/>
+                <button name="action_start_preparing"
+                        string="Iniciar Preparación"
+                        type="object"
+                        class="btn-primary"
+                        invisible="not is_app_order or app_fulfillment_state != 'confirmed'"
+                        groups="blackdog_app_sales.group_app_branch_operator,blackdog_app_sales.group_app_sales_manager"/>
+                <button name="action_mark_ready"
+                        string="Marcar Listo"
+                        type="object"
+                        class="btn-success"
+                        invisible="not is_app_order or app_fulfillment_state != 'preparing'"
+                        groups="blackdog_app_sales.group_app_branch_operator,blackdog_app_sales.group_app_sales_manager"/>
+                <button name="action_dispatch"
+                        string="Despachar"
+                        type="object"
+                        class="btn-warning"
+                        invisible="not is_app_order or app_fulfillment_state != 'ready' or app_delivery_method != 'delivery'"
+                        groups="blackdog_app_sales.group_app_branch_operator,blackdog_app_sales.group_app_sales_manager"/>
+                <button name="action_mark_delivered"
+                        string="Entregado"
+                        type="object"
+                        class="btn-success"
+                        invisible="not is_app_order or app_fulfillment_state not in ('ready','dispatched')"
+                        groups="blackdog_app_sales.group_app_branch_operator,blackdog_app_sales.group_app_sales_manager"/>
+                <button name="action_cancel_app_order"
+                        string="Cancelar Pedido"
+                        type="object"
+                        class="btn-danger"
+                        invisible="not is_app_order or app_fulfillment_state in ('delivered','cancelled')"
+                        groups="blackdog_app_sales.group_app_sales_manager"
+                        confirm="¿Estás seguro de cancelar este pedido?"/>
+                <field name="app_fulfillment_state"
+                       widget="statusbar"
+                       statusbar_visible="pending,awaiting_payment,paid,confirmed,preparing,ready,delivered"
+                       invisible="not is_app_order"/>
+            </xpath>
+
+            <!-- Add App info tab in the notebook -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Info App Móvil" name="app_info"
+                      invisible="not is_app_order">
+                    <group>
+                        <group string="Pedido App">
+                            <field name="is_app_order" invisible="1"/>
+                            <field name="app_order_ref"/>
+                            <field name="app_delivery_method"/>
+                            <field name="app_fulfillment_state"/>
+                        </group>
+                        <group string="Pago">
+                            <field name="app_payment_method"/>
+                            <field name="app_payment_status"/>
+                            <field name="app_payment_link" widget="url"
+                                   invisible="not app_payment_link"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Contacto Cliente">
+                            <field name="app_customer_phone" widget="phone"/>
+                        </group>
+                        <group string="Transacciones Tilopay"
+                               invisible="app_payment_method != 'tilopay'">
+                            <field name="tilopay_payment_count"/>
+                            <field name="tilopay_is_paid"/>
+                        </group>
+                    </group>
+                    <group string="Notas de Entrega">
+                        <field name="app_delivery_notes" nolabel="1"
+                               placeholder="Instrucciones especiales del cliente..."/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SEARCH VIEW — Filtros y agrupaciones
+         ═══════════════════════════════════════════════════════════ -->
+    <record id="view_app_order_search" model="ir.ui.view">
+        <field name="name">sale.order.app.search</field>
+        <field name="model">sale.order</field>
+        <field name="arch" type="xml">
+            <search string="Pedidos App">
+                <field name="name" string="Número de Pedido"/>
+                <field name="partner_id" string="Cliente"/>
+                <field name="app_order_ref" string="Ref. App"/>
+                <field name="warehouse_id" string="Sucursal"/>
+                <separator/>
+                <!-- Filtros por fulfillment -->
+                <filter name="filter_pending"
+                        string="Pendientes"
+                        domain="[('app_fulfillment_state','=','pending')]"/>
+                <filter name="filter_awaiting_payment"
+                        string="Esperando Pago"
+                        domain="[('app_fulfillment_state','=','awaiting_payment')]"/>
+                <filter name="filter_paid"
+                        string="Pagados"
+                        domain="[('app_payment_status','=','paid')]"/>
+                <filter name="filter_in_progress"
+                        string="En Proceso"
+                        domain="[('app_fulfillment_state','in',['confirmed','preparing'])]"/>
+                <filter name="filter_ready"
+                        string="Listos"
+                        domain="[('app_fulfillment_state','=','ready')]"/>
+                <filter name="filter_dispatched"
+                        string="Despachados"
+                        domain="[('app_fulfillment_state','=','dispatched')]"/>
+                <filter name="filter_delivered"
+                        string="Entregados"
+                        domain="[('app_fulfillment_state','=','delivered')]"/>
+                <filter name="filter_cancelled"
+                        string="Cancelados"
+                        domain="[('app_fulfillment_state','=','cancelled')]"/>
+                <separator/>
+                <!-- Filtros por pago -->
+                <filter name="filter_payment_pending"
+                        string="Pago Pendiente"
+                        domain="[('app_payment_status','in',['pending','none'])]"/>
+                <filter name="filter_payment_failed"
+                        string="Pago Fallido"
+                        domain="[('app_payment_status','in',['failed','expired'])]"/>
+                <separator/>
+                <!-- Filtros por método de entrega -->
+                <filter name="filter_delivery"
+                        string="Delivery"
+                        domain="[('app_delivery_method','=','delivery')]"/>
+                <filter name="filter_pickup"
+                        string="Pickup"
+                        domain="[('app_delivery_method','=','pickup')]"/>
+                <separator/>
+                <!-- Filtros por método de pago -->
+                <filter name="filter_tilopay"
+                        string="Tilopay"
+                        domain="[('app_payment_method','=','tilopay')]"/>
+                <filter name="filter_yappy"
+                        string="Yappy"
+                        domain="[('app_payment_method','=','yappy')]"/>
+                <filter name="filter_cash"
+                        string="Efectivo"
+                        domain="[('app_payment_method','=','cash')]"/>
+                <separator/>
+                <!-- Filtros por fecha -->
+                <filter name="filter_today"
+                        string="Hoy"
+                        domain="[('create_date','&gt;=', (context_today()).strftime('%%Y-%%m-%%d'))]"/>
+                <filter name="filter_this_week"
+                        string="Esta Semana"
+                        domain="[('create_date','&gt;=', (context_today() - datetime.timedelta(days=context_today().weekday())).strftime('%%Y-%%m-%%d'))]"/>
+                <filter name="filter_this_month"
+                        string="Este Mes"
+                        domain="[('create_date','&gt;=', context_today().strftime('%%Y-%%m-01'))]"/>
+                <separator/>
+                <!-- Agrupaciones -->
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_fulfillment"
+                            string="Estado Fulfillment"
+                            context="{'group_by': 'app_fulfillment_state'}"/>
+                    <filter name="group_payment_status"
+                            string="Estado Pago"
+                            context="{'group_by': 'app_payment_status'}"/>
+                    <filter name="group_payment_method"
+                            string="Método de Pago"
+                            context="{'group_by': 'app_payment_method'}"/>
+                    <filter name="group_warehouse"
+                            string="Sucursal"
+                            context="{'group_by': 'warehouse_id'}"/>
+                    <filter name="group_delivery_method"
+                            string="Método de Entrega"
+                            context="{'group_by': 'app_delivery_method'}"/>
+                    <filter name="group_date"
+                            string="Fecha"
+                            context="{'group_by': 'create_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ACTIONS
+         ═══════════════════════════════════════════════════════════ -->
+
+    <!-- Action: Pending orders (default) -->
+    <record id="action_app_orders" model="ir.actions.act_window">
+        <field name="name">Pedidos App Móvil</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="domain">[('is_app_order','=',True)]</field>
+        <field name="context">{
+            'default_source_id': ref('utm_source_blackdog_app'),
+            'default_team_id': ref('team_app_movil'),
+            'search_default_filter_pending': 1,
+        }</field>
+        <field name="search_view_id" ref="view_app_order_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay pedidos de la app móvil aún
+            </p>
+            <p>
+                Los pedidos aparecerán aquí automáticamente cuando los clientes
+                compren desde la app BlackDog.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_app_orders_view_tree" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_app_order_tree"/>
+        <field name="act_window_id" ref="action_app_orders"/>
+    </record>
+
+    <record id="action_app_orders_view_kanban" model="ir.actions.act_window.view">
+        <field name="sequence">2</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="view_app_order_kanban"/>
+        <field name="act_window_id" ref="action_app_orders"/>
+    </record>
+
+    <!-- Action: All app orders -->
+    <record id="action_app_orders_all" model="ir.actions.act_window">
+        <field name="name">Todos los Pedidos App</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="domain">[('is_app_order','=',True)]</field>
+        <field name="context">{
+            'default_source_id': ref('utm_source_blackdog_app'),
+            'default_team_id': ref('team_app_movil'),
+        }</field>
+        <field name="search_view_id" ref="view_app_order_search"/>
+    </record>
+
+    <!-- Action: Awaiting payment -->
+    <record id="action_app_orders_awaiting_payment" model="ir.actions.act_window">
+        <field name="name">Esperando Pago</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="domain">[('is_app_order','=',True),('app_payment_status','in',['pending','none'])]</field>
+        <field name="context">{}</field>
+        <field name="search_view_id" ref="view_app_order_search"/>
+    </record>
+
+</odoo>

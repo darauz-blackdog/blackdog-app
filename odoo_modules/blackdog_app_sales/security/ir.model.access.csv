@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sale_order_app_manager,sale.order.app.manager,sale.model_sale_order,blackdog_app_sales.group_app_sales_manager,1,1,1,1
+access_sale_order_app_operator,sale.order.app.operator,sale.model_sale_order,blackdog_app_sales.group_app_branch_operator,1,1,0,0

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         MENU — Entrada principal bajo Ventas
+         ═══════════════════════════════════════════════════════════ -->
+
+    <!-- Top-level menu under Sales -->
+    <menuitem id="menu_app_sales_root"
+              name="App Móvil"
+              parent="sale.sale_menu_root"
+              sequence="5"
+              groups="blackdog_app_sales.group_app_sales_manager,blackdog_app_sales.group_app_branch_operator"/>
+
+    <!-- Submenu: Pedidos -->
+    <menuitem id="menu_app_orders"
+              name="Pedidos"
+              parent="menu_app_sales_root"
+              sequence="10"/>
+
+    <menuitem id="menu_app_orders_pending"
+              name="Pedidos Pendientes"
+              parent="menu_app_orders"
+              action="action_app_orders"
+              sequence="10"/>
+
+    <menuitem id="menu_app_orders_all"
+              name="Todos los Pedidos"
+              parent="menu_app_orders"
+              action="action_app_orders_all"
+              sequence="20"/>
+
+    <!-- Submenu: Dashboard -->
+    <menuitem id="menu_app_dashboard"
+              name="Dashboard"
+              parent="menu_app_sales_root"
+              sequence="20"/>
+
+    <menuitem id="menu_app_dashboard_general"
+              name="Ventas General"
+              parent="menu_app_dashboard"
+              action="action_app_dashboard"
+              sequence="10"/>
+
+    <menuitem id="menu_app_dashboard_warehouse"
+              name="Por Sucursal"
+              parent="menu_app_dashboard"
+              action="action_app_dashboard_warehouse"
+              sequence="20"/>
+
+    <menuitem id="menu_app_dashboard_fulfillment"
+              name="Estados Fulfillment"
+              parent="menu_app_dashboard"
+              action="action_app_dashboard_fulfillment"
+              sequence="30"/>
+
+    <menuitem id="menu_app_dashboard_payments"
+              name="Análisis de Pagos"
+              parent="menu_app_dashboard"
+              action="action_app_dashboard_payments"
+              sequence="40"/>
+
+    <!-- Submenu: Pagos pendientes (quick access) -->
+    <menuitem id="menu_app_payments"
+              name="Pagos"
+              parent="menu_app_sales_root"
+              sequence="15"/>
+
+    <menuitem id="menu_app_payments_awaiting"
+              name="Esperando Pago"
+              parent="menu_app_payments"
+              action="action_app_orders_awaiting_payment"
+              sequence="10"/>
+
+</odoo>
