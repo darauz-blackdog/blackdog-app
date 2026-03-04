@@ -89,11 +89,19 @@
               sequence="25"
               groups="blackdog_app_sales.group_app_sales_manager"/>
 
+    <!-- ─── Importar ─────────────────────────────────────────── -->
+    <menuitem id="menu_app_import_wizard"
+              name="Importar Pedido (JSON)"
+              parent="menu_app_orders"
+              action="action_order_import_wizard"
+              sequence="40"
+              groups="blackdog_app_sales.group_app_sales_manager"/>
+
     <!-- ─── Configuración ────────────────────────────────────── -->
     <menuitem id="menu_app_config"
               name="Configuración"
               parent="menu_app_sales_root"
-              action="action_app_config"
+              action="action_app_config_open"
               sequence="99"
               groups="blackdog_app_sales.group_app_sales_manager"/>
 

@@ -12,3 +12,4 @@ access_app_order_queue_operator,blackdog.app.order.queue.operator,model_blackdog
 access_app_order_queue_line_operator,blackdog.app.order.queue.line.operator,model_blackdog_app_order_queue_line,blackdog_app_sales.group_app_branch_operator,1,0,0,0
 access_app_payment_operator,blackdog.app.payment.operator,model_blackdog_app_payment,blackdog_app_sales.group_app_branch_operator,1,0,0,0
 access_app_log_operator,blackdog.app.log.operator,model_blackdog_app_log,blackdog_app_sales.group_app_branch_operator,1,0,0,0
+access_app_order_import_wizard_manager,blackdog.app.order.import.wizard.manager,model_blackdog_app_order_import_wizard,blackdog_app_sales.group_app_sales_manager,1,1,1,1

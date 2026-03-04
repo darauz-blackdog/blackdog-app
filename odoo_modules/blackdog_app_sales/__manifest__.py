@@ -43,9 +43,10 @@
         'views/dashboard_views.xml',
         'views/sale_order_views.xml',
         'views/res_config_settings_views.xml',
-        'views/menu.xml',
         # Wizard
         'wizard/order_import_wizard_views.xml',
+        # Menu (must be last — references actions from all above files)
+        'views/menu.xml',
     ],
     'assets': {},
     'installable': True,
