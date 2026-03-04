@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <record id="view_order_import_wizard_form" model="ir.ui.view">
+    <record id="view_bd_order_import_wizard_form" model="ir.ui.view">
         <field name="name">blackdog.app.order.import.wizard.form</field>
         <field name="model">blackdog.app.order.import.wizard</field>
         <field name="arch" type="xml">
@@ -24,7 +24,7 @@
         </field>
     </record>
 
-    <record id="action_order_import_wizard" model="ir.actions.act_window">
+    <record id="action_bd_order_import_wizard" model="ir.actions.act_window">
         <field name="name">Importar Pedido (JSON)</field>
         <field name="res_model">blackdog.app.order.import.wizard</field>
         <field name="view_mode">form</field>

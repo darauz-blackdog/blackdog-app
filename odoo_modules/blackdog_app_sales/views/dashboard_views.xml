@@ -2,7 +2,7 @@
 <odoo>
 
     <!-- Pivot: Ventas por sucursal y mes -->
-    <record id="view_app_order_pivot" model="ir.ui.view">
+    <record id="view_bd_app_order_pivot" model="ir.ui.view">
         <field name="name">blackdog.app.order.pivot</field>
         <field name="model">blackdog.app.order</field>
         <field name="arch" type="xml">
@@ -15,7 +15,7 @@
     </record>
 
     <!-- Graph: Ventas por semana -->
-    <record id="view_app_order_graph" model="ir.ui.view">
+    <record id="view_bd_app_order_graph" model="ir.ui.view">
         <field name="name">blackdog.app.order.graph</field>
         <field name="model">blackdog.app.order</field>
         <field name="arch" type="xml">
@@ -27,7 +27,7 @@
     </record>
 
     <!-- Graph: Ventas por sucursal -->
-    <record id="view_app_order_graph_warehouse" model="ir.ui.view">
+    <record id="view_bd_app_order_graph_warehouse" model="ir.ui.view">
         <field name="name">blackdog.app.order.graph.warehouse</field>
         <field name="model">blackdog.app.order</field>
         <field name="arch" type="xml">
@@ -39,7 +39,7 @@
     </record>
 
     <!-- Graph: Estados (pie) -->
-    <record id="view_app_order_graph_state" model="ir.ui.view">
+    <record id="view_bd_app_order_graph_state" model="ir.ui.view">
         <field name="name">blackdog.app.order.graph.state</field>
         <field name="model">blackdog.app.order</field>
         <field name="arch" type="xml">
@@ -51,7 +51,7 @@
     </record>
 
     <!-- Graph: Métodos de pago (pie) -->
-    <record id="view_app_order_graph_payment" model="ir.ui.view">
+    <record id="view_bd_app_order_graph_payment" model="ir.ui.view">
         <field name="name">blackdog.app.order.graph.payment</field>
         <field name="model">blackdog.app.order</field>
         <field name="arch" type="xml">
@@ -63,70 +63,70 @@
     </record>
 
     <!-- Action: Dashboard general -->
-    <record id="action_app_dashboard" model="ir.actions.act_window">
+    <record id="action_bd_app_dashboard" model="ir.actions.act_window">
         <field name="name">Dashboard App</field>
         <field name="res_model">blackdog.app.order</field>
         <field name="view_mode">graph,pivot,list</field>
-        <field name="search_view_id" ref="view_app_order_search"/>
+        <field name="search_view_id" ref="view_bd_app_order_search"/>
     </record>
 
-    <record id="action_app_dashboard_view_graph" model="ir.actions.act_window.view">
+    <record id="action_bd_app_dashboard_view_graph" model="ir.actions.act_window.view">
         <field name="sequence">1</field>
         <field name="view_mode">graph</field>
-        <field name="view_id" ref="view_app_order_graph"/>
-        <field name="act_window_id" ref="action_app_dashboard"/>
+        <field name="view_id" ref="view_bd_app_order_graph"/>
+        <field name="act_window_id" ref="action_bd_app_dashboard"/>
     </record>
 
-    <record id="action_app_dashboard_view_pivot" model="ir.actions.act_window.view">
+    <record id="action_bd_app_dashboard_view_pivot" model="ir.actions.act_window.view">
         <field name="sequence">2</field>
         <field name="view_mode">pivot</field>
-        <field name="view_id" ref="view_app_order_pivot"/>
-        <field name="act_window_id" ref="action_app_dashboard"/>
+        <field name="view_id" ref="view_bd_app_order_pivot"/>
+        <field name="act_window_id" ref="action_bd_app_dashboard"/>
     </record>
 
     <!-- Action: Por sucursal -->
-    <record id="action_app_dashboard_warehouse" model="ir.actions.act_window">
+    <record id="action_bd_app_dashboard_warehouse" model="ir.actions.act_window">
         <field name="name">Ventas por Sucursal</field>
         <field name="res_model">blackdog.app.order</field>
         <field name="view_mode">graph,pivot,list</field>
-        <field name="search_view_id" ref="view_app_order_search"/>
+        <field name="search_view_id" ref="view_bd_app_order_search"/>
     </record>
 
-    <record id="action_app_dashboard_warehouse_view_graph" model="ir.actions.act_window.view">
+    <record id="action_bd_app_dashboard_warehouse_view_graph" model="ir.actions.act_window.view">
         <field name="sequence">1</field>
         <field name="view_mode">graph</field>
-        <field name="view_id" ref="view_app_order_graph_warehouse"/>
-        <field name="act_window_id" ref="action_app_dashboard_warehouse"/>
+        <field name="view_id" ref="view_bd_app_order_graph_warehouse"/>
+        <field name="act_window_id" ref="action_bd_app_dashboard_warehouse"/>
     </record>
 
     <!-- Action: Estados -->
-    <record id="action_app_dashboard_states" model="ir.actions.act_window">
+    <record id="action_bd_app_dashboard_states" model="ir.actions.act_window">
         <field name="name">Estados Fulfillment</field>
         <field name="res_model">blackdog.app.order</field>
         <field name="view_mode">graph,pivot,list</field>
-        <field name="search_view_id" ref="view_app_order_search"/>
+        <field name="search_view_id" ref="view_bd_app_order_search"/>
     </record>
 
-    <record id="action_app_dashboard_states_view_graph" model="ir.actions.act_window.view">
+    <record id="action_bd_app_dashboard_states_view_graph" model="ir.actions.act_window.view">
         <field name="sequence">1</field>
         <field name="view_mode">graph</field>
-        <field name="view_id" ref="view_app_order_graph_state"/>
-        <field name="act_window_id" ref="action_app_dashboard_states"/>
+        <field name="view_id" ref="view_bd_app_order_graph_state"/>
+        <field name="act_window_id" ref="action_bd_app_dashboard_states"/>
     </record>
 
     <!-- Action: Pagos -->
-    <record id="action_app_dashboard_payments" model="ir.actions.act_window">
+    <record id="action_bd_app_dashboard_payments" model="ir.actions.act_window">
         <field name="name">Análisis de Pagos</field>
         <field name="res_model">blackdog.app.order</field>
         <field name="view_mode">graph,pivot,list</field>
-        <field name="search_view_id" ref="view_app_order_search"/>
+        <field name="search_view_id" ref="view_bd_app_order_search"/>
     </record>
 
-    <record id="action_app_dashboard_payments_view_graph" model="ir.actions.act_window.view">
+    <record id="action_bd_app_dashboard_payments_view_graph" model="ir.actions.act_window.view">
         <field name="sequence">1</field>
         <field name="view_mode">graph</field>
-        <field name="view_id" ref="view_app_order_graph_payment"/>
-        <field name="act_window_id" ref="action_app_dashboard_payments"/>
+        <field name="view_id" ref="view_bd_app_order_graph_payment"/>
+        <field name="act_window_id" ref="action_bd_app_dashboard_payments"/>
     </record>
 
 </odoo>

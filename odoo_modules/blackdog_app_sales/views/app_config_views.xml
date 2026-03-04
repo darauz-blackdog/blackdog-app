@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <record id="view_app_config_form" model="ir.ui.view">
+    <record id="view_bd_app_config_form" model="ir.ui.view">
         <field name="name">blackdog.app.config.form</field>
         <field name="model">blackdog.app.config</field>
         <field name="arch" type="xml">
@@ -59,7 +59,7 @@
         </field>
     </record>
 
-    <record id="action_app_config" model="ir.actions.act_window">
+    <record id="action_bd_app_config" model="ir.actions.act_window">
         <field name="name">Configuración App</field>
         <field name="res_model">blackdog.app.config</field>
         <field name="view_mode">form</field>
@@ -67,7 +67,7 @@
     </record>
 
     <!-- Server action to open config singleton -->
-    <record id="action_app_config_open" model="ir.actions.server">
+    <record id="action_bd_app_config_open" model="ir.actions.server">
         <field name="name">Abrir Configuración App</field>
         <field name="model_id" ref="model_blackdog_app_config"/>
         <field name="state">code</field>

@@ -17,19 +17,19 @@
     <menuitem id="menu_app_orders_pending"
               name="Pedidos Pendientes"
               parent="menu_app_orders"
-              action="action_app_orders"
+              action="action_bd_app_orders"
               sequence="10"/>
 
     <menuitem id="menu_app_orders_all"
               name="Todos los Pedidos"
               parent="menu_app_orders"
-              action="action_app_orders_all"
+              action="action_bd_app_orders_all"
               sequence="20"/>
 
     <menuitem id="menu_app_order_queue"
               name="Cola de Importación"
               parent="menu_app_orders"
-              action="action_app_order_queue"
+              action="action_bd_app_order_queue"
               sequence="30"
               groups="blackdog_app_sales.group_app_sales_manager"/>
 
@@ -42,13 +42,13 @@
     <menuitem id="menu_app_payments_awaiting"
               name="Esperando Pago"
               parent="menu_app_payments"
-              action="action_app_payments_awaiting"
+              action="action_bd_app_payments_awaiting"
               sequence="10"/>
 
     <menuitem id="menu_app_payments_all"
               name="Todos los Pagos"
               parent="menu_app_payments"
-              action="action_app_payments_all"
+              action="action_bd_app_payments_all"
               sequence="20"/>
 
     <!-- ─── Dashboard ────────────────────────────────────────── -->
@@ -60,32 +60,32 @@
     <menuitem id="menu_app_dashboard_general"
               name="Ventas General"
               parent="menu_app_dashboard"
-              action="action_app_dashboard"
+              action="action_bd_app_dashboard"
               sequence="10"/>
 
     <menuitem id="menu_app_dashboard_warehouse"
               name="Por Sucursal"
               parent="menu_app_dashboard"
-              action="action_app_dashboard_warehouse"
+              action="action_bd_app_dashboard_warehouse"
               sequence="20"/>
 
     <menuitem id="menu_app_dashboard_states"
               name="Estados Fulfillment"
               parent="menu_app_dashboard"
-              action="action_app_dashboard_states"
+              action="action_bd_app_dashboard_states"
               sequence="30"/>
 
     <menuitem id="menu_app_dashboard_payments"
               name="Análisis de Pagos"
               parent="menu_app_dashboard"
-              action="action_app_dashboard_payments"
+              action="action_bd_app_dashboard_payments"
               sequence="40"/>
 
     <!-- ─── Logs ─────────────────────────────────────────────── -->
     <menuitem id="menu_app_logs"
               name="Logs"
               parent="menu_app_sales_root"
-              action="action_app_logs"
+              action="action_bd_app_logs"
               sequence="25"
               groups="blackdog_app_sales.group_app_sales_manager"/>
 
@@ -93,7 +93,7 @@
     <menuitem id="menu_app_import_wizard"
               name="Importar Pedido (JSON)"
               parent="menu_app_orders"
-              action="action_order_import_wizard"
+              action="action_bd_order_import_wizard"
               sequence="40"
               groups="blackdog_app_sales.group_app_sales_manager"/>
 
@@ -101,7 +101,7 @@
     <menuitem id="menu_app_config"
               name="Configuración"
               parent="menu_app_sales_root"
-              action="action_app_config_open"
+              action="action_bd_app_config_open"
               sequence="99"
               groups="blackdog_app_sales.group_app_sales_manager"/>
 
