@@ -8,6 +8,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 
 class AddAddressScreen extends ConsumerStatefulWidget {
   const AddAddressScreen({super.key});
@@ -129,7 +130,7 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
         // Instructions
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: EdgeInsets.symmetric(horizontal: Responsive.padding(context), vertical: 12),
           color: AppColors.primary.withValues(alpha: 0.08),
           child: Row(
             children: [
@@ -282,7 +283,7 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
 
         // Confirm location button
         Container(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(Responsive.padding(context)),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             border: Border(
@@ -388,7 +389,7 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
         // Form
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(Responsive.padding(context)),
             child: Form(
               key: _formKey,
               child: Column(
@@ -485,7 +486,7 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
 
         // Save button
         Container(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(Responsive.padding(context)),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             border: Border(

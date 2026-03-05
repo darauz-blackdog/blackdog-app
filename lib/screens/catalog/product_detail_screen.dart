@@ -9,6 +9,7 @@ import '../../providers/cart_provider.dart';
 import '../../providers/favorites_provider.dart';
 import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/cart_badge.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
@@ -117,12 +118,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               // Scrollable content
               Expanded(
                 child: SingleChildScrollView(
-                  child: Column(
+                  child: ResponsiveCenter(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildImageGallery(p),
                       Padding(
-                        padding: const EdgeInsets.all(20),
+                        padding: EdgeInsets.all(Responsive.padding(context)),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -153,7 +154,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         ),
                       ),
                     ],
-                  ),
+                  )),
                 ),
               ),
 
@@ -501,7 +502,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     if (images.isEmpty) {
       return Container(
         width: double.infinity,
-        height: 300,
+        height: Responsive.imageHeight(context),
         color: AppColors.divider,
         child: const Icon(Icons.image_outlined, size: 80, color: AppColors.textLight),
       );
@@ -510,7 +511,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     if (images.length == 1) {
       return Container(
         width: double.infinity,
-        height: 300,
+        height: Responsive.imageHeight(context),
         color: Colors.white,
         padding: const EdgeInsets.all(16),
         child: CachedNetworkImage(
@@ -528,7 +529,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     return Column(
       children: [
         SizedBox(
-          height: 300,
+          height: Responsive.imageHeight(context),
           child: PageView.builder(
             itemCount: images.length,
             onPageChanged: (i) => setState(() => _currentImageIndex = i),

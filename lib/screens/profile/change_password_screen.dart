@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 
 class ChangePasswordScreen extends ConsumerStatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -57,8 +58,10 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Cambiar contraseña')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+      body: ResponsiveCenter(
+        maxWidth: Responsive.maxFormWidth,
+        child: SingleChildScrollView(
+        padding: EdgeInsets.all(Responsive.padding(context)),
         child: Form(
           key: _formKey,
           child: Column(
@@ -163,6 +166,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

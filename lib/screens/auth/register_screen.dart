@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -105,8 +106,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
+          padding: EdgeInsets.all(Responsive.padding(context)),
+          child: ResponsiveCenter(maxWidth: Responsive.maxFormWidth, child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -308,7 +309,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ]),
               ],
             ),
-          ),
+          )),
         ),
       ),
     );

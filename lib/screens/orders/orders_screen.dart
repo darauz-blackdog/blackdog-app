@@ -7,6 +7,7 @@ import '../../models/order.dart';
 import '../../providers/orders_provider.dart';
 import '../../theme/app_theme.dart';
 
+import '../../utils/responsive.dart';
 import '../../widgets/fade_in_up.dart';
 
 class OrdersScreen extends ConsumerWidget {
@@ -30,8 +31,8 @@ class OrdersScreen extends ConsumerWidget {
           if (result.orders.isEmpty) {
             return FadeInUp(child: _buildEmptyState(context));
           }
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
+          return ResponsiveCenter(child: ListView.separated(
+            padding: EdgeInsets.all(Responsive.paddingSmall(context)),
             itemCount: result.orders.length,
             separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
@@ -40,7 +41,7 @@ class OrdersScreen extends ConsumerWidget {
                 child: _OrderCard(order: result.orders[index]),
               );
             },
-          );
+          ));
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(

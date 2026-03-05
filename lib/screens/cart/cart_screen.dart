@@ -7,6 +7,7 @@ import '../../models/cart.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/fade_in_up.dart';
 
 class CartScreen extends ConsumerWidget {
@@ -37,7 +38,7 @@ class CartScreen extends ConsumerWidget {
           if (cart == null || cart.isEmpty) {
             return _buildEmptyState(context);
           }
-          return _buildCartContent(context, ref, cart);
+          return ResponsiveCenter(child: _buildCartContent(context, ref, cart));
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(
@@ -110,7 +111,7 @@ class CartScreen extends ConsumerWidget {
       children: [
         Expanded(
           child: ListView.separated(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(Responsive.paddingSmall(context)),
             itemCount: cart.items.length,
             separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {

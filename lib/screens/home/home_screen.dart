@@ -14,6 +14,7 @@ import '../../widgets/cart_badge.dart';
 import '../../widgets/category_icon_box.dart';
 import '../../widgets/fade_in_up.dart';
 import '../../widgets/hero_banner_carousel.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/product_carousel_section.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -35,13 +36,13 @@ class HomeScreen extends ConsumerWidget {
             surfaceTintColor: Colors.transparent,
             elevation: 0,
             centerTitle: true,
-            leadingWidth: 180,
+            leadingWidth: 160,
             leading: const _BranchSelectorHeader(),
             title: Image.asset(
               Theme.of(context).brightness == Brightness.dark
                   ? 'assets/images/logo.png'
                   : 'assets/images/logo_dark.png',
-              height: 28,
+              height: 32,
               fit: BoxFit.contain,
             ),
             actions: [
@@ -99,7 +100,7 @@ class HomeScreen extends ConsumerWidget {
               offset: 15,
               duration: const Duration(milliseconds: 400),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                padding: EdgeInsets.fromLTRB(Responsive.padding(context), 16, Responsive.padding(context), 0),
                 child: GestureDetector(
                   onTap: () => context.go('/search'),
                   child: Container(
@@ -176,7 +177,7 @@ class HomeScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: EdgeInsets.symmetric(horizontal: Responsive.padding(context)),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -206,14 +207,14 @@ class HomeScreen extends ConsumerWidget {
                       const SizedBox(height: 14),
                       // Grid of top 4 categories
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: EdgeInsets.symmetric(horizontal: Responsive.padding(context)),
                         child: GridView.count(
-                          crossAxisCount: 2,
+                          crossAxisCount: Responsive.homeGridCols(context),
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           mainAxisSpacing: 12,
                           crossAxisSpacing: 12,
-                          childAspectRatio: 1.45,
+                          childAspectRatio: 1.3,
                           children: featured.map((cat) {
                             final style =
                                 CategoryStyle.forAppCategory(cat.icon);
@@ -245,7 +246,7 @@ class HomeScreen extends ConsumerWidget {
                           height: 110,
                           child: ListView.separated(
                             padding:
-                                const EdgeInsets.symmetric(horizontal: 20),
+                                EdgeInsets.symmetric(horizontal: Responsive.padding(context)),
                             scrollDirection: Axis.horizontal,
                             itemCount: rest.length,
                             separatorBuilder: (_, _) =>
@@ -438,10 +439,10 @@ class _BranchSelectorHeader extends ConsumerWidget {
                     children: [
                       Flexible(
                         child: Text(
-                          address?.label ?? 'Selecciona tu dirección',
+                          address?.label ?? 'Selecciona dirección',
                           style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
                             color: Theme.of(context).colorScheme.onSurface,
                           ),
                           maxLines: 1,

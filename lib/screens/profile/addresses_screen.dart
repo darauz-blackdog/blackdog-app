@@ -6,6 +6,7 @@ import '../../providers/profile_provider.dart';
 import '../../providers/service_providers.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/fade_in_up.dart';
 
 class AddressesScreen extends ConsumerWidget {
@@ -68,8 +69,9 @@ class AddressesScreen extends ConsumerWidget {
             );
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
+          return ResponsiveCenter(
+            child: ListView.separated(
+            padding: EdgeInsets.all(Responsive.paddingSmall(context)),
             itemCount: addresses.length,
             separatorBuilder: (_, _) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
@@ -93,6 +95,7 @@ class AddressesScreen extends ConsumerWidget {
                 ),
               );
             },
+          ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),

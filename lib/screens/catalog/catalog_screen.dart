@@ -8,6 +8,7 @@ import '../../providers/favorites_provider.dart';
 import '../../providers/products_provider.dart';
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../utils/responsive_grid.dart';
 import '../../widgets/fade_in_up.dart';
 import '../../widgets/product_card.dart';
@@ -260,7 +261,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
 
                 return GridView.builder(
                   controller: _scrollController,
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(Responsive.paddingSmall(context)),
                   gridDelegate: responsiveProductGrid(),
                   itemCount: itemCount,
                   itemBuilder: (_, i) {

@@ -73,10 +73,12 @@ class _HeroBannerCarouselState extends State<HeroBannerCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    final bannerHeight = MediaQuery.sizeOf(context).width * 0.4;
+    final clampedHeight = bannerHeight.clamp(140.0, 220.0);
     return Column(
       children: [
         SizedBox(
-          height: 160,
+          height: clampedHeight,
           child: PageView.builder(
             controller: _controller,
             itemCount: _banners.length,

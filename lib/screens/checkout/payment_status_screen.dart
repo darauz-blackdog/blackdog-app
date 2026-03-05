@@ -10,6 +10,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/fade_in_up.dart';
 
 class PaymentStatusScreen extends ConsumerStatefulWidget {
@@ -189,8 +190,9 @@ class _PaymentStatusScreenState extends ConsumerState<PaymentStatusScreen> {
   }
 
   Widget _buildStatusView() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+    return ResponsiveCenter(
+      child: SingleChildScrollView(
+      padding: EdgeInsets.all(Responsive.padding(context)),
       child: Column(
         children: [
           const SizedBox(height: 20),
@@ -343,6 +345,7 @@ class _PaymentStatusScreenState extends ConsumerState<PaymentStatusScreen> {
           ],
         ],
       ),
+    ),
     );
   }
 

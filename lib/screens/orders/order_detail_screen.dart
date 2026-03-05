@@ -7,6 +7,7 @@ import '../../models/order.dart';
 import '../../providers/orders_provider.dart';
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/fade_in_up.dart';
 
 Color _statusColor(String status) {
@@ -32,9 +33,9 @@ class OrderDetailScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Detalle del Pedido')),
       body: orderAsync.when(
-        data: (order) => _buildContent(context, ref, order),
+        data: (order) => ResponsiveCenter(child: _buildContent(context, ref, order)),
         loading: () => extraOrder != null
-            ? _buildContent(context, ref, extraOrder!)
+            ? ResponsiveCenter(child: _buildContent(context, ref, extraOrder!))
             : const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text('Error: $err')),
       ),
@@ -43,7 +44,7 @@ class OrderDetailScreen extends ConsumerWidget {
 
   Widget _buildContent(BuildContext context, WidgetRef ref, Order order) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(Responsive.padding(context)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

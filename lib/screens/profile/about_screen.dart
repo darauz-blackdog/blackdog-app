@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/fade_in_up.dart';
 
 class AboutScreen extends StatefulWidget {
@@ -32,8 +33,9 @@ class _AboutScreenState extends State<AboutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Acerca de')),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
+      body: ResponsiveCenter(
+        child: ListView(
+        padding: EdgeInsets.all(Responsive.padding(context)),
         children: [
           // Logo + version
           FadeInUp(
@@ -205,6 +207,7 @@ class _AboutScreenState extends State<AboutScreen> {
           ),
           const SizedBox(height: 16),
         ],
+      ),
       ),
     );
   }

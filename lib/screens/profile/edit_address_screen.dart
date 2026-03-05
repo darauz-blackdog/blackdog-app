@@ -8,6 +8,7 @@ import 'package:latlong2/latlong.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 
 class EditAddressScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> address;
@@ -166,7 +167,7 @@ class _EditAddressScreenState extends ConsumerState<EditAddressScreen> {
         // Confirm button
         Padding(
           padding: EdgeInsets.fromLTRB(
-              20, 12, 20, 12 + MediaQuery.of(context).padding.bottom),
+              Responsive.padding(context), 12, Responsive.padding(context), 12 + MediaQuery.of(context).padding.bottom),
           child: SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -181,7 +182,7 @@ class _EditAddressScreenState extends ConsumerState<EditAddressScreen> {
 
   Widget _buildFormStep() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(Responsive.padding(context)),
       child: Form(
         key: _formKey,
         child: Column(

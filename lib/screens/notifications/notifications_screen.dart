@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../models/app_notification.dart';
 import '../../providers/notifications_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/fade_in_up.dart';
 
 class NotificationsScreen extends ConsumerWidget {
@@ -30,8 +31,9 @@ class NotificationsScreen extends ConsumerWidget {
       ),
       body: notifications.isEmpty
           ? _buildEmptyState(context)
-          : ListView.separated(
-              padding: const EdgeInsets.all(16),
+          : ResponsiveCenter(
+            child: ListView.separated(
+              padding: EdgeInsets.all(Responsive.paddingSmall(context)),
               itemCount: notifications.length,
               separatorBuilder: (_, _) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
@@ -66,6 +68,7 @@ class NotificationsScreen extends ConsumerWidget {
                 );
               },
             ),
+          ),
     );
   }
 

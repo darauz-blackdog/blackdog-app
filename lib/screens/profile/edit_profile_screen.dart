@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -72,8 +73,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       body: profileAsync.when(
         data: (profile) {
           _initFields(profile);
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+          return ResponsiveCenter(
+            maxWidth: Responsive.maxFormWidth,
+            child: SingleChildScrollView(
+            padding: EdgeInsets.all(Responsive.padding(context)),
             child: Form(
               key: _formKey,
               child: Column(
@@ -165,6 +168,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 ],
               ),
             ),
+          ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),

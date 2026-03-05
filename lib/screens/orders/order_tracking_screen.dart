@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/order.dart';
 import '../../providers/orders_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/fade_in_up.dart';
 
 class OrderTrackingScreen extends ConsumerWidget {
@@ -51,8 +52,9 @@ class OrderTrackingScreen extends ConsumerWidget {
         .toList();
     final driver = driverTracking.isNotEmpty ? driverTracking.last : null;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+    return ResponsiveCenter(
+      child: SingleChildScrollView(
+      padding: EdgeInsets.all(Responsive.padding(context)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -260,6 +262,7 @@ class OrderTrackingScreen extends ConsumerWidget {
           const SizedBox(height: 32),
         ],
       ),
+    ),
     );
   }
 }

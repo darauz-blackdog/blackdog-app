@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/fade_in_up.dart';
 
 class OrderConfirmationScreen extends ConsumerStatefulWidget {
@@ -72,8 +73,9 @@ class _OrderConfirmationScreenState
           ),
         ],
       ),
-      body: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+      body: ResponsiveCenter(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(Responsive.padding(context)),
           child: Column(
             children: [
               const SizedBox(height: 40),
@@ -199,6 +201,7 @@ class _OrderConfirmationScreenState
             ],
           ),
         ),
+      ),
     );
   }
 

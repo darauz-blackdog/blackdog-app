@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/cart_badge.dart';
 import '../../widgets/fade_in_up.dart';
 
@@ -168,7 +169,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
             children: [
               // Map
               SizedBox(
-                height: 260,
+                height: Responsive.imageHeight(context, ratio: 0.45, max: 320),
                 child: FlutterMap(
                   mapController: _mapController,
                   options: MapOptions(
@@ -252,7 +253,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
 
               // Branch count + location status
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                padding: EdgeInsets.fromLTRB(Responsive.paddingSmall(context), 12, Responsive.paddingSmall(context), 4),
                 child: Row(
                   children: [
                     Text(
@@ -295,7 +296,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
               // Branch list
               Expanded(
                 child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  padding: EdgeInsets.fromLTRB(Responsive.paddingSmall(context), 8, Responsive.paddingSmall(context), Responsive.paddingSmall(context)),
                   itemCount: branches.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {

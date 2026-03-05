@@ -7,6 +7,7 @@ import '../../providers/cart_provider.dart';
 import '../../providers/favorites_provider.dart';
 import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../utils/responsive_grid.dart';
 import '../../widgets/fade_in_up.dart';
 import '../../widgets/product_card.dart';
@@ -69,7 +70,7 @@ class FavoritesScreen extends ConsumerWidget {
 
   Widget _buildGrid(BuildContext context, WidgetRef ref, List<int> ids) {
     return GridView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(Responsive.paddingSmall(context)),
       gridDelegate: responsiveProductGrid(),
       itemCount: ids.length,
       itemBuilder: (context, index) {

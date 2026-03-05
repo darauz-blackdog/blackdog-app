@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/fade_in_up.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -50,8 +51,8 @@ class ProfileScreen extends ConsumerWidget {
           // Wait for the profile to reload
           await ref.read(profileProvider.future).catchError((_) => <String, dynamic>{});
         },
-        child: ListView(
-          padding: const EdgeInsets.all(20),
+        child: ResponsiveCenter(child: ListView(
+          padding: EdgeInsets.all(Responsive.padding(context)),
           children: [
             // Avatar
             Center(
@@ -222,7 +223,7 @@ class ProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 32),
           ],
-        ),
+        )),
       ),
     );
   }

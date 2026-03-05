@@ -159,7 +159,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   children: [
                     Image.asset(
                       'assets/icons/Black_Dog_Logo_V.png',
-                      width: 250,
+                      width: (MediaQuery.sizeOf(context).width * 0.5).clamp(0, 280).toDouble(),
                       fit: BoxFit.contain,
                       filterQuality: FilterQuality.high,
                     ),

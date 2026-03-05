@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 
 const _kOnboardingComplete = 'onboarding_complete';
 
@@ -99,7 +100,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
             // Dots + button
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+              padding: EdgeInsets.fromLTRB(Responsive.padding(context), 0, Responsive.padding(context), Responsive.padding(context) + 8),
               child: Column(
                 children: [
                   // Dot indicators
@@ -167,7 +168,7 @@ class _SlideWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
+      padding: EdgeInsets.symmetric(horizontal: Responsive.padding(context) + 12),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

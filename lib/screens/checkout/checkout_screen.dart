@@ -9,6 +9,7 @@ import '../../providers/address_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 
 /// Providers local to checkout
 final _branchesProvider = FutureProvider<List<Branch>>((ref) async {
@@ -120,10 +121,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               : () => context.pop(),
         ),
       ),
-      body: AnimatedSwitcher(
+      body: ResponsiveCenter(child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 250),
         child: _buildCurrentStep(cart),
-      ),
+      )),
     );
   }
 
@@ -254,7 +255,7 @@ class _DeliveryStep extends ConsumerWidget {
       children: [
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(Responsive.padding(context)),
             children: [
               // Delivery type radio cards
               _RadioCard(
@@ -356,7 +357,7 @@ class _DeliveryStep extends ConsumerWidget {
       data: (list) {
         if (list.isEmpty) {
           return Container(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(Responsive.padding(context)),
             decoration: BoxDecoration(
               border: Border.all(color: Theme.of(context).colorScheme.outline),
               borderRadius: BorderRadius.circular(12),
@@ -411,7 +412,7 @@ class _PaymentStep extends StatelessWidget {
       children: [
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(Responsive.padding(context)),
             children: [
               Text(
                 'Selecciona cómo deseas pagar',
@@ -491,7 +492,7 @@ class _SummaryStep extends ConsumerWidget {
       children: [
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(Responsive.padding(context)),
             children: [
               // Items summary
               Text(
