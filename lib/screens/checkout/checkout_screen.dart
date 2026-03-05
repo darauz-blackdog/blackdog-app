@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -31,11 +32,11 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 }
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
-  int _step = 0; // 0=delivery, 1=summary
+  int _step = 0; // 0=delivery, 1=payment, 2=summary
   String _deliveryType = 'pickup';
   int? _selectedBranchId;
   String? _selectedAddressId;
-  final String _paymentMethod = 'tilopay';
+  String _paymentMethod = 'tilopay';
   String? _notes;
   bool _isSubmitting = false;
 
@@ -46,7 +47,47 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     if (cart == null || cart.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: const Text('Checkout')),
-        body: const Center(child: Text('Tu carrito está vacío')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.shopping_cart_outlined,
+                    size: 64,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Tu carrito está vacío',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Agrega productos antes de continuar',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).hintColor,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton.icon(
+                  onPressed: () => context.go('/catalog'),
+                  icon: const Icon(Icons.storefront_rounded),
+                  label: const Text('Ver productos'),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 
@@ -72,6 +113,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       case 0:
         return 'Método de entrega';
       case 1:
+        return 'Método de pago';
+      case 2:
         return 'Resumen del pedido';
       default:
         return 'Checkout';
@@ -95,11 +138,20 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           onNext: _canProceedDelivery ? () => setState(() => _step = 1) : null,
         );
       case 1:
+        return _PaymentStep(
+          key: const ValueKey('payment'),
+          paymentMethod: _paymentMethod,
+          deliveryType: _deliveryType,
+          onPaymentMethodChanged: (v) => setState(() => _paymentMethod = v),
+          onNext: () => setState(() => _step = 2),
+        );
+      case 2:
         return _SummaryStep(
           key: const ValueKey('summary'),
           cart: cart,
           deliveryType: _deliveryType,
           selectedBranchId: _selectedBranchId,
+          selectedAddressId: _selectedAddressId,
           paymentMethod: _paymentMethod,
           notes: _notes,
           isSubmitting: _isSubmitting,
@@ -140,9 +192,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     } catch (e) {
       setState(() => _isSubmitting = false);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+        String message = 'No se pudo crear el pedido. Intenta de nuevo.';
+        if (e is DioException && e.response?.data is Map) {
+          final data = e.response!.data as Map<String, dynamic>;
+          message = data['message'] as String? ?? message;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
       }
     }
   }
@@ -304,12 +361,78 @@ class _DeliveryStep extends ConsumerWidget {
   }
 }
 
-// ── Step 2: Summary ───────────────────────────────────────────────
+// ── Step 2: Payment Method ───────────────────────────────────────
+
+class _PaymentStep extends StatelessWidget {
+  final String paymentMethod;
+  final String deliveryType;
+  final ValueChanged<String> onPaymentMethodChanged;
+  final VoidCallback onNext;
+
+  const _PaymentStep({
+    super.key,
+    required this.paymentMethod,
+    required this.deliveryType,
+    required this.onPaymentMethodChanged,
+    required this.onNext,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              Text(
+                'Selecciona cómo deseas pagar',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _RadioCard(
+                title: 'Tarjeta de crédito / débito',
+                subtitle: 'Pago seguro con Tilopay',
+                icon: Icons.credit_card,
+                selected: paymentMethod == 'tilopay',
+                onTap: () => onPaymentMethodChanged('tilopay'),
+              ),
+              const SizedBox(height: 12),
+              _RadioCard(
+                title: 'Yappy',
+                subtitle: 'Pago móvil',
+                icon: Icons.phone_android,
+                selected: paymentMethod == 'yappy',
+                onTap: () => onPaymentMethodChanged('yappy'),
+              ),
+              if (deliveryType == 'pickup') ...[
+                const SizedBox(height: 12),
+                _RadioCard(
+                  title: 'Pago en tienda',
+                  subtitle: 'Pagar al recoger tu pedido',
+                  icon: Icons.store_outlined,
+                  selected: paymentMethod == 'in_store',
+                  onTap: () => onPaymentMethodChanged('in_store'),
+                ),
+              ],
+            ],
+          ),
+        ),
+        _BottomButton(label: 'Continuar', onPressed: onNext),
+      ],
+    );
+  }
+}
+
+// ── Step 3: Summary ───────────────────────────────────────────────
 
 class _SummaryStep extends ConsumerWidget {
   final Cart cart;
   final String deliveryType;
   final int? selectedBranchId;
+  final String? selectedAddressId;
   final String paymentMethod;
   final String? notes;
   final bool isSubmitting;
@@ -321,6 +444,7 @@ class _SummaryStep extends ConsumerWidget {
     required this.cart,
     required this.deliveryType,
     required this.selectedBranchId,
+    required this.selectedAddressId,
     required this.paymentMethod,
     required this.notes,
     required this.isSubmitting,
@@ -379,6 +503,8 @@ class _SummaryStep extends ConsumerWidget {
               ),
               if (branch != null)
                 _SummaryRow(label: 'Sucursal', value: branch.name),
+              if (deliveryType == 'delivery' && selectedAddressId != null)
+                _buildAddressRow(ref),
               _SummaryRow(label: 'Pago', value: _paymentLabel(paymentMethod)),
               const Divider(height: 24),
 
@@ -436,8 +562,23 @@ class _SummaryStep extends ConsumerWidget {
     );
   }
 
+  Widget _buildAddressRow(WidgetRef ref) {
+    final addresses = ref.watch(_addressesProvider).valueOrNull ?? [];
+    final addr = addresses.where((a) => a['id'] == selectedAddressId).firstOrNull;
+    if (addr == null) return const SizedBox.shrink();
+    final label = addr['label'] as String? ?? '';
+    final line = addr['address_line'] as String? ?? '';
+    final display = label.isNotEmpty ? '$label — $line' : line;
+    return _SummaryRow(label: 'Dirección', value: display);
+  }
+
   String _paymentLabel(String method) {
-    return 'Tarjeta de crédito / débito';
+    return switch (method) {
+      'tilopay' => 'Tarjeta de crédito / débito',
+      'yappy' => 'Yappy',
+      'in_store' => 'Pago en tienda',
+      _ => method,
+    };
   }
 }
 
@@ -545,11 +686,15 @@ class _SummaryRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: Theme.of(context).textTheme.bodyMedium),
-          Text(
-            value,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+          Flexible(
+            child: Text(
+              value,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),

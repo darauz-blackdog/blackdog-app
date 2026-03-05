@@ -63,8 +63,16 @@ class _OrderConfirmationScreenState
     final total = (order['total'] as num?)?.toDouble() ?? 0;
 
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => context.go('/home'),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
@@ -191,7 +199,6 @@ class _OrderConfirmationScreenState
             ],
           ),
         ),
-      ),
     );
   }
 

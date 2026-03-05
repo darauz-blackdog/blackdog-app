@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/cart.dart';
 import 'service_providers.dart';
@@ -13,13 +14,11 @@ class CartNotifier extends AsyncNotifier<Cart?> {
   }
 
   Future<Cart?> _fetchCart() async {
-    try {
-      final api = ref.read(apiServiceProvider);
-      final data = await api.getCart();
-      return Cart.fromJson(data);
-    } catch (_) {
-      return null;
-    }
+    final session = Supabase.instance.client.auth.currentSession;
+    if (session == null) return null;
+    final api = ref.read(apiServiceProvider);
+    final data = await api.getCart();
+    return Cart.fromJson(data);
   }
 
   Future<void> addItem(int productId, {int quantity = 1}) async {

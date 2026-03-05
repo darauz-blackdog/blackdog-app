@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../models/order.dart';
 import '../../providers/orders_provider.dart';
+import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/fade_in_up.dart';
 
@@ -92,6 +93,29 @@ class OrderDetailScreen extends ConsumerWidget {
                     onPressed: () => context.push('/orders/${order.id}/tracking'),
                     icon: const Icon(Icons.local_shipping_outlined),
                     label: const Text('Ver seguimiento'),
+                  ),
+                ),
+              ),
+            ),
+
+          // Cancel button
+          if (order.canCancel)
+            FadeInUp(
+              delay: 90,
+              offset: 15,
+              duration: const Duration(milliseconds: 400),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _confirmCancel(context, ref, order),
+                    icon: const Icon(Icons.cancel_outlined, color: AppColors.error),
+                    label: const Text('Cancelar pedido'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.error,
+                      side: const BorderSide(color: AppColors.error),
+                    ),
                   ),
                 ),
               ),
@@ -190,6 +214,47 @@ class OrderDetailScreen extends ConsumerWidget {
       case 'in_store': return 'Pago en Tienda';
       default: return method;
     }
+  }
+
+  void _confirmCancel(BuildContext context, WidgetRef ref, Order order) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cancelar pedido'),
+        content: const Text('¿Estás seguro de que deseas cancelar este pedido?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              try {
+                final api = ref.read(apiServiceProvider);
+                await api.cancelOrder(order.id);
+                ref.invalidate(orderDetailProvider(order.id));
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Pedido cancelado')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error al cancelar: $e')),
+                  );
+                }
+              }
+            },
+            child: const Text(
+              'Sí, cancelar',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
