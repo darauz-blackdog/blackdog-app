@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../screens/auth/splash_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
+import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/orders/order_detail_screen.dart';
+import '../screens/orders/order_tracking_screen.dart';
 import '../screens/orders/orders_screen.dart';
 import '../models/order.dart';
 import '../screens/catalog/catalog_screen.dart';
@@ -14,10 +16,14 @@ import '../screens/catalog/search_screen.dart';
 import '../screens/cart/cart_screen.dart';
 import '../screens/checkout/checkout_screen.dart';
 import '../screens/checkout/order_confirmation_screen.dart';
+import '../screens/checkout/payment_status_screen.dart';
+import '../screens/favorites/favorites_screen.dart';
+import '../screens/notifications/notifications_screen.dart';
 import '../screens/branches/branches_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/add_address_screen.dart';
+import '../screens/profile/edit_address_screen.dart';
 import '../screens/profile/addresses_screen.dart';
 import '../screens/profile/delete_account_screen.dart';
 import '../screens/profile/change_password_screen.dart';
@@ -90,7 +96,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthRoute =
           state.matchedLocation == '/login' ||
           state.matchedLocation == '/register' ||
-          state.matchedLocation == '/';
+          state.matchedLocation == '/' ||
+          state.matchedLocation == '/onboarding';
 
       if (!isLoggedIn && !isAuthRoute) {
         return '/login';
@@ -112,6 +119,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/register',
         pageBuilder: (context, state) => _sharedAxisY(state, const RegisterScreen()),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        pageBuilder: (context, state) => _fadeThrough(state, const OnboardingScreen()),
       ),
       ShellRoute(
         builder: (context, state, child) => MainShell(child: child),
@@ -144,6 +155,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => _sharedAxisY(state, const CartScreen()),
           ),
           GoRoute(
+            path: '/favorites',
+            pageBuilder: (context, state) => _fadeThrough(state, const FavoritesScreen()),
+          ),
+          GoRoute(
+            path: '/notifications',
+            pageBuilder: (context, state) => _sharedAxisY(state, const NotificationsScreen()),
+          ),
+          GoRoute(
             path: '/branches',
             pageBuilder: (context, state) => _fadeThrough(state, const BranchesScreen()),
           ),
@@ -161,6 +180,15 @@ final routerProvider = Provider<GoRouter>((ref) {
                     OrderDetailScreen(orderId: id, extraOrder: extra),
                   );
                 },
+                routes: [
+                  GoRoute(
+                    path: 'tracking',
+                    pageBuilder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return _sharedAxisY(state, OrderTrackingScreen(orderId: id));
+                    },
+                  ),
+                ],
               ),
             ],
           ),
@@ -179,6 +207,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'add',
                     pageBuilder: (context, state) => _sharedAxisY(state, const AddAddressScreen()),
+                  ),
+                  GoRoute(
+                    path: ':id/edit',
+                    pageBuilder: (context, state) {
+                      final addr = state.extra as Map<String, dynamic>;
+                      return _sharedAxisY(state, EditAddressScreen(address: addr));
+                    },
                   ),
                 ],
               ),
@@ -228,6 +263,20 @@ final routerProvider = Provider<GoRouter>((ref) {
             orderData: state.extra as Map<String, dynamic>?,
           ),
         ),
+      ),
+      GoRoute(
+        path: '/payment/:orderId',
+        pageBuilder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return _sharedAxisY(
+            state,
+            PaymentStatusScreen(
+              orderId: state.pathParameters['orderId']!,
+              paymentUrl: extra?['payment_url'] as String?,
+              paymentMethod: extra?['payment_method'] as String?,
+            ),
+          );
+        },
       ),
     ],
   );

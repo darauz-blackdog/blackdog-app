@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../models/product.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/favorites_provider.dart';
 import '../../providers/products_provider.dart';
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
@@ -12,6 +13,7 @@ import '../../widgets/fade_in_up.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/category_chip.dart';
 import '../../widgets/cart_badge.dart';
+import 'filters_sheet.dart';
 
 class CatalogScreen extends ConsumerStatefulWidget {
   final int? categoryId;
@@ -117,19 +119,24 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
             onPressed: () => context.push('/search'),
           ),
           const CartBadge(),
-          const SizedBox(width: 8),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.sort),
-            onSelected: (v) {
-              setState(() => _sort = v);
-              _resetAndReload();
-            },
-            itemBuilder: (_) => [
-              const PopupMenuItem(value: 'name', child: Text('Nombre A-Z')),
-              const PopupMenuItem(value: 'price_asc', child: Text('Precio menor')),
-              const PopupMenuItem(value: 'price_desc', child: Text('Precio mayor')),
-              const PopupMenuItem(value: 'newest', child: Text('Más recientes')),
-            ],
+          const SizedBox(width: 4),
+          IconButton(
+            icon: const Icon(Icons.tune_rounded),
+            tooltip: 'Filtros',
+            onPressed: () => showFiltersSheet(
+              context: context,
+              ref: ref,
+              appCategoryId: _selectedAppCategoryId,
+              currentBrand: _selectedBrand,
+              currentSort: _sort,
+              onApply: (result) {
+                setState(() {
+                  _selectedBrand = result.brand;
+                  _sort = result.sort;
+                });
+                _resetAndReload();
+              },
+            ),
           ),
         ],
       ),
@@ -272,6 +279,8 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                       offset: 20,
                       child: ProductCard(
                       product: product,
+                      isFavorite: ref.watch(favoritesProvider).contains(product.id),
+                      onFavorite: () => ref.read(favoritesProvider.notifier).toggle(product.id),
                       onTap: () => context.push('/product/${product.id}'),
                       onAddToCart: () async {
                         try {

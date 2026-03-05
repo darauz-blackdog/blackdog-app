@@ -149,12 +149,33 @@ class _OrderConfirmationScreenState
                 duration: const Duration(milliseconds: 500),
                 child: Column(
                   children: [
+                    if (paymentUrl != null) ...[
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => context.go(
+                            '/payment/${widget.orderId}',
+                            extra: {
+                              'payment_url': paymentUrl,
+                              'payment_method': 'tilopay',
+                            },
+                          ),
+                          child: const Text('Ver estado del pago'),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => context.go('/home'),
-                        child: const Text('Seguir comprando'),
-                      ),
+                      child: paymentUrl == null
+                          ? ElevatedButton(
+                              onPressed: () => context.go('/home'),
+                              child: const Text('Seguir comprando'),
+                            )
+                          : OutlinedButton(
+                              onPressed: () => context.go('/home'),
+                              child: const Text('Seguir comprando'),
+                            ),
                     ),
                     const SizedBox(height: 12),
                     SizedBox(

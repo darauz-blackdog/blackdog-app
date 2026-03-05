@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../providers/branch_provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/notifications_provider.dart';
 import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/brand_circle.dart';
@@ -36,15 +37,38 @@ class HomeScreen extends ConsumerWidget {
             titleSpacing: 0,
             title: const _BranchSelectorHeader(),
             actions: [
-              IconButton(
-                onPressed: () {
-                  // TODO: Notifications
-                },
-                icon: Icon(
-                  Icons.notifications_outlined,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
+              Builder(builder: (ctx) {
+                final unread = ref.watch(unreadCountProvider);
+                return Stack(
+                  children: [
+                    IconButton(
+                      onPressed: () => context.push('/notifications'),
+                      icon: Icon(
+                        Icons.notifications_outlined,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    if (unread > 0)
+                      Positioned(
+                        right: 6,
+                        top: 6,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: AppColors.error,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                          child: Text(
+                            '$unread',
+                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              }),
               const CartBadge(),
               const SizedBox(width: 4),
             ],

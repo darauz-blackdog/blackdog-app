@@ -78,9 +78,18 @@ class AddressesScreen extends ConsumerWidget {
                 delay: index * 80,
                 offset: 15,
                 duration: const Duration(milliseconds: 400),
-                child: _AddressCard(
-                  address: addr,
-                  onDelete: () => _deleteAddress(context, ref, addr['id'].toString()),
+                child: GestureDetector(
+                  onTap: () async {
+                    final result = await context.push<bool>(
+                      '/profile/addresses/${addr['id']}/edit',
+                      extra: addr,
+                    );
+                    if (result == true) ref.invalidate(addressesProvider);
+                  },
+                  child: _AddressCard(
+                    address: addr,
+                    onDelete: () => _deleteAddress(context, ref, addr['id'].toString()),
+                  ),
                 ),
               );
             },

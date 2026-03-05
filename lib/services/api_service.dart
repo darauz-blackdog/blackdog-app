@@ -255,6 +255,26 @@ class ApiService {
     return response.data as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> updateAddress(
+    String id, {
+    required String label,
+    required String addressLine,
+    String? city,
+    String? zone,
+    double? latitude,
+    double? longitude,
+  }) async {
+    final response = await _dio.put('/addresses/$id', data: {
+      'label': label,
+      'address_line': addressLine,
+      'city': ?city,
+      'zone': ?zone,
+      'latitude': ?latitude,
+      'longitude': ?longitude,
+    });
+    return response.data as Map<String, dynamic>;
+  }
+
   Future<void> deleteAddress(String id) async {
     await _dio.delete('/addresses/$id');
   }

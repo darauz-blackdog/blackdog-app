@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/products_provider.dart';
@@ -111,7 +113,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       );
       return '/home';
     } else {
-      return '/login';
+      final prefs = await SharedPreferences.getInstance();
+      final onboardingDone = prefs.getBool('onboarding_complete') ?? false;
+      return onboardingDone ? '/login' : '/onboarding';
     }
   }
 

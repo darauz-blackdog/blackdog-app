@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/order.dart';
@@ -76,6 +77,25 @@ class OrderDetailScreen extends ConsumerWidget {
               ),
             ),
           ),
+
+          // Tracking button
+          if (order.status != 'pending_payment' && order.status != 'cancelled')
+            FadeInUp(
+              delay: 80,
+              offset: 15,
+              duration: const Duration(milliseconds: 400),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => context.push('/orders/${order.id}/tracking'),
+                    icon: const Icon(Icons.local_shipping_outlined),
+                    label: const Text('Ver seguimiento'),
+                  ),
+                ),
+              ),
+            ),
 
           const Divider(height: 32),
 

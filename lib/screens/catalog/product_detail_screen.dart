@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/product.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/favorites_provider.dart';
 import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/cart_badge.dart';
@@ -93,6 +94,16 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           onPressed: () => context.pop(),
         ),
         actions: [
+          Consumer(builder: (context, ref, _) {
+            final isFav = ref.watch(favoritesProvider).contains(_activeProductId);
+            return IconButton(
+              icon: Icon(
+                isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                color: isFav ? AppColors.error : null,
+              ),
+              onPressed: () => ref.read(favoritesProvider.notifier).toggle(_activeProductId),
+            );
+          }),
           const CartBadge(),
           IconButton(icon: const Icon(Icons.share_outlined), onPressed: () {}),
         ],
