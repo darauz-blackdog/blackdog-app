@@ -22,16 +22,16 @@ class OrderDetailScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Detalle del Pedido')),
       body: orderAsync.when(
-        data: (order) => _buildContent(context, order),
+        data: (order) => _buildContent(context, ref, order),
         loading: () => extraOrder != null
-            ? _buildContent(context, extraOrder!)
+            ? _buildContent(context, ref, extraOrder!)
             : const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text('Error: $err')),
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context, Order order) {
+  Widget _buildContent(BuildContext context, WidgetRef ref, Order order) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
