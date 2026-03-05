@@ -223,6 +223,12 @@ class ApiService {
     return response.data as Map<String, dynamic>;
   }
 
+  // ── Account ──────────────────────────────────────────────────
+
+  Future<void> deleteAccount() async {
+    await _dio.delete('/auth/account');
+  }
+
   // ── Addresses ─────────────────────────────────────────────────
 
   Future<List<dynamic>> getAddresses() async {

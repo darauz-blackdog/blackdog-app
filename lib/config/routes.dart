@@ -19,6 +19,10 @@ import '../screens/profile/profile_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/add_address_screen.dart';
 import '../screens/profile/addresses_screen.dart';
+import '../screens/profile/delete_account_screen.dart';
+import '../screens/profile/change_password_screen.dart';
+import '../screens/profile/about_screen.dart';
+import '../screens/profile/legal_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/common/main_shell.dart';
 import '../providers/auth_provider.dart';
@@ -177,6 +181,26 @@ final routerProvider = Provider<GoRouter>((ref) {
                     pageBuilder: (context, state) => _sharedAxisY(state, const AddAddressScreen()),
                   ),
                 ],
+              ),
+              GoRoute(
+                path: 'change-password',
+                pageBuilder: (context, state) => _sharedAxisY(state, const ChangePasswordScreen()),
+              ),
+              GoRoute(
+                path: 'about',
+                pageBuilder: (context, state) => _sharedAxisY(state, const AboutScreen()),
+              ),
+              GoRoute(
+                path: 'privacy',
+                pageBuilder: (context, state) => _sharedAxisY(state, const LegalScreen(type: LegalType.privacy)),
+              ),
+              GoRoute(
+                path: 'terms',
+                pageBuilder: (context, state) => _sharedAxisY(state, const LegalScreen(type: LegalType.terms)),
+              ),
+              GoRoute(
+                path: 'delete-account',
+                pageBuilder: (context, state) => _sharedAxisY(state, const DeleteAccountScreen()),
               ),
             ],
           ),
