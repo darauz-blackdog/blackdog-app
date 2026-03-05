@@ -1,0 +1,29 @@
+Bucket,Task Name,Priority,Progress,Description,Labels
+Completados,Logo BlackDog siempre visible en AppBar,Medium,Completed,Logo del perrito BlackDog como leading en AppBar de todas las pantallas principales (Home Catalogo Sucursales Pedidos Perfil),Branding
+Completados,Avatar perrito BlackDog en perfil,Medium,Completed,Reemplazar la inicial con la imagen del perrito BlackDog como avatar default en la pantalla de perfil,Branding
+Completados,Renombrar Mapa a Sucursales,Low,Completed,Cambiar label de Mapa a Sucursales en bottom navigation bar y navigation rail. Cambiar icono de map a store,Branding
+Registro / Signup,Apellido obligatorio en registro,Important,Not started,Agregar campo de apellido como requerido en el formulario de registro. Actualmente solo pide nombre correo y contrasena,App Flutter
+Registro / Signup,Telefono obligatorio con +507 y bandera,Important,Not started,Campo de telefono obligatorio con +507 pre-set y banderita de Panama visible. Que el usuario no tenga que escribir el codigo de pais,App Flutter
+Registro / Signup,Checkbox de mascotas en registro,Medium,Not started,Agregar checkboxes: Tengo perro / Tengo gato / Tengo otros. Solo checkboxes sin pedir mas datos para mantener registro rapido,App Flutter
+Diseno / Branding,Paleta solo negro blanco y amarillo,Important,Not started,Auditar toda la app y eliminar colores fuera de la marca (azules rojos etc). Solo usar negro blanco y amarillo #F7B104,Branding
+Diseno / Branding,Categorias con una sola palabra,Medium,Not started,Simplificar labels de categorias a una sola palabra: Higiene Camas Collares. Sin frases largas que se corten en la UI,Branding
+Diseno / Branding,Revisar modo claro (light mode),Medium,Not started,Ajustar coherencia de colores en light mode para que se vea bien con la paleta de marca,Branding
+Catalogo / Productos,Orden comercial de marcas no alfabetico,Important,Not started,Priorizar marcas partner (Natural Grains primero) en vez de orden alfabetico. Definir orden de prioridad comercial con el equipo,App Flutter
+Catalogo / Productos,Logos de marcas en vez de texto,Medium,Not started,Mostrar logos de las marcas en vez de solo texto en la seccion de marcas del catalogo. Solicitar banco de imagenes a las marcas,App Flutter;Contenido
+Catalogo / Productos,Agrupar variantes de producto,Important,Not started,Mismo producto en diferentes tamanos debe mostrarse como una sola ficha con selector de variante. Crear reglas de agrupacion en Supabase sin tocar Odoo,App Flutter;Backend
+Catalogo / Productos,Precio por kilo y libra,Medium,Not started,Debajo del precio mostrar costo por kg y por lb. Al cambiar variante de peso se actualiza automaticamente. Formato: $X.XX/kg - $X.XX/lb,App Flutter
+Stock / Inventario,Stock por sucursal en delivery,Urgent,Not started,Cuando el usuario elige delivery mostrar inventario basado en la sucursal mas cercana a su direccion de entrega,App Flutter;Backend
+Stock / Inventario,Sugerencia de sucursal alternativa,Important,Not started,Si la sucursal mas cercana no tiene stock suficiente sugerir la siguiente mas cercana que si lo tenga,App Flutter;Backend
+Stock / Inventario,Validacion de cantidad maxima por stock,Important,Not started,No permitir agregar al carrito mas unidades de las disponibles en la sucursal seleccionada. Mostrar alerta clara al usuario,App Flutter
+Perfil / Mascotas,Seccion Mis Mascotas en perfil,Medium,Not started,Crear seccion en perfil para registrar mascotas con especie raza y peso. Permitir multiples mascotas por usuario,App Flutter;Backend
+Perfil / Mascotas,Pre-llenar perfil desde Odoo,Medium,Not started,Si el usuario ya es cliente en Odoo jalar sus datos automaticamente al registrarse para ahorrar tiempo,Backend
+Suscripciones,Recompra automatica mensual,Medium,Not started,Suscripcion para productos recurrentes como comida de mascota. Cobro automatico mensual y envio recurrente,App Flutter;Backend
+Suscripciones,Plan Premium 7.99 al mes,Medium,Not started,Plan de suscripcion premium con delivery gratis descuentos exclusivos y productos exclusivos. Precio tentativo $7.99/mes,App Flutter;Backend
+Delivery,Partnership con servicio de delivery,Important,Not started,Integrar servicio de delivery last-mile (ASAP o Quality). Negociar tarifa flat fee. El pedido llega directo a la tienda mas cercana,Negocio
+Delivery,Dos opciones de envio,Medium,Not started,Express: pagado e inmediato (via ASAP $3.99 aprox). Estandar: gratis o mas barato con entrega al dia siguiente,App Flutter;Backend
+Herramientas,Calculadora de alimento por peso,Low,Not started,Ingresar peso del perro y calcular cuanto rinde la bolsa costo por dia y comparar entre marcas. Puede ser v2,App Flutter
+Historial Medico,Vacunas y certificados de mascota,Low,Not started,Registro de vacunas visitas al veterinario con fechas. Integrar con datos de Odoo a futuro. Fase posterior al lanzamiento,App Flutter;Backend
+Datos / Backend,Limpieza de productos en Odoo,Urgent,Not started,Estandarizar todos los nombres de productos: marca + producto + peso + unidad. Hay productos con datos incompletos o inconsistentes,Odoo;Contenido
+Datos / Backend,Actualizar imagenes de productos,Important,Not started,Subir fotos de mayor calidad con formato consistente. Extraer las buenas de Shopify y estandarizar resoluciones,Odoo;Contenido
+Datos / Backend,Modulo en Odoo para compras de app,Medium,Not started,Crear modulo en Odoo para visualizar todo el flujo de compras que vienen desde la aplicacion movil,Odoo;Backend
+Datos / Backend,Encuesta de feedback post-descarga,Low,Not started,Al descargar la app preguntar al usuario que le gusta que no y que mejoraria. Recopilar feedback para iteraciones,App Flutter

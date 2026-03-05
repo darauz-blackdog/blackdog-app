@@ -59,18 +59,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     setState(() => _addingToCart = true);
     try {
       await ref.read(cartProvider.notifier).addItem(p.id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Agregado al carrito'),
-            action: SnackBarAction(
-              label: 'Ver carrito',
-              textColor: AppColors.primary,
-              onPressed: () => context.go('/cart'),
-            ),
-          ),
-        );
-      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

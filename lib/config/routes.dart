@@ -23,6 +23,13 @@ import '../screens/home/home_screen.dart';
 import '../screens/common/main_shell.dart';
 import '../providers/auth_provider.dart';
 
+// Navigator keys for each tab branch
+final _homeNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'home');
+final _catalogNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'catalog');
+final _branchesNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'branches');
+final _ordersNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'orders');
+final _profileNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
+
 // M3 fade-through transition for smooth page changes
 CustomTransitionPage<void> _fadeThrough(GoRouterState state, Widget child) {
   return CustomTransitionPage<void>(
@@ -109,85 +116,117 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/register',
         pageBuilder: (context, state) => _sharedAxisY(state, const RegisterScreen()),
       ),
-      ShellRoute(
-        builder: (context, state, child) => MainShell(child: child),
-        routes: [
-          GoRoute(
-            path: '/home',
-            pageBuilder: (context, state) => _fadeThrough(state, const HomeScreen()),
-          ),
-          GoRoute(
-            path: '/catalog',
-            pageBuilder: (context, state) => _fadeThrough(
-              state,
-              CatalogScreen(
-                categoryId: state.uri.queryParameters['category_id'] != null
-                    ? int.parse(state.uri.queryParameters['category_id']!)
-                    : null,
-                appCategoryId: state.uri.queryParameters['app_category_id'] != null
-                    ? int.parse(state.uri.queryParameters['app_category_id']!)
-                    : null,
-                brand: state.uri.queryParameters['brand'],
-              ),
-            ),
-          ),
-          GoRoute(
-            path: '/search',
-            pageBuilder: (context, state) => _fadeThrough(state, const SearchScreen()),
-          ),
-          GoRoute(
-            path: '/cart',
-            pageBuilder: (context, state) => _sharedAxisY(state, const CartScreen()),
-          ),
-          GoRoute(
-            path: '/branches',
-            pageBuilder: (context, state) => _fadeThrough(state, const BranchesScreen()),
-          ),
-          GoRoute(
-            path: '/orders',
-            pageBuilder: (context, state) => _fadeThrough(state, const OrdersScreen()),
+      // StatefulShellRoute preserves state for each tab
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            MainShell(navigationShell: navigationShell),
+        branches: [
+          // Tab 0: Home
+          StatefulShellBranch(
+            navigatorKey: _homeNavigatorKey,
             routes: [
               GoRoute(
-                path: ':id',
-                pageBuilder: (context, state) {
-                  final id = state.pathParameters['id']!;
-                  final extra = state.extra as Order?;
-                  return _sharedAxisY(
-                    state,
-                    OrderDetailScreen(orderId: id, extraOrder: extra),
-                  );
-                },
+                path: '/home',
+                pageBuilder: (context, state) => _fadeThrough(state, const HomeScreen()),
+              ),
+              GoRoute(
+                path: '/cart',
+                pageBuilder: (context, state) => _sharedAxisY(state, const CartScreen()),
               ),
             ],
           ),
-          GoRoute(
-            path: '/profile',
-            pageBuilder: (context, state) => _fadeThrough(state, const ProfileScreen()),
+          // Tab 1: Catalog
+          StatefulShellBranch(
+            navigatorKey: _catalogNavigatorKey,
             routes: [
               GoRoute(
-                path: 'edit',
-                pageBuilder: (context, state) => _sharedAxisY(state, const EditProfileScreen()),
+                path: '/catalog',
+                pageBuilder: (context, state) => _fadeThrough(
+                  state,
+                  CatalogScreen(
+                    categoryId: state.uri.queryParameters['category_id'] != null
+                        ? int.parse(state.uri.queryParameters['category_id']!)
+                        : null,
+                    appCategoryId: state.uri.queryParameters['app_category_id'] != null
+                        ? int.parse(state.uri.queryParameters['app_category_id']!)
+                        : null,
+                    brand: state.uri.queryParameters['brand'],
+                  ),
+                ),
               ),
               GoRoute(
-                path: 'addresses',
-                pageBuilder: (context, state) => _sharedAxisY(state, const AddressesScreen()),
+                path: '/search',
+                pageBuilder: (context, state) => _fadeThrough(state, const SearchScreen()),
+              ),
+              GoRoute(
+                path: '/product/:id',
+                pageBuilder: (context, state) => _sharedAxisY(
+                  state,
+                  ProductDetailScreen(
+                    productId: int.parse(state.pathParameters['id']!),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          // Tab 2: Branches
+          StatefulShellBranch(
+            navigatorKey: _branchesNavigatorKey,
+            routes: [
+              GoRoute(
+                path: '/branches',
+                pageBuilder: (context, state) => _fadeThrough(state, const BranchesScreen()),
+              ),
+            ],
+          ),
+          // Tab 3: Orders
+          StatefulShellBranch(
+            navigatorKey: _ordersNavigatorKey,
+            routes: [
+              GoRoute(
+                path: '/orders',
+                pageBuilder: (context, state) => _fadeThrough(state, const OrdersScreen()),
                 routes: [
                   GoRoute(
-                    path: 'add',
-                    pageBuilder: (context, state) => _sharedAxisY(state, const AddAddressScreen()),
+                    path: ':id',
+                    pageBuilder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      final extra = state.extra as Order?;
+                      return _sharedAxisY(
+                        state,
+                        OrderDetailScreen(orderId: id, extraOrder: extra),
+                      );
+                    },
                   ),
                 ],
               ),
             ],
           ),
-          GoRoute(
-            path: '/product/:id',
-            pageBuilder: (context, state) => _sharedAxisY(
-              state,
-              ProductDetailScreen(
-                productId: int.parse(state.pathParameters['id']!),
+          // Tab 4: Profile
+          StatefulShellBranch(
+            navigatorKey: _profileNavigatorKey,
+            routes: [
+              GoRoute(
+                path: '/profile',
+                pageBuilder: (context, state) => _fadeThrough(state, const ProfileScreen()),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    pageBuilder: (context, state) => _sharedAxisY(state, const EditProfileScreen()),
+                  ),
+                  GoRoute(
+                    path: 'addresses',
+                    pageBuilder: (context, state) => _sharedAxisY(state, const AddressesScreen()),
+                    routes: [
+                      GoRoute(
+                        path: 'add',
+                        pageBuilder: (context, state) => _sharedAxisY(state, const AddAddressScreen()),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ),
+            ],
           ),
         ],
       ),

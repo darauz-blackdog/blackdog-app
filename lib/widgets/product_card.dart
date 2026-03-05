@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../models/product.dart';
 import '../theme/app_theme.dart';
@@ -68,13 +69,13 @@ class ProductCard extends StatelessWidget {
                                   fit: BoxFit.contain,
                                   alignment: Alignment.center,
                                   fadeInDuration: const Duration(milliseconds: 150),
-                                  placeholder: (_, _) => const Center(
-                                    child: SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: AppColors.primary,
+                                  placeholder: (_, _) => Shimmer.fromColors(
+                                    baseColor: Colors.grey[300]!,
+                                    highlightColor: Colors.grey[100]!,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
                                     ),
                                   ),

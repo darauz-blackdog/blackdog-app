@@ -46,32 +46,24 @@ class _CartBadgeState extends ConsumerState<CartBadge>
 
   @override
   Widget build(BuildContext context) {
-    final cartAsync = ref.watch(cartProvider);
+    // Uses .select()-optimized provider — only rebuilds when count changes
+    final count = ref.watch(cartItemCountProvider);
+    _checkPulse(count);
 
     return IconButton(
       onPressed: () => context.go('/cart'),
-      icon: cartAsync.when(
-        data: (cart) {
-          final count =
-              cart?.items.fold(0, (sum, item) => sum + item.quantity) ?? 0;
-          _checkPulse(count);
-          if (count == 0) {
-            return const Icon(Icons.shopping_cart_outlined);
-          }
-          return ScaleTransition(
-            scale: _pulseScale,
-            child: Badge.count(
-              count: count,
-              backgroundColor: AppColors.primary,
-              textColor: AppColors.secondary,
-              textStyle: const TextStyle(fontWeight: FontWeight.bold),
-              child: const Icon(Icons.shopping_cart_outlined),
+      icon: count == 0
+          ? const Icon(Icons.shopping_cart_outlined)
+          : ScaleTransition(
+              scale: _pulseScale,
+              child: Badge.count(
+                count: count,
+                backgroundColor: AppColors.primary,
+                textColor: AppColors.secondary,
+                textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                child: const Icon(Icons.shopping_cart_outlined),
+              ),
             ),
-          );
-        },
-        loading: () => const Icon(Icons.shopping_cart_outlined),
-        error: (_, _) => const Icon(Icons.shopping_cart_outlined),
-      ),
     );
   }
 }

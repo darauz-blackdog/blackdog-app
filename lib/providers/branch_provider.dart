@@ -1,6 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'service_providers.dart';
+
+/// Active branches from the API (filtered by is_active)
+final branchesProvider = FutureProvider<List<dynamic>>((ref) async {
+  final api = ref.read(apiServiceProvider);
+  final all = await api.getBranches();
+  return all.where((b) {
+    final map = b as Map<String, dynamic>;
+    return map['is_active'] == true || !map.containsKey('is_active');
+  }).toList();
+});
+
 class SelectedBranch {
   final int id;
   final String name;

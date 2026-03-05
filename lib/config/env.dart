@@ -11,6 +11,6 @@ class Env {
   );
   static const apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://31.97.211.164:3002/api', // VPS production server
+    defaultValue: 'http://localhost:3002/api', // LOCAL for testing (VPS: http://31.97.211.164:3002/api)
   );
 }

@@ -4,38 +4,21 @@ import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
 
 /// Responsive main shell: NavigationBar on phones, NavigationRail on tablets (>600dp)
+/// Uses StatefulNavigationShell to preserve state across tab switches.
 class MainShell extends StatelessWidget {
-  final Widget child;
-  const MainShell({super.key, required this.child});
+  final StatefulNavigationShell navigationShell;
+  const MainShell({super.key, required this.navigationShell});
 
-  int _currentIndex(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith('/catalog') || location.startsWith('/search'))
-      return 1;
-    if (location.startsWith('/branches')) return 2;
-    if (location.startsWith('/orders')) return 3;
-    if (location.startsWith('/profile')) return 4;
-    return 0; // /home and fallback
-  }
-
-  void _onTap(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        context.go('/home');
-      case 1:
-        context.go('/catalog');
-      case 2:
-        context.go('/branches');
-      case 3:
-        context.go('/orders');
-      case 4:
-        context.go('/profile');
-    }
+  void _onTap(int index) {
+    navigationShell.goBranch(
+      index,
+      initialLocation: index == navigationShell.currentIndex,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final currentIdx = _currentIndex(context);
+    final currentIdx = navigationShell.currentIndex;
     final isWide = MediaQuery.sizeOf(context).width >= 600;
 
     const destinations = [
@@ -100,7 +83,7 @@ class MainShell extends StatelessWidget {
           children: [
             NavigationRail(
               selectedIndex: currentIdx,
-              onDestinationSelected: (index) => _onTap(context, index),
+              onDestinationSelected: _onTap,
               labelType: NavigationRailLabelType.all,
               backgroundColor: Theme.of(context).colorScheme.surface,
               indicatorColor: AppColors.primary.withValues(alpha: 0.15),
@@ -119,17 +102,17 @@ class MainShell extends StatelessWidget {
               destinations: railDestinations,
             ),
             const VerticalDivider(width: 1, thickness: 1),
-            Expanded(child: child),
+            Expanded(child: navigationShell),
           ],
         ),
       );
     }
 
     return Scaffold(
-      body: child,
+      body: navigationShell,
       bottomNavigationBar: NavigationBar(
         selectedIndex: currentIdx,
-        onDestinationSelected: (index) => _onTap(context, index),
+        onDestinationSelected: _onTap,
         destinations: destinations,
       ),
     );

@@ -6,15 +6,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../providers/service_providers.dart';
+import '../../providers/branch_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/cart_badge.dart';
 import '../../widgets/fade_in_up.dart';
-
-final branchesProvider = FutureProvider<List<dynamic>>((ref) async {
-  final api = ref.read(apiServiceProvider);
-  return api.getBranches();
-});
 
 class BranchesScreen extends ConsumerStatefulWidget {
   const BranchesScreen({super.key});
@@ -33,6 +28,12 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
   void initState() {
     super.initState();
     _getUserLocation();
+  }
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    super.dispose();
   }
 
   Future<void> _getUserLocation() async {
@@ -104,6 +105,42 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
 
     setState(() => _selectedIndex = index);
     _mapController.move(LatLng(lat, lng), 15);
+  }
+
+  void _confirmBranch(Map<String, dynamic> branch) {
+    final name = branch['name'] as String? ?? 'Sucursal';
+    final id = branch['id'] as int;
+    final currentBranch = ref.read(selectedBranchProvider).valueOrNull;
+
+    // If already selected, no need to confirm
+    if (currentBranch?.id == id) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cambiar sucursal'),
+        content: Text('¿Quieres entregar en $name?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              ref.read(selectedBranchProvider.notifier).selectBranch(id, name);
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Entregas en $name'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _openGoogleMaps(double lat, double lng) {
@@ -222,6 +259,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                             height: isSelected ? 46 : 38,
                             child: GestureDetector(
                               onTap: () => _selectBranch(i, b),
+                              onDoubleTap: () => _confirmBranch(b),
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: isSelected ? AppColors.primary : AppColors.secondary,
@@ -312,6 +350,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                       distanceKm: dist,
                       formatDistance: dist != null ? _formatDistance(dist) : null,
                       onTap: () => _selectBranch(index, branch),
+                      onDoubleTap: () => _confirmBranch(branch),
                       onGoogleMaps: () => _openGoogleMaps(
                         branch['latitude'] as double,
                         branch['longitude'] as double,
@@ -341,6 +380,7 @@ class _BranchCard extends StatelessWidget {
   final double? distanceKm;
   final String? formatDistance;
   final VoidCallback onTap;
+  final VoidCallback onDoubleTap;
   final VoidCallback onGoogleMaps;
   final VoidCallback onWaze;
 
@@ -350,6 +390,7 @@ class _BranchCard extends StatelessWidget {
     this.distanceKm,
     this.formatDistance,
     required this.onTap,
+    required this.onDoubleTap,
     required this.onGoogleMaps,
     required this.onWaze,
   });
@@ -364,6 +405,7 @@ class _BranchCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
+      onDoubleTap: onDoubleTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(

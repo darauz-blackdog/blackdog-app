@@ -4,14 +4,15 @@ import 'package:go_router/go_router.dart';
 
 import '../../models/product.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/catalog_provider.dart';
 import '../../providers/products_provider.dart';
-import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/responsive_grid.dart';
+import '../../widgets/cart_badge.dart';
+import '../../widgets/category_chip.dart';
 import '../../widgets/fade_in_up.dart';
 import '../../widgets/product_card.dart';
-import '../../widgets/category_chip.dart';
-import '../../widgets/cart_badge.dart';
+import '../../widgets/skeleton_loaders.dart';
 
 class CatalogScreen extends ConsumerStatefulWidget {
   final int? categoryId;
@@ -27,10 +28,6 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
   int? _selectedAppCategoryId;
   String? _selectedBrand;
   String _sort = 'name';
-  int _currentPage = 1;
-  final List<Product> _allProducts = [];
-  bool _hasMore = true;
-  bool _isLoadingMore = false;
   final _scrollController = ScrollController();
 
   @override
@@ -47,60 +44,36 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
     super.dispose();
   }
 
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 300) {
-      _loadMore();
-    }
-  }
-
-  void _resetAndReload() {
-    setState(() {
-      _currentPage = 1;
-      _allProducts.clear();
-      _hasMore = true;
-      _isLoadingMore = false;
-    });
-  }
-
-  Future<void> _loadMore() async {
-    if (_isLoadingMore || !_hasMore) return;
-    setState(() => _isLoadingMore = true);
-
-    try {
-      final api = ref.read(apiServiceProvider);
-      final result = await api.getProducts(
-        page: _currentPage + 1,
-        appCategoryId: _selectedAppCategoryId,
-        brand: _selectedBrand,
-        sort: _sort,
-      );
-
-      final products = (result['data'] as List)
-          .map((p) => Product.fromJson(p as Map<String, dynamic>))
-          .toList();
-      final pagination = result['pagination'] as Map<String, dynamic>;
-
-      setState(() {
-        _allProducts.addAll(products);
-        _currentPage++;
-        _hasMore = _currentPage < (pagination['total_pages'] as int);
-        _isLoadingMore = false;
-      });
-    } catch (_) {
-      setState(() => _isLoadingMore = false);
-    }
-  }
-
-  ProductListParams get _params => ProductListParams(
+  CatalogParams get _params => CatalogParams(
     appCategoryId: _selectedAppCategoryId,
     brand: _selectedBrand,
     sort: _sort,
   );
 
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 300) {
+      ref.read(catalogProvider(_params).notifier).loadMore();
+    }
+  }
+
+  void _changeFilter({int? appCategoryId, String? brand, String? sort}) {
+    setState(() {
+      if (sort != null) _sort = sort;
+      if (appCategoryId != null || brand != null) {
+        _selectedAppCategoryId = appCategoryId;
+        _selectedBrand = brand;
+      }
+    });
+    // Scroll to top on filter change
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(0);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final firstPage = ref.watch(productListProvider(_params));
+    final catalogState = ref.watch(catalogProvider(_params));
     final appCategories = ref.watch(appCategoriesProvider);
     final brands = ref.watch(brandsProvider(_selectedAppCategoryId));
 
@@ -120,10 +93,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
           const SizedBox(width: 8),
           PopupMenuButton<String>(
             icon: const Icon(Icons.sort),
-            onSelected: (v) {
-              setState(() => _sort = v);
-              _resetAndReload();
-            },
+            onSelected: (v) => _changeFilter(sort: v),
             itemBuilder: (_) => [
               const PopupMenuItem(value: 'name', child: Text('Nombre A-Z')),
               const PopupMenuItem(value: 'price_asc', child: Text('Precio menor')),
@@ -136,10 +106,10 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
       body: Column(
         children: [
           // App category filter chips
-          SizedBox(
-            height: 52,
-            child: appCategories.when(
-              data: (cats) => ListView.separated(
+          appCategories.when(
+            data: (cats) => SizedBox(
+              height: 52,
+              child: ListView.separated(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 scrollDirection: Axis.horizontal,
                 itemCount: cats.length + 1,
@@ -149,42 +119,30 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                     return CategoryChip(
                       label: 'Todos',
                       isSelected: _selectedAppCategoryId == null,
-                      onTap: () {
-                        setState(() {
-                          _selectedAppCategoryId = null;
-                          _selectedBrand = null;
-                        });
-                        _resetAndReload();
-                      },
+                      onTap: () => _changeFilter(appCategoryId: null, brand: null),
                     );
                   }
                   final cat = cats[i - 1];
                   return CategoryChip(
                     label: cat.shortName,
                     isSelected: _selectedAppCategoryId == cat.id,
-                    onTap: () {
-                      setState(() {
-                        _selectedAppCategoryId = cat.id;
-                        _selectedBrand = null;
-                      });
-                      _resetAndReload();
-                    },
+                    onTap: () => _changeFilter(appCategoryId: cat.id, brand: null),
                   );
                 },
               ),
-              loading: () => const SizedBox(),
-              error: (_, _) => const SizedBox(),
             ),
+            loading: () => const CategoryChipsSkeleton(),
+            error: (_, _) => const SizedBox(height: 52),
           ),
 
-          // Brand filter chips (only when a category is selected)
+          // Brand filter chips
           if (_selectedAppCategoryId != null)
-            SizedBox(
-              height: 44,
-              child: brands.when(
-                data: (brandList) {
-                  if (brandList.isEmpty) return const SizedBox();
-                  return ListView.separated(
+            brands.when(
+              data: (brandList) {
+                if (brandList.isEmpty) return const SizedBox.shrink();
+                return SizedBox(
+                  height: 44,
+                  child: ListView.separated(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     scrollDirection: Axis.horizontal,
                     itemCount: brandList.length + 1,
@@ -194,48 +152,34 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                         return CategoryChip(
                           label: 'Todas las marcas',
                           isSelected: _selectedBrand == null,
-                          onTap: () {
-                            setState(() => _selectedBrand = null);
-                            _resetAndReload();
-                          },
+                          onTap: () => _changeFilter(
+                            appCategoryId: _selectedAppCategoryId,
+                            brand: null,
+                          ),
                         );
                       }
                       final brand = brandList[i - 1];
                       return CategoryChip(
                         label: brand,
                         isSelected: _selectedBrand == brand,
-                        onTap: () {
-                          setState(() => _selectedBrand = brand);
-                          _resetAndReload();
-                        },
+                        onTap: () => _changeFilter(
+                          appCategoryId: _selectedAppCategoryId,
+                          brand: brand,
+                        ),
                       );
                     },
-                  );
-                },
-                loading: () => const SizedBox(),
-                error: (_, _) => const SizedBox(),
-              ),
+                  ),
+                );
+              },
+              loading: () => const SizedBox(height: 44),
+              error: (_, _) => const SizedBox.shrink(),
             ),
 
-          // Product grid with infinite scroll
+          // Product grid
           Expanded(
-            child: firstPage.when(
-              data: (result) {
-                // Merge first page + loaded pages
-                final products = [...result.products, ..._allProducts];
-
-                if (_hasMore && _currentPage == 1) {
-                  // Initialize hasMore from first page result
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted && _currentPage == 1) {
-                      setState(() {
-                        _hasMore = result.totalPages > 1;
-                      });
-                    }
-                  });
-                }
-
-                if (products.isEmpty) {
+            child: catalogState.when(
+              data: (catalog) {
+                if (catalog.products.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -249,60 +193,42 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                   );
                 }
 
-                final itemCount = products.length + (_hasMore ? 1 : 0);
+                final itemCount = catalog.products.length + (catalog.hasMore ? 1 : 0);
 
-                return GridView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: responsiveProductGrid(),
-                  itemCount: itemCount,
-                  itemBuilder: (_, i) {
-                    if (i >= products.length) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: CircularProgressIndicator(),
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(catalogProvider(_params));
+                  },
+                  child: GridView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(16),
+                    gridDelegate: responsiveProductGrid(),
+                    itemCount: itemCount,
+                    itemBuilder: (_, i) {
+                      if (i >= catalog.products.length) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+                      final product = catalog.products[i];
+                      return FadeInUp(
+                        delay: (i % 6) * 60,
+                        duration: const Duration(milliseconds: 400),
+                        offset: 20,
+                        child: ProductCard(
+                          product: product,
+                          onTap: () => context.push('/product/${product.id}'),
+                          onAddToCart: () => _addToCart(product),
                         ),
                       );
-                    }
-                    final product = products[i];
-                    return FadeInUp(
-                      delay: (i % 6) * 60,
-                      duration: const Duration(milliseconds: 400),
-                      offset: 20,
-                      child: ProductCard(
-                      product: product,
-                      onTap: () => context.push('/product/${product.id}'),
-                      onAddToCart: () async {
-                        try {
-                          await ref.read(cartProvider.notifier).addItem(product.id);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('${product.name} agregado al carrito'),
-                                duration: const Duration(seconds: 1),
-                                action: SnackBarAction(
-                                  label: 'Ver',
-                                  textColor: AppColors.primary,
-                                  onPressed: () => context.go('/cart'),
-                                ),
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Error al agregar')),
-                            );
-                          }
-                        }
-                      },
-                    ),
-                    );
-                  },
+                    },
+                  ),
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const ProductGridSkeleton(),
               error: (err, _) => Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -311,10 +237,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                     const SizedBox(height: 16),
                     Text('Error: $err'),
                     TextButton(
-                      onPressed: () {
-                        _resetAndReload();
-                        ref.invalidate(productListProvider(_params));
-                      },
+                      onPressed: () => ref.invalidate(catalogProvider(_params)),
                       child: const Text('Reintentar'),
                     ),
                   ],
@@ -325,5 +248,17 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _addToCart(Product product) async {
+    try {
+      await ref.read(cartProvider.notifier).addItem(product.id);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al agregar')),
+        );
+      }
+    }
   }
 }

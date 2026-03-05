@@ -1,8 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/product.dart';
 import '../models/category.dart';
 import 'service_providers.dart';
+
+/// Helper to auto-invalidate a provider after a TTL
+void _autoInvalidate(Ref ref, Duration ttl) {
+  final timer = Timer(ttl, () => ref.invalidateSelf());
+  ref.onDispose(timer.cancel);
+}
+
+const _cacheTTL = Duration(minutes: 15);
 
 /// Paginated product list with optional category/brand filter
 class ProductListParams {
@@ -34,6 +44,8 @@ class ProductListParams {
 }
 
 final productListProvider = FutureProvider.family<ProductListResult, ProductListParams>((ref, params) async {
+  _autoInvalidate(ref, _cacheTTL);
+
   final api = ref.read(apiServiceProvider);
   final result = await api.getProducts(
     page: params.page,
@@ -73,12 +85,14 @@ class ProductListResult {
 
 /// Single product detail
 final productDetailProvider = FutureProvider.family<ProductDetail, int>((ref, productId) async {
+  _autoInvalidate(ref, _cacheTTL);
+
   final api = ref.read(apiServiceProvider);
   final result = await api.getProduct(productId);
   return ProductDetail.fromJson(result);
 });
 
-/// Product search
+/// Product search — no TTL needed, results are ephemeral
 final productSearchProvider = FutureProvider.family<ProductListResult, String>((ref, query) async {
   final api = ref.read(apiServiceProvider);
   final result = await api.searchProducts(query);
@@ -99,6 +113,8 @@ final productSearchProvider = FutureProvider.family<ProductListResult, String>((
 
 /// Home screen sections (brands + categories with products)
 final homeSectionsProvider = FutureProvider<List<HomeSection>>((ref) async {
+  _autoInvalidate(ref, _cacheTTL);
+
   final api = ref.read(apiServiceProvider);
   final result = await api.getHomeSections();
   return result.map((s) => HomeSection.fromJson(s as Map<String, dynamic>)).toList();
@@ -106,6 +122,8 @@ final homeSectionsProvider = FutureProvider<List<HomeSection>>((ref) async {
 
 /// Featured products
 final featuredProductsProvider = FutureProvider<List<Product>>((ref) async {
+  _autoInvalidate(ref, _cacheTTL);
+
   final api = ref.read(apiServiceProvider);
   final result = await api.getFeaturedProducts();
   return result.map((p) => Product.fromJson(p as Map<String, dynamic>)).toList();
@@ -115,10 +133,11 @@ final featuredProductsProvider = FutureProvider<List<Product>>((ref) async {
 const _hiddenCategories = {'humano', 'servicios'};
 
 final categoriesProvider = FutureProvider<List<Category>>((ref) async {
+  _autoInvalidate(ref, const Duration(minutes: 30));
+
   final api = ref.read(apiServiceProvider);
   final result = await api.getCategories();
   final roots = result.map((c) => Category.fromJson(c as Map<String, dynamic>)).toList();
-  // The API returns a single root ("Vendibles") — show its children
   List<Category> categories = roots;
   if (roots.length == 1 && roots.first.children.isNotEmpty) {
     categories = roots.first.children;
@@ -126,8 +145,10 @@ final categoriesProvider = FutureProvider<List<Category>>((ref) async {
   return categories.where((c) => !_hiddenCategories.contains(c.name.toLowerCase())).toList();
 });
 
-/// Simplified app categories (14 categories)
+/// Simplified app categories (14 categories) — longer TTL since these rarely change
 final appCategoriesProvider = FutureProvider<List<AppCategory>>((ref) async {
+  _autoInvalidate(ref, const Duration(minutes: 30));
+
   final api = ref.read(apiServiceProvider);
   final result = await api.getAppCategories();
   return result.map((c) => AppCategory.fromJson(c as Map<String, dynamic>)).toList();
@@ -135,6 +156,8 @@ final appCategoriesProvider = FutureProvider<List<AppCategory>>((ref) async {
 
 /// Brands for a specific app category
 final brandsProvider = FutureProvider.family<List<String>, int?>((ref, appCategoryId) async {
+  _autoInvalidate(ref, _cacheTTL);
+
   final api = ref.read(apiServiceProvider);
   return api.getBrands(appCategoryId: appCategoryId);
 });

@@ -13,15 +13,13 @@ import '../../widgets/category_icon_box.dart';
 import '../../widgets/fade_in_up.dart';
 import '../../widgets/hero_banner_carousel.dart';
 import '../../widgets/product_carousel_section.dart';
+import '../../widgets/skeleton_loaders.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final categories = ref.watch(appCategoriesProvider);
-    final sections = ref.watch(homeSectionsProvider);
-
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -132,233 +130,14 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
 
-          // ── Featured categories (grid 2 cols, first 4) ──
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 24),
-              child: categories.when(
-                data: (cats) {
-                  final featured = cats.take(4).toList();
-                  final rest = cats.length > 4 ? cats.sublist(4) : <dynamic>[];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Categorías',
-                              style: GoogleFonts.montserrat(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color:
-                                    Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () => context.go('/catalog'),
-                              child: Text(
-                                'Ver todo',
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      // Grid of top 4 categories
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: GridView.count(
-                          crossAxisCount: 2,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
-                          childAspectRatio: 1.45,
-                          children: featured.map((cat) {
-                            final style =
-                                CategoryStyle.forAppCategory(cat.icon);
-                            return FadeInUp(
-                              delay: featured.indexOf(cat) * 80,
-                              offset: 15,
-                              duration: const Duration(milliseconds: 400),
-                              child: CategoryIconBox(
-                                label: cat.shortName,
-                                icon: style.icon,
-                                backgroundColor: style.backgroundColor,
-                                iconColor: style.iconColor,
-                                large: true,
-                                productCount: cat.productCount > 0
-                                    ? cat.productCount
-                                    : null,
-                                onTap: () => context.go(
-                                  '/catalog?app_category_id=${cat.id}',
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                      // Horizontal scroll for remaining categories
-                      if (rest.isNotEmpty) ...[
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          height: 110,
-                          child: ListView.separated(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 20),
-                            scrollDirection: Axis.horizontal,
-                            itemCount: rest.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(width: 12),
-                            itemBuilder: (_, i) {
-                              final cat = rest[i];
-                              final style =
-                                  CategoryStyle.forAppCategory(cat.icon);
-                              return CategoryIconBox(
-                                label: cat.shortName,
-                                icon: style.icon,
-                                backgroundColor: style.backgroundColor,
-                                iconColor: style.iconColor,
-                                onTap: () => context.go(
-                                  '/catalog?app_category_id=${cat.id}',
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ],
-                  );
-                },
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
-                error: (_, _) => const SizedBox(),
-              ),
-            ),
-          ),
+          // ── Featured categories ──
+          const SliverToBoxAdapter(child: _CategoriesSection()),
 
           // ── Brand logos row ──
-          SliverToBoxAdapter(
-            child: sections.when(
-              data: (sectionList) {
-                final brands = sectionList
-                    .where((s) => s.type == 'brand')
-                    .toList();
-                if (brands.isEmpty) return const SizedBox.shrink();
-                return FadeInUp(
-                  delay: 200,
-                  offset: 15,
-                  duration: const Duration(milliseconds: 400),
-                  child: BrandLogosRow(
-                    brandSections: brands,
-                    onTap: (brand) {
-                      final encoded = Uri.encodeComponent(brand);
-                      context.go('/catalog?brand=$encoded');
-                    },
-                  ),
-                );
-              },
-              loading: () => const SizedBox.shrink(),
-              error: (_, _) => const SizedBox.shrink(),
-            ),
-          ),
+          const SliverToBoxAdapter(child: _BrandLogosSection()),
 
           // ── Product sections ──
-          sections.when(
-            data: (sectionList) => SliverList(
-              delegate: SliverChildBuilderDelegate((ctx, i) {
-                final section = sectionList[i];
-                return ProductCarouselSection(
-                  title: section.title,
-                  products: section.products,
-                  onViewAll: () {
-                    if (section.type == 'brand') {
-                      final brand = Uri.encodeComponent(
-                        section.filter['brand'] as String,
-                      );
-                      context.go('/catalog?brand=$brand');
-                    } else {
-                      context.go(
-                        '/catalog?app_category_id=${section.filter['app_category_id']}',
-                      );
-                    }
-                  },
-                  onTap: (product) => context.push('/product/${product.id}'),
-                  onAddToCart: (product) async {
-                    try {
-                      await ref
-                          .read(cartProvider.notifier)
-                          .addItem(product.id);
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '${product.name} agregado al carrito',
-                            ),
-                            duration: const Duration(seconds: 1),
-                            action: SnackBarAction(
-                              label: 'Ver',
-                              textColor: AppColors.primary,
-                              onPressed: () => context.go('/cart'),
-                            ),
-                          ),
-                        );
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Error al agregar'),
-                          ),
-                        );
-                      }
-                    }
-                  },
-                );
-              }, childCount: sectionList.length),
-            ),
-            loading: () => const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.all(40),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-            ),
-            error: (err, _) => SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(40),
-                child: Center(
-                  child: Column(
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        size: 48,
-                        color: AppColors.textLight,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Error al cargar secciones',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      TextButton(
-                        onPressed: () =>
-                            ref.invalidate(homeSectionsProvider),
-                        child: const Text('Reintentar'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+          const _ProductSectionsSliver(),
 
           const SliverToBoxAdapter(child: SizedBox(height: 20)),
         ],
@@ -367,17 +146,384 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-/// Header widget showing branch selector (PedidosYa style)
-class _BranchSelectorHeader extends ConsumerWidget {
-  const _BranchSelectorHeader();
+/// Extracted categories section — only rebuilds when categories change
+class _CategoriesSection extends ConsumerWidget {
+  const _CategoriesSection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final branchAsync = ref.watch(selectedBranchProvider);
-    final branch = branchAsync.valueOrNull;
+    final categories = ref.watch(appCategoriesProvider);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: categories.when(
+        data: (cats) {
+          final featured = cats.take(4).toList();
+          final rest = cats.length > 4 ? cats.sublist(4) : <dynamic>[];
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Categorías',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => context.go('/catalog'),
+                      child: Text(
+                        'Ver todo',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 1.45,
+                  children: featured.map((cat) {
+                    final style = CategoryStyle.forAppCategory(cat.icon, Theme.of(context).brightness);
+                    return FadeInUp(
+                      delay: featured.indexOf(cat) * 80,
+                      offset: 15,
+                      duration: const Duration(milliseconds: 400),
+                      child: CategoryIconBox(
+                        label: cat.shortName,
+                        icon: style.icon,
+                        backgroundColor: style.backgroundColor,
+                        iconColor: style.iconColor,
+                        large: true,
+                        productCount: cat.productCount > 0
+                            ? cat.productCount
+                            : null,
+                        onTap: () => context.go(
+                          '/catalog?app_category_id=${cat.id}',
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              if (rest.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 110,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: rest.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 12),
+                    itemBuilder: (_, i) {
+                      final cat = rest[i];
+                      final style = CategoryStyle.forAppCategory(cat.icon, Theme.of(context).brightness);
+                      return CategoryIconBox(
+                        label: cat.shortName,
+                        icon: style.icon,
+                        backgroundColor: style.backgroundColor,
+                        iconColor: style.iconColor,
+                        onTap: () => context.go(
+                          '/catalog?app_category_id=${cat.id}',
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ],
+          );
+        },
+        loading: () => const HomeCategoriesSkeleton(),
+        error: (_, _) => const SizedBox(),
+      ),
+    );
+  }
+}
+
+/// Extracted brand logos — only rebuilds when sections change
+class _BrandLogosSection extends ConsumerWidget {
+  const _BrandLogosSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sections = ref.watch(homeSectionsProvider);
+
+    return sections.when(
+      data: (sectionList) {
+        final brands = sectionList
+            .where((s) => s.type == 'brand')
+            .toList();
+        if (brands.isEmpty) return const SizedBox.shrink();
+        return FadeInUp(
+          delay: 200,
+          offset: 15,
+          duration: const Duration(milliseconds: 400),
+          child: BrandLogosRow(
+            brandSections: brands,
+            onTap: (brand) {
+              final encoded = Uri.encodeComponent(brand);
+              context.go('/catalog?brand=$encoded');
+            },
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+}
+
+/// Extracted product sections sliver — only rebuilds when sections change
+class _ProductSectionsSliver extends ConsumerWidget {
+  const _ProductSectionsSliver();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sections = ref.watch(homeSectionsProvider);
+
+    return sections.when(
+      data: (sectionList) => SliverList(
+        delegate: SliverChildBuilderDelegate((ctx, i) {
+          final section = sectionList[i];
+          return ProductCarouselSection(
+            title: section.title,
+            products: section.products,
+            onViewAll: () {
+              if (section.type == 'brand') {
+                final brand = Uri.encodeComponent(
+                  section.filter['brand'] as String,
+                );
+                context.go('/catalog?brand=$brand');
+              } else {
+                context.go(
+                  '/catalog?app_category_id=${section.filter['app_category_id']}',
+                );
+              }
+            },
+            onTap: (product) => context.push('/product/${product.id}'),
+            onAddToCart: (product) async {
+              try {
+                await ref
+                    .read(cartProvider.notifier)
+                    .addItem(product.id);
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Error al agregar'),
+                    ),
+                  );
+                }
+              }
+            },
+          );
+        }, childCount: sectionList.length),
+      ),
+      loading: () => SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (_, _) => const ProductCarouselSkeleton(),
+          childCount: 3,
+        ),
+      ),
+      error: (err, _) => SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Center(
+            child: Column(
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: AppColors.textLight,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Error al cargar secciones',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () =>
+                      ref.invalidate(homeSectionsProvider),
+                  child: const Text('Reintentar'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Header widget showing branch selector with dropdown bottom sheet
+class _BranchSelectorHeader extends ConsumerWidget {
+  const _BranchSelectorHeader();
+
+  void _showBranchPicker(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.5,
+        minChildSize: 0.3,
+        maxChildSize: 0.8,
+        expand: false,
+        builder: (sheetCtx, scrollController) => Consumer(
+          builder: (consumerCtx, sheetRef, _) {
+            final branchesAsync = sheetRef.watch(branchesProvider);
+            final selectedId = sheetRef.watch(selectedBranchProvider).valueOrNull?.id;
+
+            return Column(
+              children: [
+                // Handle bar
+                Padding(
+                  padding: const EdgeInsets.only(top: 12, bottom: 8),
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Theme.of(sheetCtx).colorScheme.outline.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                // Title
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: Row(
+                    children: [
+                      Icon(Icons.location_on_rounded, color: AppColors.primary, size: 22),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Selecciona sucursal',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(sheetCtx).colorScheme.onSurface,
+                        ),
+                      ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(sheetCtx);
+                          context.push('/branches');
+                        },
+                        child: Text(
+                          'Ver mapa',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                // Branch list
+                Expanded(
+                  child: branchesAsync.when(
+                    data: (branches) => ListView.separated(
+                      controller: scrollController,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemCount: branches.length,
+                      separatorBuilder: (_, _) => const Divider(height: 1, indent: 60),
+                      itemBuilder: (_, i) {
+                        final b = branches[i] as Map<String, dynamic>;
+                        final id = b['id'] as int;
+                        final name = b['name'] as String? ?? 'Sucursal';
+                        final city = b['city'] as String?;
+                        final isActive = selectedId == id;
+
+                        return ListTile(
+                          leading: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: isActive
+                                  ? AppColors.primary.withValues(alpha: 0.15)
+                                  : Theme.of(sheetCtx).colorScheme.surfaceContainerHighest,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.store_rounded,
+                              color: isActive ? AppColors.primary : AppColors.textLight,
+                              size: 20,
+                            ),
+                          ),
+                          title: Text(
+                            name,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                              color: Theme.of(sheetCtx).colorScheme.onSurface,
+                            ),
+                          ),
+                          subtitle: city != null && city.isNotEmpty
+                              ? Text(
+                                  city.replaceAll('.', ''),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: AppColors.textLight,
+                                  ),
+                                )
+                              : null,
+                          trailing: isActive
+                              ? const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 22)
+                              : null,
+                          onTap: () {
+                            sheetRef.read(selectedBranchProvider.notifier).selectBranch(id, name);
+                            Navigator.pop(sheetCtx);
+                          },
+                        );
+                      },
+                    ),
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (_, _) => Center(
+                      child: Text('Error al cargar sucursales',
+                          style: Theme.of(sheetCtx).textTheme.bodyMedium),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final branchName = ref.watch(selectedBranchProvider.select(
+      (asyncBranch) => asyncBranch.valueOrNull?.name,
+    ));
 
     return GestureDetector(
-      onTap: () => context.push('/branches'),
+      onTap: () => _showBranchPicker(context, ref),
       child: Padding(
         padding: const EdgeInsets.only(left: 16),
         child: Row(
@@ -412,7 +558,7 @@ class _BranchSelectorHeader extends ConsumerWidget {
                     children: [
                       Flexible(
                         child: Text(
-                          branch?.name ?? 'Selecciona sucursal',
+                          branchName ?? 'Selecciona sucursal',
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
