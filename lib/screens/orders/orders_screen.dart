@@ -138,7 +138,7 @@ class _OrderCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '#${order.odooOrderName ?? order.id.substring(0, 8).toUpperCase()}',
+                    order.displayName,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   _StatusChip(status: order.status, label: order.statusLabel),
@@ -156,7 +156,13 @@ class _OrderCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '${order.items.length} productos',
+                    () {
+                      final totalQty = order.itemCount ??
+                          order.items.fold<int>(
+                            0, (sum, item) => sum + item.quantity,
+                          );
+                      return '$totalQty ${totalQty == 1 ? 'producto' : 'productos'}';
+                    }(),
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const Spacer(),

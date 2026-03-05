@@ -11,6 +11,6 @@ class Env {
   );
   static const apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://31.97.211.164:3002/api', // VPS production server — use domain+SSL in prod
+    defaultValue: 'http://31.97.211.164:3002/api', // VPS production — change to domain+SSL when available
   );
 }

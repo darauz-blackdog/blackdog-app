@@ -13,7 +13,12 @@
       "WebFetch(domain:contribution.usercontent.google.com)",
       "Bash(flutter run:*)",
       "Bash(flutter attach:*)",
-      "mcp__stitch__generate_screen_from_text"
+      "mcp__stitch__generate_screen_from_text",
+      "mcp__plugin_github_github__get_file_contents",
+      "mcp__plugin_github_github__list_commits",
+      "mcp__plugin_github_github__list_branches",
+      "Bash(flutter:*)",
+      "Bash(dart analyze:*)"
     ]
   }
 }

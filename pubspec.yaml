@@ -44,6 +44,7 @@ dependencies:
   url_launcher: ^6.3.1
   package_info_plus: ^8.3.0
   geolocator: ^14.0.2
+  webview_flutter: ^4.13.1
 
 dev_dependencies:
   flutter_test:
@@ -65,8 +66,11 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icons/app_icon.png"
+  image_path: "assets/icons/Logo_Head.png"
+  adaptive_icon_foreground: "assets/icons/Logo_Head.png"
+  adaptive_icon_background: "#000000"
   min_sdk_android: 21
   remove_alpha_ios: true
-  background_color: "#FFFFFF"
+  background_color: "#000000"
+  theme_color: "#000000"
 

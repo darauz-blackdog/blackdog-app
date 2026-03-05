@@ -9,6 +9,16 @@ import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/fade_in_up.dart';
 
+Color _statusColor(String status) {
+  return switch (status) {
+    'delivered' => AppColors.success,
+    'cancelled' => AppColors.error,
+    'confirmed' || 'ready_pickup' || 'shipping' || 'preparing' => AppColors.info,
+    'pending_payment' => AppColors.warning,
+    _ => AppColors.warning,
+  };
+}
+
 class OrderDetailScreen extends ConsumerWidget {
   final String orderId;
   final Order? extraOrder;
@@ -46,21 +56,24 @@ class OrderDetailScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Orden #${order.odooOrderName ?? order.id.substring(0, 8).toUpperCase()}',
+                  order.displayName,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                Container(
-                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                   decoration: BoxDecoration(
-                     color: AppColors.primary.withValues(alpha: 0.1),
-                     borderRadius: BorderRadius.circular(8),
-                     border: Border.all(color: AppColors.primary),
-                   ),
-                   child: Text(
-                     order.statusLabel,
-                     style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
-                   ),
-                )
+                Builder(builder: (context) {
+                  final color = _statusColor(order.status);
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: color),
+                    ),
+                    child: Text(
+                      order.statusLabel,
+                      style: TextStyle(color: color, fontWeight: FontWeight.bold),
+                    ),
+                  );
+                })
               ],
             ),
           ),
@@ -78,6 +91,31 @@ class OrderDetailScreen extends ConsumerWidget {
               ),
             ),
           ),
+
+          // Pay button (pending payment orders)
+          if (order.status == 'pending_payment')
+            FadeInUp(
+              delay: 80,
+              offset: 15,
+              duration: const Duration(milliseconds: 400),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => context.push(
+                      '/payment/${order.id}',
+                      extra: {
+                        'payment_url': order.paymentLink,
+                        'payment_method': order.paymentMethod,
+                      },
+                    ),
+                    icon: const Icon(Icons.payment_rounded),
+                    label: const Text('Pagar ahora'),
+                  ),
+                ),
+              ),
+            ),
 
           // Tracking button
           if (order.status != 'pending_payment' && order.status != 'cancelled')

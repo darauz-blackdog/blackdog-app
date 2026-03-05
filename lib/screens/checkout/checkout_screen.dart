@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../models/branch.dart';
 import '../../models/cart.dart';
+import '../../providers/address_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
@@ -39,9 +40,27 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   String _paymentMethod = 'tilopay';
   String? _notes;
   bool _isSubmitting = false;
+  bool _initialized = false;
+
+  void _initFromProviders() {
+    if (_initialized) return;
+    _initialized = true;
+
+    final nearest = ref.read(nearestBranchProvider);
+    final address = ref.read(selectedAddressProvider).valueOrNull;
+
+    if (nearest != null) {
+      _selectedBranchId = nearest.branch.id;
+      if (nearest.isDeliveryAvailable && address != null) {
+        _deliveryType = 'delivery';
+        _selectedAddressId = address.id;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    _initFromProviders();
     final cart = ref.watch(cartProvider).valueOrNull;
 
     if (cart == null || cart.isEmpty) {
@@ -246,13 +265,22 @@ class _DeliveryStep extends ConsumerWidget {
                 onTap: () => onDeliveryTypeChanged('pickup'),
               ),
               const SizedBox(height: 12),
-              _RadioCard(
-                title: 'Delivery a domicilio',
-                subtitle: 'Costo: \$3.50',
-                icon: Icons.delivery_dining_outlined,
-                selected: deliveryType == 'delivery',
-                onTap: () => onDeliveryTypeChanged('delivery'),
-              ),
+              Consumer(builder: (context, ref, _) {
+                final nearest = ref.watch(nearestBranchProvider);
+                final canDeliver = nearest?.isDeliveryAvailable ?? true;
+                return _RadioCard(
+                  title: 'Delivery a domicilio',
+                  subtitle: canDeliver
+                      ? 'Costo: \$3.50'
+                      : 'Solo recogida — dirección a más de 2km',
+                  icon: Icons.delivery_dining_outlined,
+                  selected: deliveryType == 'delivery',
+                  onTap: canDeliver
+                      ? () => onDeliveryTypeChanged('delivery')
+                      : () {},
+                  compact: !canDeliver,
+                );
+              }),
               const SizedBox(height: 24),
 
               // Branch selector (always shown — used as source warehouse)

@@ -3,11 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../providers/branch_provider.dart';
+import '../../providers/address_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/notifications_provider.dart';
 import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/address_selector_sheet.dart';
 import '../../widgets/brand_circle.dart';
 import '../../widgets/cart_badge.dart';
 import '../../widgets/category_icon_box.dart';
@@ -33,9 +34,16 @@ class HomeScreen extends ConsumerWidget {
             backgroundColor: Theme.of(context).colorScheme.surface,
             surfaceTintColor: Colors.transparent,
             elevation: 0,
-            centerTitle: false,
-            titleSpacing: 0,
-            title: const _BranchSelectorHeader(),
+            centerTitle: true,
+            leadingWidth: 180,
+            leading: const _BranchSelectorHeader(),
+            title: Image.asset(
+              Theme.of(context).brightness == Brightness.dark
+                  ? 'assets/images/logo.png'
+                  : 'assets/images/logo_dark.png',
+              height: 28,
+              fit: BoxFit.contain,
+            ),
             actions: [
               Builder(builder: (ctx) {
                 final unread = ref.watch(unreadCountProvider);
@@ -391,41 +399,35 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-/// Header widget showing branch selector (PedidosYa style)
+/// Header widget showing address selector with nearest branch info
 class _BranchSelectorHeader extends ConsumerWidget {
   const _BranchSelectorHeader();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final branchAsync = ref.watch(selectedBranchProvider);
-    final branch = branchAsync.valueOrNull;
+    final address = ref.watch(selectedAddressProvider).valueOrNull;
+    final nearest = ref.watch(nearestBranchProvider);
 
     return GestureDetector(
-      onTap: () => context.push('/branches'),
+      onTap: () => showAddressSelectorSheet(context),
       child: Padding(
         padding: const EdgeInsets.only(left: 16),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset(
-              'assets/icons/Black_Dog_Logo_V.png',
-              height: 32,
-              width: 32,
-            ),
-            const SizedBox(width: 8),
             Icon(
               Icons.location_on_rounded,
               color: AppColors.primary,
               size: 22,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 4),
             Flexible(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Entregar en',
+                    address != null ? 'Entregar en' : 'Enviar a',
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       color: Theme.of(context).textTheme.bodySmall?.color,
@@ -436,7 +438,7 @@ class _BranchSelectorHeader extends ConsumerWidget {
                     children: [
                       Flexible(
                         child: Text(
-                          branch?.name ?? 'Selecciona sucursal',
+                          address?.label ?? 'Selecciona tu dirección',
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -454,6 +456,18 @@ class _BranchSelectorHeader extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  if (nearest != null)
+                    Text(
+                      nearest.branch.name,
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        color: nearest.isDeliveryAvailable
+                            ? AppColors.primary
+                            : Theme.of(context).hintColor,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                 ],
               ),
             ),

@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
@@ -33,6 +35,11 @@ class _PaymentStatusScreenState extends ConsumerState<PaymentStatusScreen> {
   bool _polling = false;
   Map<String, dynamic>? _yappyInstructions;
 
+  // WebView
+  WebViewController? _webViewController;
+  bool _webViewLoading = true;
+  bool _showWebView = false;
+
   @override
   void initState() {
     super.initState();
@@ -49,7 +56,8 @@ class _PaymentStatusScreenState extends ConsumerState<PaymentStatusScreen> {
   }
 
   void _startPolling() {
-    _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) => _checkStatus());
+    _pollTimer =
+        Timer.periodic(const Duration(seconds: 5), (_) => _checkStatus());
   }
 
   Future<void> _checkStatus() async {
@@ -59,16 +67,19 @@ class _PaymentStatusScreenState extends ConsumerState<PaymentStatusScreen> {
     try {
       final api = ref.read(apiServiceProvider);
       final result = await api.checkTilopayStatus(widget.orderId);
-      final paymentStatus = result['payment_status'] as String? ?? 'pending';
+      final paymentStatus =
+          result['payment_status'] as String? ?? 'pending';
 
       if (mounted) {
         setState(() {
           if (paymentStatus == 'paid' || paymentStatus == 'completed') {
             _status = 'completed';
+            _showWebView = false;
             _pollTimer?.cancel();
           } else if (paymentStatus == 'failed' ||
               paymentStatus == 'cancelled') {
             _status = 'failed';
+            _showWebView = false;
             _pollTimer?.cancel();
           } else if (paymentStatus == 'processing') {
             _status = 'processing';
@@ -92,173 +103,245 @@ class _PaymentStatusScreenState extends ConsumerState<PaymentStatusScreen> {
     } catch (_) {}
   }
 
-  Future<void> _openPaymentUrl() async {
+  void _openPayment() {
     if (widget.paymentUrl == null) return;
-    final uri = Uri.parse(widget.paymentUrl!);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+    // WebView not supported on web — fall back to url_launcher
+    if (kIsWeb) {
+      final uri = Uri.parse(widget.paymentUrl!);
+      launchUrl(uri, mode: LaunchMode.externalApplication);
+      return;
     }
+
+    final controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (_) {
+            if (mounted) setState(() => _webViewLoading = true);
+          },
+          onPageFinished: (_) {
+            if (mounted) setState(() => _webViewLoading = false);
+          },
+          onNavigationRequest: (request) {
+            // Detect callback/return URLs from payment gateway
+            final url = request.url.toLowerCase();
+            if (url.contains('payment/success') ||
+                url.contains('payment/callback') ||
+                url.contains('status=approved')) {
+              setState(() {
+                _status = 'processing';
+                _showWebView = false;
+              });
+              return NavigationDecision.prevent;
+            }
+            if (url.contains('payment/cancel') ||
+                url.contains('payment/failed') ||
+                url.contains('status=declined')) {
+              setState(() {
+                _status = 'failed';
+                _showWebView = false;
+              });
+              return NavigationDecision.prevent;
+            }
+            return NavigationDecision.navigate;
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse(widget.paymentUrl!));
+
+    setState(() {
+      _webViewController = controller;
+      _showWebView = true;
+      _webViewLoading = true;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Estado del pago')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            // Status icon
+      appBar: AppBar(
+        title: Text(_showWebView ? 'Pago seguro' : 'Estado del pago'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (_showWebView) {
+              setState(() => _showWebView = false);
+            } else {
+              context.pop();
+            }
+          },
+        ),
+      ),
+      body: _showWebView ? _buildWebView() : _buildStatusView(),
+    );
+  }
+
+  Widget _buildWebView() {
+    return Stack(
+      children: [
+        if (_webViewController != null)
+          WebViewWidget(controller: _webViewController!),
+        if (_webViewLoading)
+          const Center(child: CircularProgressIndicator()),
+      ],
+    );
+  }
+
+  Widget _buildStatusView() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          const SizedBox(height: 20),
+          // Status icon
+          FadeInUp(
+            delay: 0,
+            offset: 20,
+            duration: const Duration(milliseconds: 500),
+            child: _buildStatusIcon(),
+          ),
+          const SizedBox(height: 24),
+
+          // Status text
+          FadeInUp(
+            delay: 100,
+            offset: 20,
+            duration: const Duration(milliseconds: 500),
+            child: Text(
+              _statusTitle,
+              style: GoogleFonts.montserrat(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 8),
+          FadeInUp(
+            delay: 150,
+            offset: 20,
+            duration: const Duration(milliseconds: 500),
+            child: Text(
+              _statusDescription,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 32),
+
+          // Yappy instructions
+          if (widget.paymentMethod == 'yappy' &&
+              _yappyInstructions != null)
             FadeInUp(
-              delay: 0,
+              delay: 200,
               offset: 20,
               duration: const Duration(milliseconds: 500),
-              child: _buildStatusIcon(),
+              child: _buildYappySection(),
             ),
+
+          // Pay button (Tilopay) — opens WebView
+          if (widget.paymentUrl != null && _status == 'pending')
+            FadeInUp(
+              delay: 200,
+              offset: 20,
+              duration: const Duration(milliseconds: 500),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _openPayment,
+                  icon: const Icon(Icons.credit_card),
+                  label: const Text('Pagar ahora'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.info,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+
+          // Completed/Failed actions
+          if (_status == 'completed' || _status == 'failed') ...[
             const SizedBox(height: 24),
-
-            // Status text
             FadeInUp(
-              delay: 100,
+              delay: 300,
               offset: 20,
               duration: const Duration(milliseconds: 500),
-              child: Text(
-                _statusTitle,
-                style: GoogleFonts.montserrat(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 8),
-            FadeInUp(
-              delay: 150,
-              offset: 20,
-              duration: const Duration(milliseconds: 500),
-              child: Text(
-                _statusDescription,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            // Yappy instructions
-            if (widget.paymentMethod == 'yappy' &&
-                _yappyInstructions != null)
-              FadeInUp(
-                delay: 200,
-                offset: 20,
-                duration: const Duration(milliseconds: 500),
-                child: _buildYappySection(),
-              ),
-
-            // Pay button (Tilopay)
-            if (widget.paymentUrl != null && _status == 'pending')
-              FadeInUp(
-                delay: 200,
-                offset: 20,
-                duration: const Duration(milliseconds: 500),
-                child: Column(
-                  children: [
+              child: Column(
+                children: [
+                  if (_status == 'failed' && widget.paymentUrl != null) ...[
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
-                        onPressed: _openPaymentUrl,
-                        icon: const Icon(Icons.credit_card),
-                        label: const Text('Pagar ahora'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.info,
-                          foregroundColor: Colors.white,
-                        ),
+                        onPressed: _openPayment,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Intentar de nuevo'),
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text(
-                      'Serás redirigido a Tilopay para completar tu pago de forma segura.',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: AppColors.textLight,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
                   ],
-                ),
-              ),
-
-            // Completed/Failed actions
-            if (_status == 'completed' || _status == 'failed') ...[
-              const SizedBox(height: 24),
-              FadeInUp(
-                delay: 300,
-                offset: 20,
-                duration: const Duration(milliseconds: 500),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => context.go('/orders/${ widget.orderId}'),
-                        child: const Text('Ver pedido'),
-                      ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () =>
+                          context.go('/orders/${widget.orderId}'),
+                      child: const Text('Ver pedido'),
                     ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: () => context.go('/home'),
-                        child: const Text('Seguir comprando'),
-                      ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () => context.go('/home'),
+                      child: const Text('Seguir comprando'),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-
-            // Polling indicator
-            if (_status == 'pending' || _status == 'processing') ...[
-              const SizedBox(height: 32),
-              FadeInUp(
-                delay: 300,
-                offset: 20,
-                duration: const Duration(milliseconds: 500),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.textLight,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      'Verificando estado del pago...',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: AppColors.textLight,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              TextButton(
-                onPressed: () => context.go('/orders'),
-                child: const Text('Ir a mis pedidos'),
-              ),
-            ],
+            ),
           ],
-        ),
+
+          // Polling indicator
+          if (_status == 'pending' || _status == 'processing') ...[
+            const SizedBox(height: 32),
+            FadeInUp(
+              delay: 300,
+              offset: 20,
+              duration: const Duration(milliseconds: 500),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.textLight,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Verificando estado del pago...',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: AppColors.textLight,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            TextButton(
+              onPressed: () => context.go('/orders'),
+              child: const Text('Ir a mis pedidos'),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -292,7 +375,7 @@ class _PaymentStatusScreenState extends ConsumerState<PaymentStatusScreen> {
         'completed' =>
           'Tu pago se ha procesado correctamente. Tu pedido está en camino.',
         'failed' =>
-          'Hubo un problema con tu pago. Puedes intentar nuevamente desde tus pedidos.',
+          'Hubo un problema con tu pago. Puedes intentar nuevamente.',
         'processing' =>
           'Estamos procesando tu pago. Esto puede tomar unos momentos.',
         _ =>
