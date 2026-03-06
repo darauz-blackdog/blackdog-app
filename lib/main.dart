@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config/env.dart';
 import 'config/routes.dart';
+import 'providers/location_provider.dart';
 import 'providers/theme_provider.dart';
 import 'theme/app_theme.dart';
 
@@ -23,6 +24,9 @@ class BlackDogApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Trigger location permission request on app start
+    ref.watch(userLocationProvider);
+
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeModeProvider);
 

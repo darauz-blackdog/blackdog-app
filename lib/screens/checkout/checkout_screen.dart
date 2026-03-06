@@ -9,6 +9,7 @@ import '../../models/branch.dart';
 import '../../models/cart.dart';
 import '../../providers/address_provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/location_provider.dart';
 import '../../providers/service_providers.dart';
 import '../../utils/error_utils.dart';
 import '../../theme/app_theme.dart';
@@ -25,23 +26,37 @@ final _branchesProvider = FutureProvider<List<Branch>>((ref) async {
 final _sortedBranchesProvider = Provider<AsyncValue<List<Branch>>>((ref) {
   final branchesAsync = ref.watch(_branchesProvider);
   final address = ref.watch(selectedAddressProvider).valueOrNull;
+  final userPos = ref.watch(userLocationProvider).valueOrNull;
+
+  // Use selected address coordinates, or fall back to GPS
+  double? userLat;
+  double? userLng;
+  if (address != null) {
+    userLat = address.latitude;
+    userLng = address.longitude;
+  } else if (userPos != null) {
+    userLat = userPos.latitude;
+    userLng = userPos.longitude;
+  }
 
   return branchesAsync.whenData((list) {
-    if (address == null) return list;
+    if (userLat == null || userLng == null) return list;
+    final lat = userLat;
+    final lng = userLng;
     final sorted = List<Branch>.from(list);
     sorted.sort((a, b) {
-      final dA = _distanceTo(address, a);
-      final dB = _distanceTo(address, b);
+      final dA = _distanceTo(lat, lng, a);
+      final dB = _distanceTo(lat, lng, b);
       return dA.compareTo(dB);
     });
     return sorted;
   });
 });
 
-double _distanceTo(SelectedAddress address, Branch branch) {
+double _distanceTo(double lat, double lng, Branch branch) {
   if (branch.latitude == null || branch.longitude == null) return double.infinity;
-  final dLat = branch.latitude! - address.latitude;
-  final dLng = branch.longitude! - address.longitude;
+  final dLat = branch.latitude! - lat;
+  final dLng = branch.longitude! - lng;
   return dLat * dLat + dLng * dLng; // squared distance is fine for sorting
 }
 
@@ -755,7 +770,31 @@ class _SummaryStep extends ConsumerWidget {
     final label = addr['label'] as String? ?? '';
     final line = addr['address_line'] as String? ?? '';
     final display = label.isNotEmpty ? '$label — $line' : line;
-    return _SummaryRow(label: 'Dirección', value: display);
+
+    // Calculate distance from branch to delivery address
+    final branches = ref.watch(_branchesProvider).valueOrNull ?? [];
+    final branch = branches.where((b) => b.id == selectedBranchId).firstOrNull;
+    final addrLat = (addr['latitude'] as num?)?.toDouble();
+    final addrLng = (addr['longitude'] as num?)?.toDouble();
+    String? distanceText;
+    if (branch != null && branch.latitude != null && branch.longitude != null &&
+        addrLat != null && addrLng != null) {
+      final nearest = ref.watch(nearestBranchProvider);
+      if (nearest != null) {
+        final km = nearest.distanceKm;
+        distanceText = km < 1
+            ? '${(km * 1000).round()} m de la sucursal'
+            : '${km.toStringAsFixed(1)} km de la sucursal';
+      }
+    }
+
+    return Column(
+      children: [
+        _SummaryRow(label: 'Dirección', value: display),
+        if (distanceText != null)
+          _SummaryRow(label: 'Distancia', value: distanceText),
+      ],
+    );
   }
 
   String _paymentLabel(String method) {

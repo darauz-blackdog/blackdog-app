@@ -88,12 +88,6 @@ class CartScreen extends ConsumerWidget {
               'Tu carrito está vacío',
               style: Theme.of(context).textTheme.headlineSmall,
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Explora nuestros productos y agrega tus favoritos',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
               onPressed: () => context.go('/catalog'),
