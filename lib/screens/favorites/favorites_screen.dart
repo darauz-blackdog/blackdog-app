@@ -107,7 +107,7 @@ class FavoritesScreen extends ConsumerWidget {
                 } catch (_) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Error al agregar')),
+                      const SnackBar(content: Text('Error al agregar'), duration: Duration(seconds: 3)),
                     );
                   }
                 }

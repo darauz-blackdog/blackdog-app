@@ -94,6 +94,7 @@ class _YappyPaymentScreenState extends ConsumerState<YappyPaymentScreen> {
           SnackBar(
             content: Text('Error al crear pago Yappy: $e'),
             backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
           ),
         );
       }

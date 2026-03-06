@@ -275,13 +275,13 @@ class OrderDetailScreen extends ConsumerWidget {
                 ref.invalidate(orderDetailProvider(order.id));
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Pedido cancelado')),
+                    const SnackBar(content: Text('Pedido cancelado'), duration: Duration(seconds: 3)),
                   );
                 }
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error al cancelar: $e')),
+                    SnackBar(content: Text('Error al cancelar: $e'), duration: const Duration(seconds: 3)),
                   );
                 }
               }

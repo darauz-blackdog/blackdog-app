@@ -153,13 +153,13 @@ class AddressesScreen extends ConsumerWidget {
       ref.invalidate(addressesProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Dirección eliminada')),
+          const SnackBar(content: Text('Dirección eliminada'), duration: Duration(seconds: 3)),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('Error: $e'), duration: const Duration(seconds: 3)),
         );
       }
     }

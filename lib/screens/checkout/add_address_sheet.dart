@@ -132,7 +132,7 @@ class _AddAddressSheetState extends ConsumerState<AddAddressSheet> {
       setState(() => _saving = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(friendlyError(e)), backgroundColor: AppColors.error),
+          SnackBar(content: Text(friendlyError(e)), backgroundColor: AppColors.error, duration: const Duration(seconds: 3)),
         );
       }
     }

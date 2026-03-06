@@ -109,7 +109,10 @@ class AuthNotifier extends Notifier<AsyncValue<void>> {
   Future<void> resetPassword(String email) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      await Supabase.instance.client.auth.resetPasswordForEmail(email);
+      await Supabase.instance.client.auth.resetPasswordForEmail(
+        email,
+        redirectTo: 'com.blackdogpanama.blackdog_app://reset-callback',
+      );
     });
   }
 

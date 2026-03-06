@@ -28,7 +28,9 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
   final DraggableScrollableController _sheetController =
       DraggableScrollableController();
   int? _selectedIndex;
+  bool _didInitialMove = false;
   bool _didZoomToNearest = false;
+  bool _mapReady = false;
 
   void _zoomToNearestBranch(Position position, List<dynamic> branches) {
     if (branches.isEmpty) return;
@@ -158,18 +160,23 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
             return const Center(child: Text('No hay sucursales disponibles'));
           }
 
-          // Zoom to nearest once
-          if (userPosition != null && !_didZoomToNearest) {
-            _didZoomToNearest = true;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              _zoomToNearestBranch(userPosition, branches);
-            });
-          }
-
           final mapCenter = userPosition != null
               ? LatLng(userPosition.latitude, userPosition.longitude)
               : const LatLng(9.0, -79.5);
           final mapZoom = userPosition != null ? 12.0 : 10.5;
+
+          // Move map after it's ready
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted || !_mapReady) return;
+            if (!_didInitialMove) {
+              _didInitialMove = true;
+              _mapController.move(mapCenter, mapZoom);
+            }
+            if (userPosition != null && !_didZoomToNearest) {
+              _didZoomToNearest = true;
+              _zoomToNearestBranch(userPosition, branches);
+            }
+          });
 
           return Stack(
             children: [
@@ -182,6 +189,9 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                   interactionOptions: const InteractionOptions(
                     flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
                   ),
+                  onMapReady: () {
+                    _mapReady = true;
+                  },
                 ),
                 children: [
                   TileLayer(

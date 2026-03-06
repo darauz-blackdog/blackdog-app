@@ -41,6 +41,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         SnackBar(
           content: Text(friendlyError(state.error!)),
           backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 3),
         ),
       );
     }
@@ -222,7 +223,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ref.read(authNotifierProvider.notifier).resetPassword(emailCtrl.text.trim());
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context)
-                    .showSnackBar(const SnackBar(content: Text('Enlace enviado a tu correo')));
+                    .showSnackBar(const SnackBar(content: Text('Enlace enviado a tu correo'), duration: Duration(seconds: 3)));
               },
               child: const Text('Enviar enlace'),
             ),

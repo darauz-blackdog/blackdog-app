@@ -91,7 +91,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final state = ref.read(authNotifierProvider);
     if (state.hasError && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(friendlyError(state.error!)), backgroundColor: AppColors.error),
+        SnackBar(content: Text(friendlyError(state.error!)), backgroundColor: AppColors.error, duration: const Duration(seconds: 3)),
       );
     }
   }

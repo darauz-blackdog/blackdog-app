@@ -54,6 +54,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         const SnackBar(
           content: Text('Producto sin stock disponible'),
           backgroundColor: AppColors.error,
+          duration: Duration(seconds: 3),
         ),
       );
       return;
@@ -65,6 +66,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Agregado al carrito'),
+            duration: const Duration(seconds: 3),
             action: SnackBarAction(
               label: 'Ver carrito',
               textColor: AppColors.primary,
@@ -76,7 +78,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error al agregar al carrito')),
+          const SnackBar(content: Text('Error al agregar al carrito'), duration: Duration(seconds: 3)),
         );
       }
     } finally {

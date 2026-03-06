@@ -1,7 +1,11 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -322,7 +326,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       if (mounted) {
         final message = friendlyError(e);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
+          SnackBar(content: Text(message), duration: const Duration(seconds: 3)),
         );
       }
     }
@@ -365,7 +369,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 url.contains('tilopay/result') && url.contains('status=failed')) {
               setState(() => _showInlineWebView = false);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('El pago fue rechazado. Intenta de nuevo.')),
+                const SnackBar(content: Text('El pago fue rechazado. Intenta de nuevo.'), duration: Duration(seconds: 3)),
               );
               context.go('/orders/$orderId');
               return NavigationDecision.prevent;
@@ -529,6 +533,18 @@ class _DeliveryStep extends ConsumerWidget {
             ),
           );
         }
+        // Auto-select first address if none selected
+        if (selectedAddressId == null && list.isNotEmpty) {
+          // Find default address, or use first
+          final defaultAddr = list.firstWhere(
+            (a) => a['is_default'] == true,
+            orElse: () => list.first,
+          );
+          final id = defaultAddr['id'] as String;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            onAddressSelected(id);
+          });
+        }
         return Column(
           children: list.map((addr) {
             final id = addr['id'] as String;
@@ -685,7 +701,7 @@ class _SummaryStep extends ConsumerWidget {
               ),
               const Divider(height: 24),
 
-              // Delivery info
+              // Delivery info with map
               _SummaryRow(
                 label: 'Entrega',
                 value: deliveryType == 'pickup'
@@ -695,7 +711,9 @@ class _SummaryStep extends ConsumerWidget {
               if (branch != null)
                 _SummaryRow(label: 'Sucursal', value: branch.name),
               if (deliveryType == 'delivery' && selectedAddressId != null)
-                _buildAddressRow(ref),
+                _buildAddressRow(ref, context),
+              if (branch != null)
+                _buildDeliveryMap(ref, context, branch),
               _SummaryRow(label: 'Pago', value: _paymentLabel(paymentMethod)),
               const Divider(height: 24),
 
@@ -763,7 +781,7 @@ class _SummaryStep extends ConsumerWidget {
     };
   }
 
-  Widget _buildAddressRow(WidgetRef ref) {
+  Widget _buildAddressRow(WidgetRef ref, BuildContext context) {
     final addresses = ref.watch(_addressesProvider).valueOrNull ?? [];
     final addr = addresses.where((a) => a['id'] == selectedAddressId).firstOrNull;
     if (addr == null) return const SizedBox.shrink();
@@ -779,13 +797,10 @@ class _SummaryStep extends ConsumerWidget {
     String? distanceText;
     if (branch != null && branch.latitude != null && branch.longitude != null &&
         addrLat != null && addrLng != null) {
-      final nearest = ref.watch(nearestBranchProvider);
-      if (nearest != null) {
-        final km = nearest.distanceKm;
-        distanceText = km < 1
-            ? '${(km * 1000).round()} m de la sucursal'
-            : '${km.toStringAsFixed(1)} km de la sucursal';
-      }
+      final km = _haversineKm(addrLat, addrLng, branch.latitude!, branch.longitude!);
+      distanceText = km < 1
+          ? '${(km * 1000).round()} m de la sucursal'
+          : '${km.toStringAsFixed(1)} km de la sucursal';
     }
 
     return Column(
@@ -797,6 +812,53 @@ class _SummaryStep extends ConsumerWidget {
     );
   }
 
+  Widget _buildDeliveryMap(WidgetRef ref, BuildContext context, Branch branch) {
+    if (branch.latitude == null || branch.longitude == null) {
+      return const SizedBox.shrink();
+    }
+
+    final branchLatLng = LatLng(branch.latitude!, branch.longitude!);
+
+    // Get address coordinates if delivery
+    LatLng? addrLatLng;
+    if (deliveryType == 'delivery' && selectedAddressId != null) {
+      final addresses = ref.watch(_addressesProvider).valueOrNull ?? [];
+      final addr = addresses.where((a) => a['id'] == selectedAddressId).firstOrNull;
+      if (addr != null) {
+        final lat = (addr['latitude'] as num?)?.toDouble();
+        final lng = (addr['longitude'] as num?)?.toDouble();
+        if (lat != null && lng != null) {
+          addrLatLng = LatLng(lat, lng);
+        }
+      }
+    }
+
+    // Calculate map bounds
+    final center = addrLatLng != null
+        ? LatLng(
+            (branchLatLng.latitude + addrLatLng.latitude) / 2,
+            (branchLatLng.longitude + addrLatLng.longitude) / 2,
+          )
+        : branchLatLng;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: SizedBox(
+          height: 180,
+          child: _DeliveryMapWidget(
+            branchLatLng: branchLatLng,
+            addrLatLng: addrLatLng,
+            center: center,
+            branchName: branch.name,
+            isDark: Theme.of(context).brightness == Brightness.dark,
+          ),
+        ),
+      ),
+    );
+  }
+
   String _paymentLabel(String method) {
     return switch (method) {
       'tilopay' => 'Tarjeta de crédito / débito',
@@ -804,6 +866,188 @@ class _SummaryStep extends ConsumerWidget {
       'in_store' => 'Pago en tienda',
       _ => method,
     };
+  }
+}
+
+// ── Delivery Map Widget ────────────────────────────────────────────
+
+class _DeliveryMapWidget extends StatefulWidget {
+  final LatLng branchLatLng;
+  final LatLng? addrLatLng;
+  final LatLng center;
+  final String branchName;
+  final bool isDark;
+
+  const _DeliveryMapWidget({
+    required this.branchLatLng,
+    required this.addrLatLng,
+    required this.center,
+    required this.branchName,
+    required this.isDark,
+  });
+
+  @override
+  State<_DeliveryMapWidget> createState() => _DeliveryMapWidgetState();
+}
+
+class _DeliveryMapWidgetState extends State<_DeliveryMapWidget> {
+  final MapController _mapController = MapController();
+
+  /// 3D-perspective arc: cubic bezier with two control points offset
+  /// upward (perpendicular) creating a parabolic "flight path" look.
+  /// The arc height scales with the distance between points.
+  List<LatLng> _buildArc3D(LatLng from, LatLng to, {int segments = 40}) {
+    final dLat = to.latitude - from.latitude;
+    final dLng = to.longitude - from.longitude;
+    final dist = sqrt(dLat * dLat + dLng * dLng);
+    if (dist == 0) return [from, to];
+
+    // Arc height proportional to distance — closer = smaller arc
+    final bulge = dist * 0.35;
+
+    // Perpendicular unit vector (rotated 90°)
+    final perpLat = -dLng / dist;
+    final perpLng = dLat / dist;
+
+    // Two control points at 1/3 and 2/3 along the line,
+    // with asymmetric heights for a 3D perspective feel
+    final cp1Lat = from.latitude + dLat * 0.3 + perpLat * bulge * 0.9;
+    final cp1Lng = from.longitude + dLng * 0.3 + perpLng * bulge * 0.9;
+    final cp2Lat = from.latitude + dLat * 0.7 + perpLat * bulge * 0.9;
+    final cp2Lng = from.longitude + dLng * 0.7 + perpLng * bulge * 0.9;
+
+    // Cubic bezier
+    final points = <LatLng>[];
+    for (int i = 0; i <= segments; i++) {
+      final t = i / segments;
+      final u = 1 - t;
+      final lat = u * u * u * from.latitude +
+          3 * u * u * t * cp1Lat +
+          3 * u * t * t * cp2Lat +
+          t * t * t * to.latitude;
+      final lng = u * u * u * from.longitude +
+          3 * u * u * t * cp1Lng +
+          3 * u * t * t * cp2Lng +
+          t * t * t * to.longitude;
+      points.add(LatLng(lat, lng));
+    }
+    return points;
+  }
+
+  void _fitMapToPoints() {
+    if (!mounted) return;
+    if (widget.addrLatLng != null) {
+      // Fit both markers with padding
+      final bounds = LatLngBounds(widget.branchLatLng, widget.addrLatLng!);
+      _mapController.fitCamera(
+        CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(40)),
+      );
+    } else {
+      _mapController.move(widget.branchLatLng, 15.5);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FlutterMap(
+      mapController: _mapController,
+      options: MapOptions(
+        initialCenter: widget.center,
+        initialZoom: 14.0,
+        interactionOptions: const InteractionOptions(
+          flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
+        ),
+        onMapReady: () {
+          Future.delayed(const Duration(milliseconds: 80), () {
+            _fitMapToPoints();
+          });
+        },
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: widget.isDark
+              ? 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
+              : 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+          userAgentPackageName: 'com.blackdogpanama.blackdog_app',
+        ),
+        // 3D curved arc between branch and address
+        if (widget.addrLatLng != null) ...[
+          // Shadow line (offset down, semi-transparent)
+          PolylineLayer(
+            polylines: [
+              Polyline(
+                points: _buildArc3D(widget.branchLatLng, widget.addrLatLng!)
+                    .map((p) => LatLng(p.latitude - 0.0002, p.longitude + 0.0002))
+                    .toList(),
+                strokeWidth: 5,
+                color: Colors.black.withValues(alpha: 0.15),
+              ),
+            ],
+          ),
+          // Main arc line
+          PolylineLayer(
+            polylines: [
+              Polyline(
+                points: _buildArc3D(widget.branchLatLng, widget.addrLatLng!),
+                strokeWidth: 3.5,
+                color: AppColors.primary,
+              ),
+            ],
+          ),
+        ],
+        // Markers
+        MarkerLayer(
+          markers: [
+            // Branch marker
+            Marker(
+              point: widget.branchLatLng,
+              width: 40,
+              height: 40,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.secondary,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(5),
+                  child: Image.asset('assets/icons/Logo_Head.png'),
+                ),
+              ),
+            ),
+            // Delivery address marker
+            if (widget.addrLatLng != null)
+              Marker(
+                point: widget.addrLatLng!,
+                width: 36,
+                height: 36,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.4),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.home_rounded, color: Colors.white, size: 18),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
   }
 }
 
@@ -953,4 +1197,15 @@ class _BottomButton extends StatelessWidget {
       ),
     );
   }
+}
+
+// ── Haversine distance helper ──────────────────────────────────────
+double _haversineKm(double lat1, double lon1, double lat2, double lon2) {
+  const r = 6371.0;
+  final dLat = (lat2 - lat1) * (pi / 180);
+  final dLon = (lon2 - lon1) * (pi / 180);
+  final a = sin(dLat / 2) * sin(dLat / 2) +
+      cos(lat1 * (pi / 180)) * cos(lat2 * (pi / 180)) *
+      sin(dLon / 2) * sin(dLon / 2);
+  return r * 2 * atan2(sqrt(a), sqrt(1 - a));
 }

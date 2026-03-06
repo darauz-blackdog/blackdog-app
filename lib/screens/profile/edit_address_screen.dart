@@ -74,7 +74,7 @@ class _EditAddressScreenState extends ConsumerState<EditAddressScreen> {
       ref.invalidate(addressesProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Dirección actualizada')),
+          const SnackBar(content: Text('Dirección actualizada'), duration: Duration(seconds: 3)),
         );
         context.pop(true);
       }
@@ -82,7 +82,7 @@ class _EditAddressScreenState extends ConsumerState<EditAddressScreen> {
       setState(() => _saving = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('Error: $e'), duration: const Duration(seconds: 3)),
         );
       }
     }

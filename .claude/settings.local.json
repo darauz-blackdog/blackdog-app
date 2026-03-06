@@ -24,7 +24,11 @@
       "Bash(keytool:*)",
       "Bash(vercel:*)",
       "Bash(npx vercel:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "WebFetch(domain:github.com)",
+      "mcp__plugin_playwright_playwright__browser_resize",
+      "mcp__plugin_playwright_playwright__browser_wait_for",
+      "mcp__plugin_playwright_playwright__browser_evaluate"
     ]
   }
 }

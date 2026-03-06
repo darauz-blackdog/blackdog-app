@@ -41,7 +41,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
       setState(() => _deleting = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(friendlyError(e)), backgroundColor: AppColors.error),
+          SnackBar(content: Text(friendlyError(e)), backgroundColor: AppColors.error, duration: const Duration(seconds: 3)),
         );
       }
     }

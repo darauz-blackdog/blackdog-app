@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -19,11 +21,35 @@ Future<void> main() async {
   runApp(const ProviderScope(child: BlackDogApp()));
 }
 
-class BlackDogApp extends ConsumerWidget {
+class BlackDogApp extends ConsumerStatefulWidget {
   const BlackDogApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BlackDogApp> createState() => _BlackDogAppState();
+}
+
+class _BlackDogAppState extends ConsumerState<BlackDogApp> {
+  StreamSubscription<AuthState>? _authSub;
+
+  @override
+  void initState() {
+    super.initState();
+    _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      if (data.event == AuthChangeEvent.passwordRecovery) {
+        final router = ref.read(routerProvider);
+        router.go('/reset-password');
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // Trigger location permission request on app start
     ref.watch(userLocationProvider);
 

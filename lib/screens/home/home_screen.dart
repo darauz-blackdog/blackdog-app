@@ -350,6 +350,7 @@ class HomeScreen extends ConsumerWidget {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Error al agregar'),
+                            duration: Duration(seconds: 3),
                           ),
                         );
                       }

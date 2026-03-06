@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../screens/auth/splash_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
+import '../screens/auth/reset_password_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/orders/order_detail_screen.dart';
 import '../screens/orders/order_tracking_screen.dart';
@@ -96,6 +97,9 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final isLoading = authState.isLoading;
       final isLoggedIn = authState.valueOrNull != null;
+      final isResetPassword = state.matchedLocation == '/reset-password';
+      if (isResetPassword) return null;
+
       final isAuthRoute =
           state.matchedLocation == '/login' ||
           state.matchedLocation == '/register' ||
@@ -131,6 +135,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/onboarding',
         pageBuilder: (context, state) => _fadeThrough(state, const OnboardingScreen()),
+      ),
+      GoRoute(
+        path: '/reset-password',
+        pageBuilder: (context, state) => _sharedAxisY(state, const ResetPasswordScreen()),
       ),
       ShellRoute(
         builder: (context, state, child) => MainShell(child: child),
