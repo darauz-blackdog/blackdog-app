@@ -30,6 +30,7 @@ dependencies:
 
   # Auth & Backend
   supabase_flutter: ^2.9.0
+  google_sign_in: ^6.2.2
 
   # Storage
   shared_preferences: ^2.5.3

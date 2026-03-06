@@ -13,4 +13,18 @@ class Env {
     'API_BASE_URL',
     defaultValue: 'http://31.97.211.164:3002/api', // VPS production — change to domain+SSL when available
   );
+
+  /// Google OAuth — Web Client ID (also used as serverClientId for mobile)
+  /// TODO: Replace with your Google Cloud Console Web Client ID
+  static const googleWebClientId = String.fromEnvironment(
+    'GOOGLE_WEB_CLIENT_ID',
+    defaultValue: '',
+  );
+
+  /// Google OAuth — iOS Client ID
+  /// TODO: Replace with your Google Cloud Console iOS Client ID
+  static const googleIosClientId = String.fromEnvironment(
+    'GOOGLE_IOS_CLIENT_ID',
+    defaultValue: '',
+  );
 }
