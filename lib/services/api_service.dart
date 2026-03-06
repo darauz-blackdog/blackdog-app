@@ -213,13 +213,31 @@ class ApiService {
 
   // ── Payments ──────────────────────────────────────────────────
 
-  Future<Map<String, dynamic>> checkTilopayStatus(String orderId) async {
+  /// Generalized payment status check (works for tilopay + yappy)
+  Future<Map<String, dynamic>> checkPaymentStatus(String orderId) async {
     final response = await _dio.get('/payments/tilopay/status/$orderId');
     return response.data as Map<String, dynamic>;
   }
 
+  @Deprecated('Use checkPaymentStatus instead')
+  Future<Map<String, dynamic>> checkTilopayStatus(String orderId) =>
+      checkPaymentStatus(orderId);
+
   Future<Map<String, dynamic>> getYappyInstructions(String orderId) async {
     final response = await _dio.get('/payments/yappy/instructions/$orderId');
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> createYappyPayment(String orderId, String phone) async {
+    final response = await _dio.post('/payments/yappy/create', data: {
+      'order_id': orderId,
+      'phone': phone,
+    });
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> retryPayment(String orderId) async {
+    final response = await _dio.post('/payments/$orderId/retry');
     return response.data as Map<String, dynamic>;
   }
 

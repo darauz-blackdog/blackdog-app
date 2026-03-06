@@ -10,6 +10,7 @@ import '../../providers/service_providers.dart';
 import '../../utils/error_utils.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/responsive.dart';
+import '../../widgets/step_indicator.dart';
 
 /// Providers local to checkout
 final _branchesProvider = FutureProvider<List<Branch>>((ref) async {
@@ -121,10 +122,20 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               : () => context.pop(),
         ),
       ),
-      body: ResponsiveCenter(child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 250),
-        child: _buildCurrentStep(cart),
-      )),
+      body: Column(
+        children: [
+          StepIndicator(
+            currentStep: _step,
+            labels: const ['Entrega', 'Pago', 'Resumen'],
+          ),
+          Expanded(
+            child: ResponsiveCenter(child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              child: _buildCurrentStep(cart),
+            )),
+          ),
+        ],
+      ),
     );
   }
 
@@ -207,7 +218,26 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
       if (mounted) {
         final orderId = result['order']?['id'] as String? ?? '';
-        context.go('/order-confirmation/$orderId', extra: result);
+        final paymentUrl = result['payment_url'] as String?;
+        final orderName = result['odoo_order_name'] as String? ??
+            result['order']?['payment_reference'] as String?;
+        final total = (result['order']?['total'] as num?)?.toDouble();
+
+        // Route directly to payment screen based on method
+        if (_paymentMethod == 'tilopay' && paymentUrl != null) {
+          context.go('/payment/$orderId/tilopay', extra: {
+            'payment_url': paymentUrl,
+            'order_name': orderName,
+            'amount': total,
+          });
+        } else if (_paymentMethod == 'yappy') {
+          context.go('/payment/$orderId/yappy', extra: {
+            'order_name': orderName,
+            'amount': total,
+          });
+        } else {
+          context.go('/order-confirmation/$orderId', extra: result);
+        }
       }
     } catch (e) {
       setState(() => _isSubmitting = false);

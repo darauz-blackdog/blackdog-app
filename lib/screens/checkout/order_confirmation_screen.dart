@@ -164,13 +164,14 @@ class _OrderConfirmationScreenState
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () => context.go(
-                            '/payment/${widget.orderId}',
+                            '/payment/${widget.orderId}/tilopay',
                             extra: {
                               'payment_url': paymentUrl,
-                              'payment_method': 'tilopay',
+                              'order_name': orderNumber,
+                              'amount': total,
                             },
                           ),
-                          child: const Text('Ver estado del pago'),
+                          child: const Text('Pagar con tarjeta'),
                         ),
                       ),
                       const SizedBox(height: 12),

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../../models/payment_state.dart';
+import '../../providers/payment_provider.dart';
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/responsive.dart';
@@ -31,67 +31,30 @@ class PaymentStatusScreen extends ConsumerStatefulWidget {
 }
 
 class _PaymentStatusScreenState extends ConsumerState<PaymentStatusScreen> {
-  String _status = 'pending'; // pending, processing, completed, failed
-  Timer? _pollTimer;
-  bool _polling = false;
-  Map<String, dynamic>? _yappyInstructions;
-
-  // WebView
   WebViewController? _webViewController;
   bool _webViewLoading = true;
   bool _showWebView = false;
 
+  late final PaymentSessionParams _params;
+
   @override
   void initState() {
     super.initState();
+    _params = PaymentSessionParams(
+      orderId: widget.orderId,
+      paymentMethod: widget.paymentMethod ?? 'tilopay',
+      paymentUrl: widget.paymentUrl,
+    );
+
+    // Load Yappy instructions if needed
     if (widget.paymentMethod == 'yappy') {
       _loadYappyInstructions();
     }
-    _startPolling();
-  }
 
-  @override
-  void dispose() {
-    _pollTimer?.cancel();
-    super.dispose();
-  }
-
-  void _startPolling() {
-    _pollTimer =
-        Timer.periodic(const Duration(seconds: 5), (_) => _checkStatus());
-  }
-
-  Future<void> _checkStatus() async {
-    if (_polling || _status == 'completed') return;
-    _polling = true;
-
-    try {
-      final api = ref.read(apiServiceProvider);
-      final result = await api.checkTilopayStatus(widget.orderId);
-      final paymentStatus =
-          result['payment_status'] as String? ?? 'pending';
-
-      if (mounted) {
-        setState(() {
-          if (paymentStatus == 'paid' || paymentStatus == 'completed') {
-            _status = 'completed';
-            _showWebView = false;
-            _pollTimer?.cancel();
-          } else if (paymentStatus == 'failed' ||
-              paymentStatus == 'cancelled') {
-            _status = 'failed';
-            _showWebView = false;
-            _pollTimer?.cancel();
-          } else if (paymentStatus == 'processing') {
-            _status = 'processing';
-          }
-        });
-      }
-    } catch (_) {
-      // Silently continue polling
-    } finally {
-      _polling = false;
-    }
+    // Start payment flow after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(paymentProvider(_params).notifier).startPayment();
+    });
   }
 
   Future<void> _loadYappyInstructions() async {
@@ -99,7 +62,7 @@ class _PaymentStatusScreenState extends ConsumerState<PaymentStatusScreen> {
       final api = ref.read(apiServiceProvider);
       final result = await api.getYappyInstructions(widget.orderId);
       if (mounted) {
-        setState(() => _yappyInstructions = result);
+        ref.read(paymentProvider(_params).notifier).setYappyInstructions(result);
       }
     } catch (_) {}
   }
@@ -107,12 +70,13 @@ class _PaymentStatusScreenState extends ConsumerState<PaymentStatusScreen> {
   void _openPayment() {
     if (widget.paymentUrl == null) return;
 
-    // WebView not supported on web — fall back to url_launcher
     if (kIsWeb) {
       final uri = Uri.parse(widget.paymentUrl!);
       launchUrl(uri, mode: LaunchMode.externalApplication);
       return;
     }
+
+    final notifier = ref.read(paymentProvider(_params).notifier);
 
     final controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -125,24 +89,19 @@ class _PaymentStatusScreenState extends ConsumerState<PaymentStatusScreen> {
             if (mounted) setState(() => _webViewLoading = false);
           },
           onNavigationRequest: (request) {
-            // Detect callback/return URLs from payment gateway
             final url = request.url.toLowerCase();
             if (url.contains('payment/success') ||
                 url.contains('payment/callback') ||
                 url.contains('status=approved')) {
-              setState(() {
-                _status = 'processing';
-                _showWebView = false;
-              });
+              notifier.markProcessing();
+              setState(() => _showWebView = false);
               return NavigationDecision.prevent;
             }
             if (url.contains('payment/cancel') ||
                 url.contains('payment/failed') ||
                 url.contains('status=declined')) {
-              setState(() {
-                _status = 'failed';
-                _showWebView = false;
-              });
+              notifier.markFailed('El pago fue rechazado por el gateway.');
+              setState(() => _showWebView = false);
               return NavigationDecision.prevent;
             }
             return NavigationDecision.navigate;
@@ -158,8 +117,17 @@ class _PaymentStatusScreenState extends ConsumerState<PaymentStatusScreen> {
     });
   }
 
+  void _retryPayment() {
+    ref.read(paymentProvider(_params).notifier).retry();
+    if (widget.paymentMethod == 'tilopay' && widget.paymentUrl != null) {
+      _openPayment();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final session = ref.watch(paymentProvider(_params));
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_showWebView ? 'Pago seguro' : 'Estado del pago'),
@@ -174,7 +142,7 @@ class _PaymentStatusScreenState extends ConsumerState<PaymentStatusScreen> {
           },
         ),
       ),
-      body: _showWebView ? _buildWebView() : _buildStatusView(),
+      body: _showWebView ? _buildWebView() : _buildStatusView(session),
     );
   }
 
@@ -189,172 +157,242 @@ class _PaymentStatusScreenState extends ConsumerState<PaymentStatusScreen> {
     );
   }
 
-  Widget _buildStatusView() {
+  Widget _buildStatusView(PaymentSession session) {
     return ResponsiveCenter(
       child: SingleChildScrollView(
-      padding: EdgeInsets.all(Responsive.padding(context)),
-      child: Column(
-        children: [
-          const SizedBox(height: 20),
-          // Status icon
-          FadeInUp(
-            delay: 0,
-            offset: 20,
-            duration: const Duration(milliseconds: 500),
-            child: _buildStatusIcon(),
-          ),
-          const SizedBox(height: 24),
+        padding: EdgeInsets.all(Responsive.padding(context)),
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
 
-          // Status text
-          FadeInUp(
-            delay: 100,
-            offset: 20,
-            duration: const Duration(milliseconds: 500),
-            child: Text(
-              _statusTitle,
-              style: GoogleFonts.montserrat(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 8),
-          FadeInUp(
-            delay: 150,
-            offset: 20,
-            duration: const Duration(milliseconds: 500),
-            child: Text(
-              _statusDescription,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          // Yappy instructions
-          if (widget.paymentMethod == 'yappy' &&
-              _yappyInstructions != null)
+            // Status icon
             FadeInUp(
-              delay: 200,
+              delay: 0,
               offset: 20,
               duration: const Duration(milliseconds: 500),
-              child: _buildYappySection(),
+              child: _buildStatusIcon(session.state),
             ),
+            const SizedBox(height: 24),
 
-          // Pay button (Tilopay) — opens WebView
-          if (widget.paymentUrl != null && _status == 'pending')
+            // Status title
             FadeInUp(
-              delay: 200,
+              delay: 100,
               offset: 20,
               duration: const Duration(milliseconds: 500),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _openPayment,
-                  icon: const Icon(Icons.credit_card),
-                  label: const Text('Pagar ahora'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.info,
-                    foregroundColor: Colors.white,
+              child: Text(
+                session.state.label,
+                style: GoogleFonts.montserrat(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Status description
+            FadeInUp(
+              delay: 150,
+              offset: 20,
+              duration: const Duration(milliseconds: 500),
+              child: Text(
+                session.errorMessage ?? session.state.description,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+
+            // Countdown timer
+            if (session.isCountdownActive) ...[
+              const SizedBox(height: 20),
+              FadeInUp(
+                delay: 175,
+                offset: 20,
+                duration: const Duration(milliseconds: 500),
+                child: _buildCountdown(session),
+              ),
+            ],
+
+            const SizedBox(height: 32),
+
+            // Yappy instructions
+            if (widget.paymentMethod == 'yappy' &&
+                session.yappyInstructions != null)
+              FadeInUp(
+                delay: 200,
+                offset: 20,
+                duration: const Duration(milliseconds: 500),
+                child: _buildYappySection(session.yappyInstructions!),
+              ),
+
+            // Pay button (Tilopay)
+            if (widget.paymentUrl != null &&
+                (session.state == PaymentState.draft ||
+                 session.state == PaymentState.pending))
+              FadeInUp(
+                delay: 200,
+                offset: 20,
+                duration: const Duration(milliseconds: 500),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _openPayment,
+                    icon: const Icon(Icons.credit_card),
+                    label: const Text('Pagar ahora'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.info,
+                      foregroundColor: Colors.white,
+                    ),
                   ),
                 ),
               ),
-            ),
 
-          // Completed/Failed actions
-          if (_status == 'completed' || _status == 'failed') ...[
-            const SizedBox(height: 24),
-            FadeInUp(
-              delay: 300,
-              offset: 20,
-              duration: const Duration(milliseconds: 500),
-              child: Column(
-                children: [
-                  if (_status == 'failed' && widget.paymentUrl != null) ...[
+            // Retry button
+            if (session.canRetry) ...[
+              const SizedBox(height: 24),
+              FadeInUp(
+                delay: 250,
+                offset: 20,
+                duration: const Duration(milliseconds: 500),
+                child: Column(
+                  children: [
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
-                        onPressed: _openPayment,
+                        onPressed: _retryPayment,
                         icon: const Icon(Icons.refresh),
-                        label: const Text('Intentar de nuevo'),
+                        label: Text(
+                          'Intentar de nuevo (${session.retriesRemaining} restantes)',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () => context.go('/orders/${widget.orderId}'),
+                      child: const Text('Ver pedido'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            // Terminal state actions (paid or no retries left)
+            if (session.state == PaymentState.paid ||
+                (session.state.isRetryable && !session.canRetry)) ...[
+              const SizedBox(height: 24),
+              FadeInUp(
+                delay: 300,
+                offset: 20,
+                duration: const Duration(milliseconds: 500),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () =>
+                            context.go('/orders/${widget.orderId}'),
+                        child: const Text('Ver pedido'),
                       ),
                     ),
                     const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () => context.go('/home'),
+                        child: const Text('Seguir comprando'),
+                      ),
+                    ),
                   ],
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () =>
-                          context.go('/orders/${widget.orderId}'),
-                      child: const Text('Ver pedido'),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () => context.go('/home'),
-                      child: const Text('Seguir comprando'),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
 
-          // Polling indicator
-          if (_status == 'pending' || _status == 'processing') ...[
-            const SizedBox(height: 32),
-            FadeInUp(
-              delay: 300,
-              offset: 20,
-              duration: const Duration(milliseconds: 500),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.textLight,
+            // Polling indicator
+            if (session.state.isWaiting) ...[
+              const SizedBox(height: 32),
+              FadeInUp(
+                delay: 300,
+                offset: 20,
+                duration: const Duration(milliseconds: 500),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.textLight,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Verificando estado del pago...',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      color: AppColors.textLight,
+                    const SizedBox(width: 10),
+                    Text(
+                      'Verificando estado del pago...',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: AppColors.textLight,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            TextButton(
-              onPressed: () => context.go('/orders'),
-              child: const Text('Ir a mis pedidos'),
-            ),
+              const SizedBox(height: 24),
+              TextButton(
+                onPressed: () => context.go('/orders'),
+                child: const Text('Ir a mis pedidos'),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
-    ),
     );
   }
 
-  Widget _buildStatusIcon() {
-    final (IconData icon, Color color) = switch (_status) {
-      'completed' => (Icons.check_circle_rounded, AppColors.success),
-      'failed' => (Icons.cancel_rounded, AppColors.error),
-      'processing' => (Icons.hourglass_top_rounded, AppColors.warning),
-      _ => (Icons.payment_rounded, AppColors.info),
+  Widget _buildCountdown(PaymentSession session) {
+    final isLow = session.countdownSeconds < 60;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: BoxDecoration(
+        color: isLow
+            ? AppColors.error.withValues(alpha: 0.1)
+            : AppColors.info.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.timer_outlined,
+            size: 20,
+            color: isLow ? AppColors.error : AppColors.info,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            session.countdownDisplay,
+            style: GoogleFonts.montserrat(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: isLow ? AppColors.error : AppColors.info,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusIcon(PaymentState state) {
+    final (IconData icon, Color color) = switch (state) {
+      PaymentState.paid       => (Icons.check_circle_rounded, AppColors.success),
+      PaymentState.failed     => (Icons.cancel_rounded, AppColors.error),
+      PaymentState.expired    => (Icons.timer_off_rounded, AppColors.error),
+      PaymentState.cancelled  => (Icons.cancel_rounded, AppColors.warning),
+      PaymentState.processing => (Icons.hourglass_top_rounded, AppColors.warning),
+      _                       => (Icons.payment_rounded, AppColors.info),
     };
 
     return Container(
@@ -367,27 +405,9 @@ class _PaymentStatusScreenState extends ConsumerState<PaymentStatusScreen> {
     );
   }
 
-  String get _statusTitle => switch (_status) {
-        'completed' => '¡Pago completado!',
-        'failed' => 'Pago fallido',
-        'processing' => 'Procesando pago',
-        _ => 'Pago pendiente',
-      };
-
-  String get _statusDescription => switch (_status) {
-        'completed' =>
-          'Tu pago se ha procesado correctamente. Tu pedido está en camino.',
-        'failed' =>
-          'Hubo un problema con tu pago. Puedes intentar nuevamente.',
-        'processing' =>
-          'Estamos procesando tu pago. Esto puede tomar unos momentos.',
-        _ =>
-          'Tu pedido ha sido creado. Completa el pago para confirmar tu compra.',
-      };
-
-  Widget _buildYappySection() {
-    final phone = _yappyInstructions?['phone'] as String? ?? '';
-    final reference = _yappyInstructions?['reference'] as String? ?? '';
+  Widget _buildYappySection(Map<String, dynamic> instructions) {
+    final phone = instructions['phone'] as String? ?? '';
+    final reference = instructions['reference'] as String? ?? '';
 
     return Container(
       padding: const EdgeInsets.all(20),

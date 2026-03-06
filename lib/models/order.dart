@@ -1,3 +1,5 @@
+import 'payment_state.dart';
+
 class Order {
   final String id;
   final String? odooOrderName;
@@ -47,6 +49,9 @@ class Order {
     this.paymentUrl,
     this.yappyInstructions,
   });
+
+  /// Typed payment state from string status
+  PaymentState get paymentState => PaymentState.fromString(paymentStatus);
 
   /// Display name: Odoo name > payment reference > fallback
   String get displayName =>
