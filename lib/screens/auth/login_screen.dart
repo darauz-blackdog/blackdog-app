@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/error_utils.dart';
 import '../../utils/responsive.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -38,7 +39,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (state.hasError && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(state.error.toString()),
+          content: Text(friendlyError(state.error!)),
           backgroundColor: AppColors.error,
         ),
       );

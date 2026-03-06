@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/error_utils.dart';
 import '../../utils/responsive.dart';
 
 class DeleteAccountScreen extends ConsumerStatefulWidget {
@@ -39,9 +40,8 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
     } catch (e) {
       setState(() => _deleting = false);
       if (mounted) {
-        final msg = e.toString().replaceAll('Exception: ', '');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al eliminar cuenta: $msg')),
+          SnackBar(content: Text(friendlyError(e)), backgroundColor: AppColors.error),
         );
       }
     }

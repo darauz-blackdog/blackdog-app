@@ -8,6 +8,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/error_utils.dart';
 import '../../utils/responsive.dart';
 
 class AddAddressScreen extends ConsumerStatefulWidget {
@@ -539,7 +540,7 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
       setState(() => _saving = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+          SnackBar(content: Text(friendlyError(e)), backgroundColor: AppColors.error),
         );
       }
     }

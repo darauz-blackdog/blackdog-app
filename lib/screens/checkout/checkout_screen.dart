@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +7,7 @@ import '../../models/cart.dart';
 import '../../providers/address_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/service_providers.dart';
+import '../../utils/error_utils.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/responsive.dart';
 
@@ -212,11 +212,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     } catch (e) {
       setState(() => _isSubmitting = false);
       if (mounted) {
-        String message = 'No se pudo crear el pedido. Intenta de nuevo.';
-        if (e is DioException && e.response?.data is Map) {
-          final data = e.response!.data as Map<String, dynamic>;
-          message = data['message'] as String? ?? message;
-        }
+        final message = friendlyError(e);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message)),
         );

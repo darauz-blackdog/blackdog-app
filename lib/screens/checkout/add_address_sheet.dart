@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/service_providers.dart';
+import '../../utils/error_utils.dart';
 import '../../utils/responsive.dart';
 
 class AddAddressSheet extends ConsumerStatefulWidget {
@@ -131,7 +132,7 @@ class _AddAddressSheetState extends ConsumerState<AddAddressSheet> {
       setState(() => _saving = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+          SnackBar(content: Text(friendlyError(e)), backgroundColor: AppColors.error),
         );
       }
     }

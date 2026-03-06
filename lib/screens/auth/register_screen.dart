@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/error_utils.dart';
 import '../../utils/responsive.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -90,7 +91,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final state = ref.read(authNotifierProvider);
     if (state.hasError && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(state.error.toString()), backgroundColor: AppColors.error),
+        SnackBar(content: Text(friendlyError(state.error!)), backgroundColor: AppColors.error),
       );
     }
   }

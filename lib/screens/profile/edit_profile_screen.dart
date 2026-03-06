@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/error_utils.dart';
 import '../../utils/responsive.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -56,9 +57,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     } catch (e) {
       setState(() => _saving = false);
       if (mounted) {
-        final msg = e.toString().replaceAll('Exception: ', '');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al guardar: $msg')),
+          SnackBar(content: Text(friendlyError(e)), backgroundColor: AppColors.error),
         );
       }
     }
