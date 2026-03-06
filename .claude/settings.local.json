@@ -23,7 +23,8 @@
       "Bash(python3:*)",
       "Bash(keytool:*)",
       "Bash(vercel:*)",
-      "Bash(npx vercel:*)"
+      "Bash(npx vercel:*)",
+      "Bash(git pull:*)"
     ]
   }
 }
