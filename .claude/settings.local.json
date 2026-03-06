@@ -18,7 +18,10 @@
       "mcp__plugin_github_github__list_commits",
       "mcp__plugin_github_github__list_branches",
       "Bash(flutter:*)",
-      "Bash(dart analyze:*)"
+      "Bash(dart analyze:*)",
+      "Bash(pip3 install:*)",
+      "Bash(python3:*)",
+      "Bash(keytool:*)"
     ]
   }
 }

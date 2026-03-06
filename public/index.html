@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BlackDog App — Icon Inventory</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Round" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #F7B104;
+  --gold-light: #FDDA6E;
+  --gold-dim: #C48E03;
+  --navy: #1A1A2E;
+  --navy-light: #232340;
+  --navy-deep: #111124;
+  --surface: #16162B;
+  --surface-raised: #1E1E38;
+  --surface-hover: #262650;
+  --text: #E8E6F0;
+  --text-dim: #8B89A0;
+  --text-muted: #5C5A70;
+  --border: rgba(247, 177, 4, 0.08);
+  --border-active: rgba(247, 177, 4, 0.25);
+  --success: #34D399;
+  --error: #F87171;
+  --info: #60A5FA;
+  --warning: #FBBF24;
+  --glow: 0 0 20px rgba(247, 177, 4, 0.15);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --radius-xs: 5px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--navy-deep);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== NOISE OVERLAY ===== */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 256px;
+}
+
+/* ===== LAYOUT ===== */
+.page-wrapper {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+}
+
+@media (max-width: 1024px) {
+  .page-wrapper { grid-template-columns: 1fr; }
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  background: var(--navy);
+  border-right: 1px solid var(--border);
+  padding: 32px 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    position: fixed;
+    left: -280px;
+    width: 280px;
+    transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 30px rgba(0,0,0,0.5);
+  }
+  .sidebar.open { left: 0; }
+}
+
+.sidebar-brand {
+  padding: 0 24px 28px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+
+.sidebar-brand img {
+  height: 48px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.sidebar-brand h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 0.5px;
+}
+
+.sidebar-brand p {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  letter-spacing: 0.3px;
+}
+
+.sidebar-nav { flex: 1; padding: 0 12px; }
+
+.sidebar-nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+  margin-bottom: 2px;
+}
+
+.sidebar-nav a:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.sidebar-nav a.active {
+  background: rgba(247, 177, 4, 0.1);
+  color: var(--gold);
+}
+
+.sidebar-nav a .material-icons-outlined {
+  font-size: 18px;
+  opacity: 0.7;
+}
+
+.sidebar-nav a.active .material-icons-outlined {
+  opacity: 1;
+  color: var(--gold);
+}
+
+.sidebar-nav .nav-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 12px 0;
+}
+
+.sidebar-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* ===== MAIN ===== */
+.main-content {
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* ===== HERO ===== */
+.hero {
+  position: relative;
+  padding: 80px 48px 60px;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 50%, #0D0D1F 100%);
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -200px;
+  right: -200px;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(247,177,4,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  opacity: 0.3;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(247,177,4,0.08);
+  border: 1px solid rgba(247,177,4,0.15);
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 24px;
+  animation: fadeSlideDown 0.6s ease;
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text);
+  margin-bottom: 16px;
+  animation: fadeSlideDown 0.6s ease 0.1s both;
+}
+
+.hero h1 em {
+  font-style: italic;
+  color: var(--gold);
+}
+
+.hero-sub {
+  font-size: 16px;
+  color: var(--text-dim);
+  max-width: 520px;
+  line-height: 1.7;
+  animation: fadeSlideDown 0.6s ease 0.2s both;
+}
+
+/* ===== STATS ===== */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  animation: fadeSlideDown 0.6s ease 0.3s both;
+}
+
+.stat-item {
+  background: var(--surface);
+  padding: 28px 32px;
+  text-align: center;
+}
+
+.stat-item .val {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.stat-item .lbl {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 8px;
+}
+
+/* ===== TOOLBAR ===== */
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(17, 17, 36, 0.85);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 32px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 200px;
+  position: relative;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 10px 14px 10px 40px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.search-box input::placeholder { color: var(--text-muted); }
+
+.search-box input:focus {
+  border-color: var(--border-active);
+  box-shadow: 0 0 0 3px rgba(247,177,4,0.07);
+}
+
+.search-box .material-icons-outlined {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.pill-group {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.pill {
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.pill:hover {
+  border-color: var(--border-active);
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.pill.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--navy);
+  font-weight: 600;
+}
+
+.menu-toggle {
+  display: none;
+  padding: 8px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  .menu-toggle { display: flex; }
+  .toolbar { padding: 12px 16px; }
+}
+
+/* ===== SECTION ===== */
+.content-area { padding: 0 32px 60px; }
+
+@media (max-width: 768px) { .content-area { padding: 0 16px 40px; } }
+
+.section {
+  padding-top: 48px;
+  margin-bottom: 12px;
+  opacity: 0;
+  transform: translateY(16px);
+  animation: sectionReveal 0.5s ease forwards;
+}
+
+.section:nth-child(1) { animation-delay: 0.05s; }
+.section:nth-child(2) { animation-delay: 0.1s; }
+.section:nth-child(3) { animation-delay: 0.15s; }
+.section:nth-child(4) { animation-delay: 0.2s; }
+.section:nth-child(5) { animation-delay: 0.25s; }
+.section:nth-child(6) { animation-delay: 0.3s; }
+.section:nth-child(7) { animation-delay: 0.35s; }
+.section:nth-child(8) { animation-delay: 0.4s; }
+.section:nth-child(9) { animation-delay: 0.45s; }
+.section:nth-child(10) { animation-delay: 0.5s; }
+.section:nth-child(11) { animation-delay: 0.55s; }
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.section-head h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.section-head .count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gold);
+  background: rgba(247,177,4,0.1);
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+
+.section-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  max-width: 680px;
+  line-height: 1.7;
+}
+
+.section-desc code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  padding: 2px 6px;
+  background: var(--surface-raised);
+  border-radius: 4px;
+  color: var(--gold-light);
+}
+
+/* ===== ICON GRID ===== */
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 500px) {
+  .icon-grid { grid-template-columns: 1fr; }
+}
+
+/* ===== ICON CARD ===== */
+.icon-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.icon-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  padding: 1px;
+  background: linear-gradient(135deg, transparent, rgba(247,177,4,0.2), transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.icon-card:hover {
+  background: var(--surface-raised);
+  border-color: var(--border-active);
+  transform: translateY(-2px);
+  box-shadow: var(--glow);
+}
+
+.icon-card:hover::before { opacity: 1; }
+
+.icon-preview {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  background: var(--surface-raised);
+  color: var(--text-dim);
+  transition: all 0.25s;
+}
+
+.icon-card:hover .icon-preview {
+  transform: scale(1.05);
+}
+
+.icon-preview.gold { background: rgba(247,177,4,0.1); color: var(--gold); }
+.icon-preview.error { background: rgba(248,113,113,0.1); color: var(--error); }
+.icon-preview.success { background: rgba(52,211,153,0.1); color: var(--success); }
+.icon-preview.info { background: rgba(96,165,250,0.1); color: var(--info); }
+.icon-preview.warning { background: rgba(251,191,36,0.1); color: var(--warning); }
+.icon-preview.dark { background: var(--navy); color: var(--gold); border: 1px solid var(--border); }
+
+.icon-info { flex: 1; min-width: 0; }
+
+.icon-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.icon-type {
+  display: inline-block;
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  margin-top: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.type-material { background: rgba(139,92,246,0.15); color: #A78BFA; }
+.type-asset { background: rgba(236,72,153,0.15); color: #F472B6; }
+
+.icon-details {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+
+.icon-details strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.tag {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  margin-right: 3px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  font-weight: 500;
+}
+
+.tag.size { background: rgba(96,165,250,0.08); color: var(--info); border-color: rgba(96,165,250,0.15); }
+.tag.color { background: rgba(247,177,4,0.08); color: var(--gold); border-color: rgba(247,177,4,0.12); }
+.tag.screen { background: rgba(52,211,153,0.08); color: var(--success); border-color: rgba(52,211,153,0.12); }
+
+/* ===== ASSET PREVIEW ===== */
+.asset-preview {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  background: var(--surface-raised);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  transition: all 0.25s;
+}
+
+.icon-card:hover .asset-preview { transform: scale(1.05); }
+
+.asset-preview img {
+  max-width: 42px;
+  max-height: 42px;
+  object-fit: contain;
+}
+
+/* ===== TABLES ===== */
+.table-wrap {
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+}
+
+th {
+  background: var(--surface-raised);
+  text-align: left;
+  padding: 14px 20px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--gold);
+  border-bottom: 1px solid var(--border);
+}
+
+td {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  vertical-align: top;
+  color: var(--text-dim);
+}
+
+td strong { color: var(--text); font-weight: 600; }
+
+tr:hover td { background: var(--surface-raised); }
+
+tr.highlight td {
+  background: rgba(247,177,4,0.04);
+  border-color: rgba(247,177,4,0.1);
+}
+
+.color-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-right: 6px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* ===== NOTES ===== */
+.notes-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+}
+
+.notes-card h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notes-card h3 .material-icons-outlined { font-size: 18px; }
+
+.notes-card + .notes-card { margin-top: 12px; }
+
+.notes-card ul { padding-left: 18px; }
+
+.notes-card li {
+  font-size: 13px;
+  line-height: 1.9;
+  color: var(--text-dim);
+}
+
+.notes-card li strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.notes-card li code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  padding: 2px 6px;
+  background: var(--surface-raised);
+  border-radius: 4px;
+  color: var(--gold-light);
+}
+
+.priority-tag {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.priority-tag.high { background: rgba(248,113,113,0.15); color: var(--error); }
+.priority-tag.mid { background: rgba(251,191,36,0.15); color: var(--warning); }
+.priority-tag.low { background: rgba(96,165,250,0.1); color: var(--info); }
+
+/* ===== FOOTER ===== */
+.page-footer {
+  text-align: center;
+  padding: 32px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.page-footer span { color: var(--gold); }
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sectionReveal {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== MOBILE OVERLAY ===== */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 90;
+}
+
+.sidebar-overlay.show { display: block; }
+
+/* ===== LIGHTBOX ===== */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+  cursor: zoom-out;
+}
+
+.lightbox.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.lightbox-inner {
+  background: var(--surface);
+  border: 1px solid var(--border-active);
+  border-radius: 20px;
+  padding: 32px;
+  max-width: 520px;
+  width: 90%;
+  transform: scale(0.92) translateY(10px);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: default;
+  position: relative;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.5), 0 0 40px rgba(247,177,4,0.08);
+}
+
+.lightbox.open .lightbox-inner {
+  transform: scale(1) translateY(0);
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 18px;
+}
+
+.lightbox-close:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--border-active);
+}
+
+.lightbox-preview {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  margin-bottom: 24px;
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.lightbox-preview.type-icon {
+  background: var(--surface-raised);
+  font-size: 80px;
+}
+
+.lightbox-preview.type-icon.bg-gold { background: rgba(247,177,4,0.1); color: var(--gold); }
+.lightbox-preview.type-icon.bg-dark { background: var(--navy); color: var(--gold); }
+.lightbox-preview.type-icon.bg-error { background: rgba(248,113,113,0.1); color: var(--error); }
+.lightbox-preview.type-icon.bg-success { background: rgba(52,211,153,0.1); color: var(--success); }
+.lightbox-preview.type-icon.bg-info { background: rgba(96,165,250,0.1); color: var(--info); }
+.lightbox-preview.type-icon.bg-warning { background: rgba(251,191,36,0.1); color: var(--warning); }
+
+.lightbox-preview.type-asset {
+  background: var(--surface-raised);
+  border: 1px dashed var(--border);
+}
+
+.lightbox-preview.type-asset img {
+  max-width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+}
+
+.lightbox-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+  word-break: break-all;
+}
+
+.lightbox-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 14px;
+}
+
+.lightbox-details {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.8;
+}
+
+.lightbox-details strong { color: var(--text); font-weight: 500; }
+
+.icon-card { cursor: zoom-in; }
+
+/* ===== PRINT ===== */
+@media print {
+  .sidebar, .toolbar, .menu-toggle, .sidebar-overlay { display: none !important; }
+  .page-wrapper { grid-template-columns: 1fr; }
+  .hero { padding: 30px; }
+  body { background: white; color: #1a1a2e; }
+  .icon-card { border: 1px solid #ddd; background: white; }
+  .icon-card:hover { transform: none; box-shadow: none; }
+}
+
+@media (max-width: 768px) {
+  .hero { padding: 48px 20px 36px; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .icon-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<div class="page-wrapper">
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <img src="assets/icons/Black_Dog_Logo_V.png" alt="BlackDog" onerror="this.style.display='none'">
+    <h2>Icon Inventory</h2>
+    <p>Referencia para diseno &middot; v1.0</p>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="#nav" class="active" onclick="setActive(this)"><span class="material-icons-outlined">navigation</span>Navegacion</a>
+    <a href="#categories" onclick="setActive(this)"><span class="material-icons-outlined">category</span>Categorias</a>
+    <a href="#commerce" onclick="setActive(this)"><span class="material-icons-outlined">shopping_cart</span>Comercio</a>
+    <a href="#status" onclick="setActive(this)"><span class="material-icons-outlined">task_alt</span>Estado / Tracking</a>
+    <a href="#auth" onclick="setActive(this)"><span class="material-icons-outlined">person</span>Auth / Perfil</a>
+    <a href="#search-ui" onclick="setActive(this)"><span class="material-icons-outlined">search</span>Busqueda / UI</a>
+    <a href="#location" onclick="setActive(this)"><span class="material-icons-outlined">location_on</span>Ubicacion</a>
+    <a href="#onboarding" onclick="setActive(this)"><span class="material-icons-outlined">auto_awesome</span>Onboarding</a>
+    <div class="nav-divider"></div>
+    <a href="#assets" onclick="setActive(this)"><span class="material-icons-outlined">image</span>Assets de Imagen</a>
+    <div class="nav-divider"></div>
+    <a href="#sizes" onclick="setActive(this)"><span class="material-icons-outlined">straighten</span>Tabla de Tamanos</a>
+    <a href="#colors" onclick="setActive(this)"><span class="material-icons-outlined">palette</span>Paleta de Colores</a>
+    <a href="#notes" onclick="setActive(this)"><span class="material-icons-outlined">description</span>Notas</a>
+  </nav>
+  <div class="sidebar-footer">Marzo 2026 &middot; Branch Version1.0</div>
+</aside>
+
+<!-- ===== MAIN ===== -->
+<main class="main-content">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge"><span class="material-icons-round" style="font-size:14px">pets</span> Black Dog Panama</div>
+  <h1>Inventario de <em>Iconos</em></h1>
+  <p class="hero-sub">Todos los iconos usados en la app con tipo, ubicacion y medidas. Referencia completa para la disenadora.</p>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat-item"><div class="val">95+</div><div class="lbl">Iconos Material</div></div>
+  <div class="stat-item"><div class="val">8</div><div class="lbl">Assets de Imagen</div></div>
+  <div class="stat-item"><div class="val">15</div><div class="lbl">Pantallas</div></div>
+  <div class="stat-item"><div class="val">12</div><div class="lbl">Categorias</div></div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <button class="menu-toggle" onclick="toggleSidebar()">
+    <span class="material-icons-outlined" style="font-size:20px">menu</span>
+  </button>
+  <div class="search-box">
+    <span class="material-icons-outlined">search</span>
+    <input type="text" id="searchInput" placeholder="Buscar icono por nombre, pantalla o contexto..." oninput="filterCards()">
+  </div>
+  <div class="pill-group">
+    <button class="pill active" onclick="filterByCategory('all', this)">Todos</button>
+    <button class="pill" onclick="filterByCategory('nav', this)">Nav</button>
+    <button class="pill" onclick="filterByCategory('category', this)">Categorias</button>
+    <button class="pill" onclick="filterByCategory('commerce', this)">Comercio</button>
+    <button class="pill" onclick="filterByCategory('auth', this)">Auth</button>
+    <button class="pill" onclick="filterByCategory('status', this)">Estado</button>
+    <button class="pill" onclick="filterByCategory('asset', this)">Assets</button>
+  </div>
+</div>
+
+<div class="content-area">
+
+<!-- ========== NAVEGACION ========== -->
+<div class="section" id="nav" data-group="nav">
+  <div class="section-head">
+    <h2>Navegacion Principal</h2>
+    <span class="count">5 iconos</span>
+  </div>
+  <p class="section-desc">Iconos del bottom navigation bar y side navigation. Cada tab tiene variante <strong>outlined</strong> (inactivo) y <strong>rounded</strong> (activo).</p>
+  <div class="icon-grid">
+    <div class="icon-card" data-tags="nav home">
+      <div class="icon-preview"><span class="material-icons-outlined">home</span></div>
+      <div class="icon-info">
+        <div class="icon-name">Icons.home_outlined / Icons.home_rounded</div>
+        <span class="icon-type type-material">Material</span>
+        <div class="icon-details">
+          <strong>Uso:</strong> Tab "Inicio" del bottom nav<br>
+          <strong>Archivo:</strong> main_shell.dart<br>
+          <span class="tag size">24px (default)</span>
+          <span class="tag">Outlined = inactivo</span>
+          <span class="tag">Rounded = activo</span>
+        </div>
+      </div>
+    </div>
+    <div class="icon-card" data-tags="nav catalog">
+      <div class="icon-preview"><span class="material-icons-outlined">storefront</span></div>
+      <div class="icon-info">
+        <div class="icon-name">Icons.storefront_outlined / Icons.storefront_rounded</div>
+        <span class="icon-type type-material">Material</span>
+        <div class="icon-details">
+          <strong>Uso:</strong> Tab "Catalogo" del bottom nav<br>
+          <strong>Archivo:</strong> main_shell.dart<br>
+          <span class="tag size">24px (default)</span>
+        </div>
+      </div>
+    </div>
+    <div class="icon-card" data-tags="nav store branches">
+      <div class="icon-preview"><span class="material-icons-outlined">store</span></div>
+      <div class="icon-info">
+        <div class="icon-name">Icons.store_outlined / Icons.store_rounded</div>
+        <span class="icon-type type-material">Material</span>
+        <div class="icon-details">
+          <strong>Uso:</strong> Tab "Sucursales" del bottom nav<br>
+          <strong>Archivo:</strong> main_shell.dart<br>
+          <span class="tag size">24px (default)</span>
+        </div>
+      </div>
+    </div>
+    <div class="icon-card" data-tags="nav orders">
+      <div class="icon-preview"><span class="material-icons-outlined">receipt_long</span></div>
+      <div class="icon-info">
+        <div class="icon-name">Icons.receipt_long_outlined / Icons.receipt_long_rounded</div>
+        <span class="icon-type type-material">Material</span>
+        <div class="icon-details">
+          <strong>Uso:</strong> Tab "Pedidos" del bottom nav<br>
+          <strong>Archivo:</strong> main_shell.dart<br>
+          <span class="tag size">24px (default)</span>
+        </div>
+      </div>
+    </div>
+    <div class="icon-card" data-tags="nav profile">
+      <div class="icon-preview"><span class="material-icons-outlined">person</span></div>
+      <div class="icon-info">
+        <div class="icon-name">Icons.person_outlined / Icons.person_rounded</div>
+        <span class="icon-type type-material">Material</span>
+        <div class="icon-details">
+          <strong>Uso:</strong> Tab "Perfil" del bottom nav<br>
+          <strong>Archivo:</strong> main_shell.dart<br>
+          <span class="tag size">24px (default)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== CATEGORIAS ========== -->
+<div class="section" id="categories" data-group="category">
+  <div class="section-head">
+    <h2>Categorias de Productos</h2>
+    <span class="count">15 iconos</span>
+  </div>
+  <p class="section-desc">Iconos centralizados en <code>category_icon_box.dart</code>. Se usan en 2 tamanos: compacto (24px) y grande (32px). Fondo adaptable a tema claro/oscuro.</p>
+  <div class="icon-grid">
+    <div class="icon-card" data-tags="category default"><div class="icon-preview gold"><span class="material-icons-round">shopping_bag</span></div><div class="icon-info"><div class="icon-name">Icons.shopping_bag_rounded</div><span class="icon-type type-material">Material Round</span><div class="icon-details"><strong>Uso:</strong> Icono por defecto para categorias sin asignar<br><strong>Archivo:</strong> category_icon_box.dart<br><span class="tag size">24px / 32px</span><span class="tag color"><span class="color-swatch" style="background:#F7B104"></span>#F7B104</span></div></div></div>
+    <div class="icon-card" data-tags="category food"><div class="icon-preview dark"><span class="material-icons-round">restaurant</span></div><div class="icon-info"><div class="icon-name">Icons.restaurant_rounded</div><span class="icon-type type-material">Material Round</span><div class="icon-details"><strong>Uso:</strong> Categoria "Alimentos"<br><strong>Archivo:</strong> category_icon_box.dart<br><span class="tag size">24px / 32px</span><span class="tag color"><span class="color-swatch" style="background:#1A1A2E"></span>Navy bg</span><span class="tag color"><span class="color-swatch" style="background:#F7B104"></span>Gold icon</span></div></div></div>
+    <div class="icon-card" data-tags="category treats snacks"><div class="icon-preview dark"><span class="material-icons-round">cookie</span></div><div class="icon-info"><div class="icon-name">Icons.cookie_rounded</div><span class="icon-type type-material">Material Round</span><div class="icon-details"><strong>Uso:</strong> Categoria "Snacks / Premios"<br><strong>Archivo:</strong> category_icon_box.dart<br><span class="tag size">24px / 32px</span><span class="tag color"><span class="color-swatch" style="background:#1A1A2E"></span>Navy bg</span><span class="tag color"><span class="color-swatch" style="background:#F7B104"></span>Gold icon</span></div></div></div>
+    <div class="icon-card" data-tags="category exercise toys"><div class="icon-preview dark"><span class="material-icons-round">fitness_center</span></div><div class="icon-info"><div class="icon-name">Icons.fitness_center_rounded</div><span class="icon-type type-material">Material Round</span><div class="icon-details"><strong>Uso:</strong> Categoria "Ejercicio / Fitness"<br><strong>Archivo:</strong> category_icon_box.dart<br><span class="tag size">24px / 32px</span><span class="tag color"><span class="color-swatch" style="background:#1A1A2E"></span>Navy bg</span><span class="tag color"><span class="color-swatch" style="background:#F7B104"></span>Gold icon</span></div></div></div>
+    <div class="icon-card" data-tags="category travel"><div class="icon-preview dark"><span class="material-icons-round">luggage</span></div><div class="icon-info"><div class="icon-name">Icons.luggage_rounded</div><span class="icon-type type-material">Material Round</span><div class="icon-details"><strong>Uso:</strong> Categoria "Viaje / Transporte"<br><strong>Archivo:</strong> category_icon_box.dart<br><span class="tag size">24px / 32px</span><span class="tag color"><span class="color-swatch" style="background:#1A1A2E"></span>Navy bg</span><span class="tag color"><span class="color-swatch" style="background:#F7B104"></span>Gold icon</span></div></div></div>
+    <div class="icon-card" data-tags="category toys sports"><div class="icon-preview dark"><span class="material-icons-round">sports_baseball</span></div><div class="icon-info"><div class="icon-name">Icons.sports_baseball_rounded</div><span class="icon-type type-material">Material Round</span><div class="icon-details"><strong>Uso:</strong> Categoria "Juguetes"<br><strong>Archivo:</strong> category_icon_box.dart<br><span class="tag size">24px / 32px</span><span class="tag color"><span class="color-swatch" style="background:#1A1A2E"></span>Navy bg</span><span class="tag color"><span class="color-swatch" style="background:#F7B104"></span>Gold icon</span></div></div></div>
+    <div class="icon-card" data-tags="category pets general"><div class="icon-preview dark"><span class="material-icons-round">pets</span></div><div class="icon-info"><div class="icon-name">Icons.pets_rounded</div><span class="icon-type type-material">Material Round</span><div class="icon-details"><strong>Uso:</strong> Categoria "Mascotas" / General<br><strong>Archivo:</strong> category_icon_box.dart<br><span class="tag size">24px / 32px</span><span class="tag color"><span class="color-swatch" style="background:#1A1A2E"></span>Navy bg</span><span class="tag color"><span class="color-swatch" style="background:#F7B104"></span>Gold icon</span></div></div></div>
+    <div class="icon-card" data-tags="category health medicine"><div class="icon-preview dark"><span class="material-icons-round">medical_services</span></div><div class="icon-info"><div class="icon-name">Icons.medical_services_rounded</div><span class="icon-type type-material">Material Round</span><div class="icon-details"><strong>Uso:</strong> Categoria "Salud / Medicina"<br><strong>Archivo:</strong> category_icon_box.dart<br><span class="tag size">24px / 32px</span><span class="tag color"><span class="color-swatch" style="background:#1A1A2E"></span>Navy bg</span><span class="tag color"><span class="color-swatch" style="background:#F7B104"></span>Gold icon</span></div></div></div>
+    <div class="icon-card" data-tags="category wellness heart"><div class="icon-preview gold"><span class="material-icons-round">favorite</span></div><div class="icon-info"><div class="icon-name">Icons.favorite_rounded</div><span class="icon-type type-material">Material Round</span><div class="icon-details"><strong>Uso:</strong> Categoria "Bienestar"<br><strong>Archivo:</strong> category_icon_box.dart<br><span class="tag size">24px / 32px</span><span class="tag color"><span class="color-swatch" style="background:#F7B104"></span>#F7B104</span></div></div></div>
+    <div class="icon-card" data-tags="category bed bedding"><div class="icon-preview gold"><span class="material-icons-round">bed</span></div><div class="icon-info"><div class="icon-name">Icons.bed_rounded</div><span class="icon-type type-material">Material Round</span><div class="icon-details"><strong>Uso:</strong> Categoria "Camas / Descanso"<br><strong>Archivo:</strong> category_icon_box.dart<br><span class="tag size">24px / 32px</span><span class="tag color"><span class="color-swatch" style="background:#F7B104"></span>#F7B104</span></div></div></div>
+    <div class="icon-card" data-tags="category clothing"><div class="icon-preview gold"><span class="material-icons-round">checkroom</span></div><div class="icon-info"><div class="icon-name">Icons.checkroom_rounded</div><span class="icon-type type-material">Material Round</span><div class="icon-details"><strong>Uso:</strong> Categoria "Ropa / Vestimenta"<br><strong>Archivo:</strong> category_icon_box.dart<br><span class="tag size">24px / 32px</span><span class="tag color"><span class="color-swatch" style="background:#F7B104"></span>#F7B104</span></div></div></div>
+    <div class="icon-card" data-tags="category water hydration"><div class="icon-preview dark"><span class="material-icons-round">water_drop</span></div><div class="icon-info"><div class="icon-name">Icons.water_drop_rounded</div><span class="icon-type type-material">Material Round</span><div class="icon-details"><strong>Uso:</strong> Categoria "Agua / Hidratacion"<br><strong>Archivo:</strong> category_icon_box.dart<br><span class="tag size">24px / 32px</span><span class="tag color"><span class="color-swatch" style="background:#1A1A2E"></span>Navy bg</span><span class="tag color"><span class="color-swatch" style="background:#F7B104"></span>Gold icon</span></div></div></div>
+    <div class="icon-card" data-tags="category cleaning hygiene"><div class="icon-preview dark"><span class="material-icons-round">cleaning_services</span></div><div class="icon-info"><div class="icon-name">Icons.cleaning_services_rounded</div><span class="icon-type type-material">Material Round</span><div class="icon-details"><strong>Uso:</strong> Categoria "Limpieza / Higiene"<br><strong>Archivo:</strong> category_icon_box.dart<br><span class="tag size">24px / 32px</span><span class="tag color"><span class="color-swatch" style="background:#1A1A2E"></span>Navy bg</span><span class="tag color"><span class="color-swatch" style="background:#F7B104"></span>Gold icon</span></div></div></div>
+    <div class="icon-card" data-tags="category accessories"><div class="icon-preview gold"><span class="material-icons-round">auto_awesome</span></div><div class="icon-info"><div class="icon-name">Icons.auto_awesome_rounded</div><span class="icon-type type-material">Material Round</span><div class="icon-details"><strong>Uso:</strong> Categoria "Accesorios"<br><strong>Archivo:</strong> category_icon_box.dart<br><span class="tag size">24px / 32px</span><span class="tag color"><span class="color-swatch" style="background:#F7B104"></span>Gold (claro) / Negro (oscuro)</span></div></div></div>
+    <div class="icon-card" data-tags="category services grooming"><div class="icon-preview gold"><span class="material-icons-round">build</span></div><div class="icon-info"><div class="icon-name">Icons.build_rounded</div><span class="icon-type type-material">Material Round</span><div class="icon-details"><strong>Uso:</strong> Categoria "Servicios"<br><strong>Archivo:</strong> category_icon_box.dart<br><span class="tag size">24px / 32px</span><span class="tag color"><span class="color-swatch" style="background:#F7B104"></span>#F7B104</span></div></div></div>
+  </div>
+</div>
+
+<!-- ========== COMERCIO ========== -->
+<div class="section" id="commerce" data-group="commerce">
+  <div class="section-head"><h2>Comercio, Carrito y Checkout</h2><span class="count">13 iconos</span></div>
+  <div class="icon-grid">
+    <div class="icon-card" data-tags="commerce cart"><div class="icon-preview"><span class="material-icons-outlined">shopping_cart</span></div><div class="icon-info"><div class="icon-name">Icons.shopping_cart_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Badge del carrito (header)<br><strong>Archivo:</strong> cart_badge.dart<br><span class="tag size">24px</span><span class="tag screen">Home, Catalogo</span></div></div></div>
+    <div class="icon-card" data-tags="commerce cart add"><div class="icon-preview"><span class="material-icons">add_shopping_cart</span></div><div class="icon-info"><div class="icon-name">Icons.add_shopping_cart</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Boton "Agregar al carrito"<br><strong>Archivo:</strong> product_detail_screen.dart<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce cart remove"><div class="icon-preview"><span class="material-icons-outlined">remove_shopping_cart</span></div><div class="icon-info"><div class="icon-name">Icons.remove_shopping_cart_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Boton "Quitar del carrito"<br><strong>Archivo:</strong> product_detail_screen.dart<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce add plus"><div class="icon-preview"><span class="material-icons-round">add</span></div><div class="icon-info"><div class="icon-name">Icons.add / Icons.add_rounded</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Boton + en product card, agregar direccion, cantidad<br><strong>Archivos:</strong> product_card.dart, addresses_screen.dart, checkout_screen.dart<br><span class="tag size">16px - 18px</span><span class="tag screen">Catalogo, Direcciones, Checkout</span></div></div></div>
+    <div class="icon-card" data-tags="commerce favorite"><div class="icon-preview" style="color:var(--error)"><span class="material-icons-round">favorite</span></div><div class="icon-info"><div class="icon-name">Icons.favorite_rounded / Icons.favorite_border_rounded</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Boton favorito en product card y detalle<br><strong>Archivos:</strong> product_card.dart, product_detail_screen.dart, favorites_screen.dart<br><span class="tag size">24px</span><span class="tag">filled = favorito, border = no favorito</span></div></div></div>
+    <div class="icon-card" data-tags="commerce share"><div class="icon-preview"><span class="material-icons-outlined">share</span></div><div class="icon-info"><div class="icon-name">Icons.share_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Boton compartir producto<br><strong>Archivo:</strong> product_detail_screen.dart<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce payment credit card"><div class="icon-preview info"><span class="material-icons">credit_card</span></div><div class="icon-info"><div class="icon-name">Icons.credit_card</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Selector metodo de pago, confirmacion de orden<br><strong>Archivos:</strong> checkout_screen.dart, order_confirmation_screen.dart, payment_status_screen.dart<br><span class="tag size">24px / 40px</span><span class="tag color"><span class="color-swatch" style="background:#3b82f6"></span>Info blue</span></div></div></div>
+    <div class="icon-card" data-tags="commerce payment yappy phone"><div class="icon-preview warning"><span class="material-icons">phone_android</span></div><div class="icon-info"><div class="icon-name">Icons.phone_android</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Opcion de pago Yappy<br><strong>Archivos:</strong> checkout_screen.dart, payment_status_screen.dart<br><span class="tag size">24px / 40px</span><span class="tag color"><span class="color-swatch" style="background:#f59e0b"></span>Warning amber</span></div></div></div>
+    <div class="icon-card" data-tags="commerce delivery shipping"><div class="icon-preview"><span class="material-icons-outlined">delivery_dining</span></div><div class="icon-info"><div class="icon-name">Icons.delivery_dining / Icons.delivery_dining_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Opcion delivery en checkout, tracking<br><strong>Archivos:</strong> checkout_screen.dart, order_tracking_screen.dart<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce shipping truck"><div class="icon-preview"><span class="material-icons-round">local_shipping</span></div><div class="icon-info"><div class="icon-name">Icons.local_shipping_rounded / outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Hero banner, onboarding, checkout, tracking, notificaciones<br><span class="tag size">24px</span><span class="tag screen">Multiples pantallas</span></div></div></div>
+    <div class="icon-card" data-tags="commerce pickup store"><div class="icon-preview"><span class="material-icons-outlined">store</span></div><div class="icon-info"><div class="icon-name">Icons.store_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Opcion pickup en checkout<br><strong>Archivos:</strong> checkout_screen.dart, address_selector_sheet.dart<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce delete trash"><div class="icon-preview error"><span class="material-icons-outlined">delete</span></div><div class="icon-info"><div class="icon-name">Icons.delete / Icons.delete_outline</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Limpiar carrito, eliminar item/direccion<br><strong>Archivos:</strong> cart_screen.dart, notifications_screen.dart, addresses_screen.dart<br><span class="tag size">20px / 24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce close remove"><div class="icon-preview"><span class="material-icons">close</span></div><div class="icon-info"><div class="icon-name">Icons.close</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Cerrar modal, limpiar busqueda, quitar item<br><strong>Archivos:</strong> order_confirmation_screen.dart, search_screen.dart, cart_screen.dart<br><span class="tag size">18px / 24px</span></div></div></div>
+  </div>
+</div>
+
+<!-- ========== ESTADO ========== -->
+<div class="section" id="status" data-group="status">
+  <div class="section-head"><h2>Estado de Pedidos, Tracking y Pagos</h2><span class="count">8 iconos</span></div>
+  <div class="icon-grid">
+    <div class="icon-card" data-tags="status success check"><div class="icon-preview success"><span class="material-icons-round">check_circle</span></div><div class="icon-info"><div class="icon-name">Icons.check_circle / check_circle_rounded / check_circle_outline</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Confirmacion orden, pago exitoso, tracking<br><span class="tag size">24px</span><span class="tag color"><span class="color-swatch" style="background:#22c55e"></span>Success</span></div></div></div>
+    <div class="icon-card" data-tags="status error cancel"><div class="icon-preview error"><span class="material-icons-round">cancel</span></div><div class="icon-info"><div class="icon-name">Icons.cancel_outlined / Icons.cancel_rounded</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Orden cancelada, pago fallido<br><span class="tag size">24px / 64px</span><span class="tag color"><span class="color-swatch" style="background:#ef4444"></span>Error</span></div></div></div>
+    <div class="icon-card" data-tags="status processing wait"><div class="icon-preview warning"><span class="material-icons-round">hourglass_top</span></div><div class="icon-info"><div class="icon-name">Icons.hourglass_top_rounded</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Pago en proceso<br><strong>Archivo:</strong> payment_status_screen.dart<br><span class="tag size">64px</span><span class="tag color"><span class="color-swatch" style="background:#f59e0b"></span>Warning</span></div></div></div>
+    <div class="icon-card" data-tags="status payment"><div class="icon-preview info"><span class="material-icons-round">payment</span></div><div class="icon-info"><div class="icon-name">Icons.payment_rounded</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Info de pago en detalle de orden<br><span class="tag size">24px / 64px</span><span class="tag color"><span class="color-swatch" style="background:#3b82f6"></span>Info</span></div></div></div>
+    <div class="icon-card" data-tags="status tracking preparing inventory"><div class="icon-preview"><span class="material-icons-outlined">inventory_2</span></div><div class="icon-info"><div class="icon-name">Icons.inventory_2_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Paso "Preparando" en tracking, stock, catalogo vacio<br><span class="tag size">24px / 64px</span></div></div></div>
+    <div class="icon-card" data-tags="status tracking circle pending"><div class="icon-preview"><span class="material-icons-outlined">circle</span></div><div class="icon-info"><div class="icon-name">Icons.circle_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Paso pendiente en tracking timeline<br><strong>Archivo:</strong> order_tracking_screen.dart<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="status refresh retry"><div class="icon-preview"><span class="material-icons">refresh</span></div><div class="icon-info"><div class="icon-name">Icons.refresh</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Reintentar pago<br><strong>Archivo:</strong> payment_status_screen.dart<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="status open external link"><div class="icon-preview"><span class="material-icons">open_in_new</span></div><div class="icon-info"><div class="icon-name">Icons.open_in_new</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Link externo en confirmacion<br><strong>Archivo:</strong> order_confirmation_screen.dart<br><span class="tag size">24px</span></div></div></div>
+  </div>
+</div>
+
+<!-- ========== AUTH ========== -->
+<div class="section" id="auth" data-group="auth">
+  <div class="section-head"><h2>Autenticacion, Perfil y Formularios</h2><span class="count">12 iconos</span></div>
+  <div class="icon-grid">
+    <div class="icon-card" data-tags="auth email"><div class="icon-preview"><span class="material-icons-outlined">email</span></div><div class="icon-info"><div class="icon-name">Icons.email_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Prefix campo email<br><strong>Archivos:</strong> login, registro, perfil, contacto, sucursales<br><span class="tag size">16px / 24px</span></div></div></div>
+    <div class="icon-card" data-tags="auth password lock"><div class="icon-preview"><span class="material-icons-outlined">lock</span></div><div class="icon-info"><div class="icon-name">Icons.lock_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Prefix campo contrasena<br><strong>Archivo:</strong> change_password_screen.dart<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="auth visibility password eye"><div class="icon-preview"><span class="material-icons">visibility</span></div><div class="icon-info"><div class="icon-name">Icons.visibility / Icons.visibility_off</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Toggle mostrar/ocultar contrasena<br><strong>Archivos:</strong> login, registro, cambiar contrasena<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="auth person name"><div class="icon-preview"><span class="material-icons-outlined">person</span></div><div class="icon-info"><div class="icon-name">Icons.person_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Prefix campo nombre<br><strong>Archivos:</strong> registro, editar perfil, menu perfil<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="auth phone"><div class="icon-preview"><span class="material-icons-outlined">phone</span></div><div class="icon-info"><div class="icon-name">Icons.phone_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Campo telefono, contacto, sucursales<br><span class="tag size">16px / 24px</span></div></div></div>
+    <div class="icon-card" data-tags="auth back arrow"><div class="icon-preview"><span class="material-icons">arrow_back</span></div><div class="icon-info"><div class="icon-name">Icons.arrow_back</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Boton volver en AppBar<br><strong>Archivos:</strong> detalle, registro, direcciones, checkout, pagos<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="auth logout"><div class="icon-preview error"><span class="material-icons">logout</span></div><div class="icon-info"><div class="icon-name">Icons.logout</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Boton cerrar sesion<br><strong>Archivo:</strong> profile_screen.dart<br><span class="tag size">24px</span><span class="tag color"><span class="color-swatch" style="background:#ef4444"></span>Error</span></div></div></div>
+    <div class="icon-card" data-tags="auth theme dark light"><div class="icon-preview"><span class="material-icons-round">dark_mode</span></div><div class="icon-info"><div class="icon-name">Icons.dark_mode_rounded / Icons.light_mode_rounded</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Toggle tema oscuro/claro<br><strong>Archivo:</strong> profile_screen.dart<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="auth warning delete account"><div class="icon-preview error"><span class="material-icons-round">warning</span></div><div class="icon-info"><div class="icon-name">Icons.warning_rounded</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Advertencia eliminacion de cuenta<br><strong>Archivo:</strong> delete_account_screen.dart<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="auth privacy terms legal"><div class="icon-preview"><span class="material-icons-outlined">privacy_tip</span></div><div class="icon-info"><div class="icon-name">Icons.privacy_tip_outlined / Icons.description_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Privacidad y Terminos<br><strong>Archivos:</strong> about_screen.dart, profile_screen.dart<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="auth info about"><div class="icon-preview"><span class="material-icons-outlined">info</span></div><div class="icon-info"><div class="icon-name">Icons.info_outlined / Icons.info_outline</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Tips informativos, "Acerca de"<br><span class="tag size">18px - 20px</span><span class="tag color"><span class="color-swatch" style="background:#3b82f6"></span>Info / primaryDark</span></div></div></div>
+    <div class="icon-card" data-tags="auth chevron menu"><div class="icon-preview"><span class="material-icons">chevron_right</span></div><div class="icon-info"><div class="icon-name">Icons.chevron_right</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Indicador nav en items de menu<br><strong>Archivos:</strong> profile_screen.dart, about_screen.dart<br><span class="tag size">24px</span></div></div></div>
+  </div>
+</div>
+
+<!-- ========== BUSQUEDA / UI ========== -->
+<div class="section" id="search-ui" data-group="commerce">
+  <div class="section-head"><h2>Busqueda, Catalogo y UI General</h2><span class="count">9 iconos</span></div>
+  <div class="icon-grid">
+    <div class="icon-card" data-tags="commerce search"><div class="icon-preview"><span class="material-icons">search</span></div><div class="icon-info"><div class="icon-name">Icons.search</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Boton buscar, estado vacio<br><strong>Archivos:</strong> home, catalogo, busqueda<br><span class="tag size">24px / 64px (vacio)</span></div></div></div>
+    <div class="icon-card" data-tags="commerce search off empty"><div class="icon-preview"><span class="material-icons">search_off</span></div><div class="icon-info"><div class="icon-name">Icons.search_off</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Sin resultados<br><strong>Archivo:</strong> search_screen.dart<br><span class="tag size">64px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce filter tune"><div class="icon-preview"><span class="material-icons-round">tune</span></div><div class="icon-info"><div class="icon-name">Icons.tune_rounded</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Boton de filtros<br><strong>Archivos:</strong> home, catalogo<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce dropdown arrow"><div class="icon-preview"><span class="material-icons">keyboard_arrow_down</span></div><div class="icon-info"><div class="icon-name">Icons.keyboard_arrow_down / _rounded</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Seccion colapsable, dropdown<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce forward chevron carousel"><div class="icon-preview"><span class="material-icons-round">arrow_forward_ios</span></div><div class="icon-info"><div class="icon-name">Icons.arrow_forward_ios_rounded</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> "Ver mas" en carrusel<br><strong>Archivo:</strong> product_carousel_section.dart<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce notification bell"><div class="icon-preview"><span class="material-icons-outlined">notifications</span></div><div class="icon-info"><div class="icon-name">Icons.notifications_outlined / _none_rounded</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Campana notificaciones, estado vacio<br><span class="tag size">24px / 72px (vacio)</span></div></div></div>
+    <div class="icon-card" data-tags="commerce promotion offer"><div class="icon-preview gold"><span class="material-icons-outlined">local_offer</span></div><div class="icon-info"><div class="icon-name">Icons.local_offer_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Notificacion de promocion<br><span class="tag size">24px</span><span class="tag color"><span class="color-swatch" style="background:#F7B104"></span>Gold</span></div></div></div>
+    <div class="icon-card" data-tags="commerce image placeholder product"><div class="icon-preview"><span class="material-icons-outlined">image</span></div><div class="icon-info"><div class="icon-name">Icons.image / Icons.image_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Placeholder cuando imagen no carga<br><span class="tag size">20px / 28px / 40px / 80px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce error empty state"><div class="icon-preview"><span class="material-icons-outlined">error_outline</span></div><div class="icon-info"><div class="icon-name">Icons.error_outline</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Estados vacios y de error<br><span class="tag size">48px / 64px</span></div></div></div>
+  </div>
+</div>
+
+<!-- ========== UBICACION ========== -->
+<div class="section" id="location" data-group="commerce">
+  <div class="section-head"><h2>Ubicacion, Direcciones y Sucursales</h2><span class="count">9 iconos</span></div>
+  <div class="icon-grid">
+    <div class="icon-card" data-tags="commerce location address pin"><div class="icon-preview"><span class="material-icons">location_on</span></div><div class="icon-info"><div class="icon-name">Icons.location_on / _outlined / _rounded</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Pin ubicacion, selector direccion, sucursales<br><span class="tag size">16px / 24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce location pin map"><div class="icon-preview"><span class="material-icons">location_pin</span></div><div class="icon-info"><div class="icon-name">Icons.location_pin</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Marcador en mapa<br><strong>Archivo:</strong> add_address_screen.dart<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce location off empty"><div class="icon-preview"><span class="material-icons-outlined">location_off</span></div><div class="icon-info"><div class="icon-name">Icons.location_off_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Sin direccion, estado vacio<br><span class="tag size">24px / 64px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce location city"><div class="icon-preview"><span class="material-icons-outlined">location_city</span></div><div class="icon-info"><div class="icon-name">Icons.location_city_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Campo ciudad en formulario<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce my location gps"><div class="icon-preview"><span class="material-icons">my_location</span></div><div class="icon-info"><div class="icon-name">Icons.my_location</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Boton "Mi ubicacion actual"<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce edit location"><div class="icon-preview"><span class="material-icons">edit_location_alt</span></div><div class="icon-info"><div class="icon-name">Icons.edit_location_alt</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Editar ubicacion en mapa<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce near distance"><div class="icon-preview gold"><span class="material-icons">near_me</span></div><div class="icon-info"><div class="icon-name">Icons.near_me</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Indicador distancia a sucursal<br><span class="tag size">12px / 14px</span><span class="tag color"><span class="color-swatch" style="background:#F7B104"></span>Gold</span></div></div></div>
+    <div class="icon-card" data-tags="commerce directions map car"><div class="icon-preview"><span class="material-icons-outlined">directions_car</span></div><div class="icon-info"><div class="icon-name">Icons.directions_car_outlined / Icons.map_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> "Como llegar" y "Mapa"<br><strong>Archivo:</strong> branches_screen.dart<br><span class="tag size">16px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce label tag address"><div class="icon-preview"><span class="material-icons-outlined">label</span></div><div class="icon-info"><div class="icon-name">Icons.label_outlined / Icons.work_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Etiqueta direccion (casa, trabajo)<br><span class="tag size">24px</span></div></div></div>
+  </div>
+</div>
+
+<!-- ========== ONBOARDING ========== -->
+<div class="section" id="onboarding" data-group="commerce">
+  <div class="section-head"><h2>Onboarding y Hero Banner</h2><span class="count">9 iconos</span></div>
+  <div class="icon-grid">
+    <div class="icon-card" data-tags="commerce onboarding pets paw"><div class="icon-preview"><span class="material-icons-round">pets</span></div><div class="icon-info"><div class="icon-name">Icons.pets_rounded</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Feature onboarding, hero banner<br><strong>Archivos:</strong> onboarding, hero_banner, registro<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce onboarding shopping bag"><div class="icon-preview"><span class="material-icons-round">shopping_bag</span></div><div class="icon-info"><div class="icon-name">Icons.shopping_bag_rounded</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Feature onboarding "Compra facil"<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce onboarding shipping truck"><div class="icon-preview"><span class="material-icons-round">local_shipping</span></div><div class="icon-info"><div class="icon-name">Icons.local_shipping_rounded</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Feature onboarding "Delivery"<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce onboarding heart favorite"><div class="icon-preview"><span class="material-icons-round">favorite</span></div><div class="icon-info"><div class="icon-name">Icons.favorite_rounded</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Feature onboarding "Ama a tu mascota"<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce onboarding storefront"><div class="icon-preview"><span class="material-icons-round">storefront</span></div><div class="icon-info"><div class="icon-name">Icons.storefront_rounded</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Hero banner, boton "seguir comprando"<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce register pet rabbit"><div class="icon-preview"><span class="material-icons">cruelty_free</span></div><div class="icon-info"><div class="icon-name">Icons.cruelty_free_rounded</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Icono mascota en registro<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce chat support"><div class="icon-preview"><span class="material-icons-outlined">chat</span></div><div class="icon-info"><div class="icon-name">Icons.chat_outlined</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Contacto por chat<br><strong>Archivo:</strong> about_screen.dart<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce support phone tracking"><div class="icon-preview"><span class="material-icons">phone</span></div><div class="icon-info"><div class="icon-name">Icons.phone</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Boton llamar soporte<br><strong>Archivo:</strong> order_tracking_screen.dart<br><span class="tag size">24px</span></div></div></div>
+    <div class="icon-card" data-tags="commerce store branch header"><div class="icon-preview"><span class="material-icons">store</span></div><div class="icon-info"><div class="icon-name">Icons.store / Icons.pets</div><span class="icon-type type-material">Material</span><div class="icon-details"><strong>Uso:</strong> Header sucursal, icono Black Dog<br><strong>Archivo:</strong> branches_screen.dart<br><span class="tag size">24px</span></div></div></div>
+  </div>
+</div>
+
+<!-- ========== ASSETS ========== -->
+<div class="section" id="assets" data-group="asset">
+  <div class="section-head"><h2>Assets de Imagen</h2><span class="count">8 archivos</span></div>
+  <p class="section-desc">Imagenes rasterizadas y vectoriales usadas en la app. Las PNG necesitan versiones para 1x, 2x y 3x.</p>
+  <div class="icon-grid">
+    <div class="icon-card" data-tags="asset logo main"><div class="asset-preview" style="background:var(--navy);"><img src="assets/icons/Black_Dog_Logo_V.png" alt="Black Dog Logo Vertical"></div><div class="icon-info"><div class="icon-name">assets/icons/Black_Dog_Logo_V.png</div><span class="icon-type type-asset">Asset PNG</span><div class="icon-details"><strong>Uso:</strong> Logo principal vertical (headers, splash, perfil, about)<br><strong>Archivos:</strong> splash, catalogo, sucursales, pedidos, about, perfil<br><span class="tag size">40-120px height</span><span class="tag">Tema claro y oscuro</span></div></div></div>
+    <div class="icon-card" data-tags="asset logo head"><div class="asset-preview"><img src="assets/icons/Logo_Head.png" alt="Logo Head"></div><div class="icon-info"><div class="icon-name">assets/icons/Logo_Head.png</div><span class="icon-type type-asset">Asset PNG</span><div class="icon-details"><strong>Uso:</strong> Logo cabeza (icono compacto)<br><span class="tag size">Cuadrado</span></div></div></div>
+    <div class="icon-card" data-tags="asset logo svg vector"><div class="asset-preview"><img src="assets/icons/BlackDogLOGO.svg" alt="Logo SVG"></div><div class="icon-info"><div class="icon-name">assets/icons/BlackDogLOGO.svg</div><span class="icon-type type-asset" style="background:rgba(52,211,153,0.15);color:#34D399;">Asset SVG</span><div class="icon-details"><strong>Uso:</strong> Logo vectorial (escalable)<br><span class="tag size">Vectorial</span></div></div></div>
+    <div class="icon-card" data-tags="asset app icon launcher"><div class="asset-preview"><img src="assets/icons/app_icon.png" alt="App Icon"></div><div class="icon-info"><div class="icon-name">assets/icons/app_icon.png</div><span class="icon-type type-asset">Asset PNG</span><div class="icon-details"><strong>Uso:</strong> Launcher icon (iOS/Android)<br><span class="tag size">1024 x 1024 px (base)</span><span class="tag">Multiples resoluciones</span></div></div></div>
+    <div class="icon-card" data-tags="asset logo horizontal light"><div class="asset-preview"><img src="assets/images/logo.png" alt="Logo claro"></div><div class="icon-info"><div class="icon-name">assets/images/logo.png</div><span class="icon-type type-asset">Asset PNG</span><div class="icon-details"><strong>Uso:</strong> Logo horizontal tema claro<br><strong>Archivos:</strong> login, home<br><span class="tag size">height ~40px</span><span class="tag">Solo tema claro</span></div></div></div>
+    <div class="icon-card" data-tags="asset logo horizontal dark"><div class="asset-preview" style="background:var(--navy);"><img src="assets/images/logo_dark.png" alt="Logo oscuro"></div><div class="icon-info"><div class="icon-name">assets/images/logo_dark.png</div><span class="icon-type type-asset">Asset PNG</span><div class="icon-details"><strong>Uso:</strong> Logo horizontal tema oscuro<br><strong>Archivos:</strong> login, home<br><span class="tag size">height ~40px</span><span class="tag">Solo tema oscuro</span></div></div></div>
+    <div class="icon-card" data-tags="asset google sign in"><div class="asset-preview"><img src="assets/images/google_logo.png" alt="Google Logo"></div><div class="icon-info"><div class="icon-name">assets/images/google_logo.png</div><span class="icon-type type-asset">Asset PNG</span><div class="icon-details"><strong>Uso:</strong> Boton Google Sign-In<br><strong>Archivos:</strong> login, registro<br><span class="tag size">20 x 20 px</span><span class="tag">Logo oficial Google</span></div></div></div>
+    <div class="icon-card" data-tags="asset google sign in svg"><div class="asset-preview"><img src="assets/images/google_logo.svg" alt="Google Logo SVG"></div><div class="icon-info"><div class="icon-name">assets/images/google_logo.svg</div><span class="icon-type type-asset" style="background:rgba(52,211,153,0.15);color:#34D399;">Asset SVG</span><div class="icon-details"><strong>Uso:</strong> Google Sign-In (vectorial)<br><span class="tag size">Vectorial</span><span class="tag">Logo oficial Google</span></div></div></div>
+  </div>
+</div>
+
+<!-- ========== TABLA TAMANOS ========== -->
+<div class="section" id="sizes">
+  <div class="section-head"><h2>Tabla Resumen de Tamanos</h2></div>
+  <p class="section-desc">Referencia rapida para que la disenadora exporte en las medidas correctas.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Tamano</th><th>Contexto de uso</th><th>Donde</th><th>Notas</th></tr></thead>
+    <tbody>
+      <tr><td><strong>6px</strong></td><td>Bullet point / indicador</td><td>delete_account_screen.dart</td><td>Icons.circle como vineta</td></tr>
+      <tr><td><strong>12-14px</strong></td><td>Iconos detalle pequeno</td><td>branches_screen.dart</td><td>near_me, indicadores info</td></tr>
+      <tr><td><strong>16px</strong></td><td>Iconos info en listas</td><td>branches, product_card, cart</td><td>Telefono, email, ubicacion, boton +</td></tr>
+      <tr><td><strong>18px</strong></td><td>Botones pequenos, tips</td><td>address_selector, cart, add_address</td><td>Add, close, info</td></tr>
+      <tr><td><strong>20px</strong></td><td>Formularios, badges</td><td>addresses, delete_account, edit_address</td><td>Delete, info_outline, Google icon</td></tr>
+      <tr class="highlight"><td><strong>24px (default)</strong></td><td>Tamano estandar Material</td><td>Mayoria de la app</td><td>Tamano por defecto de Flutter</td></tr>
+      <tr><td><strong>24px / 32px</strong></td><td>Iconos de categoria</td><td>category_icon_box.dart</td><td>24px compacto, 32px grande</td></tr>
+      <tr><td><strong>28px</strong></td><td>Placeholder imagen (card)</td><td>product_card.dart</td><td>Cuando imagen no carga</td></tr>
+      <tr><td><strong>40px</strong></td><td>Iconos medianos</td><td>product_card, confirmacion, pagos</td><td>Placeholder imagen, icono pago</td></tr>
+      <tr><td><strong>48px</strong></td><td>Estados vacios / errores</td><td>addresses, profile, detalle, catalogo</td><td>error_outline pantallas vacias</td></tr>
+      <tr><td><strong>64px</strong></td><td>Iconos grandes estado</td><td>pagos, catalogo, busqueda, direcciones</td><td>Cancel, hourglass, payment</td></tr>
+      <tr><td><strong>72px</strong></td><td>Estado vacio prominente</td><td>notifications_screen.dart</td><td>Campana notificaciones vacia</td></tr>
+      <tr><td><strong>80px</strong></td><td>Placeholder grande</td><td>product_detail_screen.dart</td><td>Imagen principal no carga</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- ========== PALETA COLORES ========== -->
+<div class="section" id="colors">
+  <div class="section-head"><h2>Paleta de Colores de Iconos</h2></div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Color</th><th>Hex / Token</th><th>Uso</th></tr></thead>
+    <tbody>
+      <tr><td><span class="color-swatch" style="background:#F7B104"></span> <strong>Gold (Primary)</strong></td><td>#F7B104</td><td>Categorias, iconos activos, distancia, promociones</td></tr>
+      <tr><td><span class="color-swatch" style="background:#1A1A2E"></span> <strong>Navy (Secondary)</strong></td><td>#1A1A2E</td><td>Fondo iconos categoria (claro), iconos default</td></tr>
+      <tr><td><span class="color-swatch" style="background:#22c55e"></span> <strong>Success Green</strong></td><td>Theme success</td><td>Confirmacion, pago exitoso, stock</td></tr>
+      <tr><td><span class="color-swatch" style="background:#ef4444"></span> <strong>Error Red</strong></td><td>Theme error</td><td>Logout, delete, cancelado, pago fallido</td></tr>
+      <tr><td><span class="color-swatch" style="background:#3b82f6"></span> <strong>Info Blue</strong></td><td>Theme info</td><td>Tips informativos, pagos, contacto</td></tr>
+      <tr><td><span class="color-swatch" style="background:#f59e0b"></span> <strong>Warning Amber</strong></td><td>Theme warning</td><td>Procesando pago, Yappy</td></tr>
+      <tr><td><span class="color-swatch" style="background:#9ca3af"></span> <strong>Text Light</strong></td><td>AppColors.textLight</td><td>Placeholders, estados vacios, disabled</td></tr>
+      <tr><td><span class="color-swatch" style="background:#6b7280"></span> <strong>Text Secondary</strong></td><td>AppColors.textSecondary</td><td>Info secundaria (telefono, email)</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- ========== NOTAS ========== -->
+<div class="section" id="notes">
+  <div class="section-head"><h2>Notas para la Disenadora</h2></div>
+
+  <div class="notes-card">
+    <h3><span class="material-icons-outlined">info</span> General</h3>
+    <ul>
+      <li><strong>Todos los iconos actuales son Material Icons</strong> (Google). No se usa Font Awesome, Cupertino ni SVGs custom.</li>
+      <li>Si se reemplazan por iconos custom, deben exportarse como <strong>SVG</strong> (preferido) o PNG en 1x/2x/3x.</li>
+      <li>El tamano base es <strong>24x24px</strong> para la mayoria de iconos. Exportar en multiplos de 24.</li>
+      <li>Los iconos de categoria necesitan 2 variantes: <strong>24px</strong> (chips) y <strong>32px</strong> (cajas grandes).</li>
+    </ul>
+  </div>
+
+  <div class="notes-card">
+    <h3><span class="material-icons-outlined">dark_mode</span> Temas (Claro / Oscuro)</h3>
+    <ul>
+      <li>La app soporta <strong>tema claro y oscuro</strong>. Los iconos deben funcionar en ambos.</li>
+      <li>Categorias usan fondo navy (#1A1A2E) con icono dorado en tema claro, y se invierten en oscuro.</li>
+      <li>Los logos tienen variantes separadas: <code>logo.png</code> (claro) y <code>logo_dark.png</code> (oscuro).</li>
+    </ul>
+  </div>
+
+  <div class="notes-card">
+    <h3><span class="material-icons-outlined">priority_high</span> Prioridad para Redesenio</h3>
+    <ul>
+      <li><span class="priority-tag high">Alta</span> 5 iconos de navegacion (bottom bar) &mdash; son lo mas visible</li>
+      <li><span class="priority-tag high">Alta</span> 15 iconos de categorias &mdash; representan la identidad de la marca</li>
+      <li><span class="priority-tag mid">Media</span> Iconos de comercio (carrito, favoritos, compartir, pago)</li>
+      <li><span class="priority-tag low">Baja</span> Iconos de formulario (email, lock, person) &mdash; se pueden dejar Material</li>
+      <li><span class="priority-tag low">Baja</span> Iconos de estado (error, vacio, check) &mdash; funcionales, no necesitan branding</li>
+    </ul>
+  </div>
+
+  <div class="notes-card">
+    <h3><span class="material-icons-outlined">image</span> Assets que Necesitan Atencion</h3>
+    <ul>
+      <li><code>Black_Dog_Logo_V.png</code> &mdash; Logo vertical, se usa en 6+ pantallas. Verificar calidad en todas las resoluciones.</li>
+      <li><code>logo.png</code> / <code>logo_dark.png</code> &mdash; Logos horizontales para header. Necesitan versiones tema claro y oscuro.</li>
+      <li><code>google_logo.png</code> &mdash; Logo de Google 20x20, debe cumplir con guidelines de Google Sign-In branding.</li>
+    </ul>
+  </div>
+</div>
+
+</div><!-- /content-area -->
+
+<div class="page-footer">
+  <span>Black Dog Panama</span> &middot; Inventario de Iconos &middot; Marzo 2026 &middot; Branch Version1.0
+</div>
+
+</main>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <div class="lightbox-inner">
+    <button class="lightbox-close" onclick="closeLightbox(event, true)"><span class="material-icons" style="font-size:18px">close</span></button>
+    <div class="lightbox-preview" id="lbPreview"></div>
+    <div class="lightbox-name" id="lbName"></div>
+    <div class="lightbox-badge" id="lbBadge"></div>
+    <div class="lightbox-details" id="lbDetails"></div>
+  </div>
+</div>
+
+<script>
+let currentFilter = 'all';
+
+function filterCards() {
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('.icon-card').forEach(card => {
+    const text = card.textContent.toLowerCase();
+    const tags = (card.dataset.tags || '').toLowerCase();
+    const matchesSearch = !query || text.includes(query) || tags.includes(query);
+    const matchesFilter = currentFilter === 'all' || tags.includes(currentFilter) ||
+      card.closest('.section')?.dataset.group === currentFilter;
+    card.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
+  });
+  document.querySelectorAll('.section').forEach(sec => {
+    const visibleCards = sec.querySelectorAll('.icon-card:not([style*="display: none"])');
+    const hasCards = sec.querySelectorAll('.icon-card').length > 0;
+    if (hasCards) sec.style.display = visibleCards.length > 0 ? '' : 'none';
+  });
+}
+
+function filterByCategory(cat, btn) {
+  currentFilter = cat;
+  document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterCards();
+}
+
+function setActive(el) {
+  document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  if (window.innerWidth <= 1024) toggleSidebar();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+
+// Intersection Observer for sidebar active state
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      if (id) {
+        document.querySelectorAll('.sidebar-nav a').forEach(a => {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+        });
+      }
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+document.querySelectorAll('.section[id]').forEach(s => observer.observe(s));
+
+// Lightbox
+function openLightbox(card) {
+  const lb = document.getElementById('lightbox');
+  const preview = card.querySelector('.icon-preview, .asset-preview');
+  const name = card.querySelector('.icon-name');
+  const badge = card.querySelector('.icon-type');
+  const details = card.querySelector('.icon-details');
+
+  // Build preview
+  const lbPreview = document.getElementById('lbPreview');
+  const isAsset = preview.classList.contains('asset-preview');
+
+  if (isAsset) {
+    const img = preview.querySelector('img');
+    const bgStyle = preview.getAttribute('style') || '';
+    lbPreview.className = 'lightbox-preview type-asset';
+    lbPreview.setAttribute('style', bgStyle);
+    lbPreview.innerHTML = img ? `<img src="${img.src}" alt="${img.alt || ''}">` : '';
+  } else {
+    const iconSpan = preview.querySelector('span');
+    const bgClass = preview.classList.contains('gold') ? 'bg-gold' :
+                    preview.classList.contains('dark') ? 'bg-dark' :
+                    preview.classList.contains('error') ? 'bg-error' :
+                    preview.classList.contains('success') ? 'bg-success' :
+                    preview.classList.contains('info') ? 'bg-info' :
+                    preview.classList.contains('warning') ? 'bg-warning' : '';
+    const inlineStyle = preview.getAttribute('style') || '';
+    lbPreview.className = `lightbox-preview type-icon ${bgClass}`;
+    if (inlineStyle) lbPreview.setAttribute('style', inlineStyle + ';font-size:80px');
+    else lbPreview.removeAttribute('style');
+    lbPreview.innerHTML = iconSpan ? `<span class="${iconSpan.className}" style="font-size:80px">${iconSpan.textContent}</span>` : '';
+  }
+
+  // Name
+  document.getElementById('lbName').textContent = name ? name.textContent : '';
+
+  // Badge
+  const lbBadge = document.getElementById('lbBadge');
+  if (badge) {
+    lbBadge.textContent = badge.textContent;
+    lbBadge.className = 'lightbox-badge';
+    lbBadge.style.background = getComputedStyle(badge).background;
+    lbBadge.style.color = getComputedStyle(badge).color;
+  } else {
+    lbBadge.textContent = '';
+  }
+
+  // Details
+  document.getElementById('lbDetails').innerHTML = details ? details.innerHTML : '';
+
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox(e, force) {
+  if (force || e.target === document.getElementById('lightbox')) {
+    document.getElementById('lightbox').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeLightbox(null, true);
+});
+
+// Attach click handlers to all cards
+document.querySelectorAll('.icon-card').forEach(card => {
+  card.addEventListener('click', () => openLightbox(card));
+});
+</script>
+
+</body>
+</html>
