@@ -21,7 +21,9 @@
       "Bash(dart analyze:*)",
       "Bash(pip3 install:*)",
       "Bash(python3:*)",
-      "Bash(keytool:*)"
+      "Bash(keytool:*)",
+      "Bash(vercel:*)",
+      "Bash(npx vercel:*)"
     ]
   }
 }
