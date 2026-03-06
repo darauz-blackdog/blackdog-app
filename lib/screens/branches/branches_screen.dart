@@ -65,18 +65,48 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
           _userPosition = position;
           _locationLoading = false;
         });
-        // Auto-center map on user location
-        try {
-          _mapController.move(
-            LatLng(position.latitude, position.longitude),
-            12.0,
-          );
-        } catch (_) {
-          // Map not yet attached, will use initialCenter on next build
-        }
+        _zoomToNearestBranch(position);
       }
     } catch (_) {
       if (mounted) setState(() => _locationLoading = false);
+    }
+  }
+
+  void _zoomToNearestBranch(Position position) {
+    final branches = ref.read(branchesProvider).valueOrNull;
+    if (branches == null || branches.isEmpty) return;
+
+    double? minDist;
+    Map<String, dynamic>? nearest;
+    int nearestIndex = 0;
+
+    for (int i = 0; i < branches.length; i++) {
+      final b = branches[i] as Map<String, dynamic>;
+      final lat = b['latitude'] as double?;
+      final lng = b['longitude'] as double?;
+      if (lat == null || lng == null) continue;
+
+      const distance = Distance();
+      final d = distance.as(
+        LengthUnit.Kilometer,
+        LatLng(position.latitude, position.longitude),
+        LatLng(lat, lng),
+      );
+      if (minDist == null || d < minDist) {
+        minDist = d;
+        nearest = b;
+        nearestIndex = i;
+      }
+    }
+
+    if (nearest != null) {
+      try {
+        _mapController.move(
+          LatLng(nearest['latitude'] as double, nearest['longitude'] as double),
+          15.0,
+        );
+        setState(() => _selectedIndex = nearestIndex);
+      } catch (_) {}
     }
   }
 
@@ -181,8 +211,10 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                   ),
                   children: [
                     TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.blackdog.app',
+                      urlTemplate: Theme.of(context).brightness == Brightness.dark
+                          ? 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
+                          : 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+                      userAgentPackageName: 'com.blackdogpanama.blackdog_app',
                     ),
                     MarkerLayer(
                       markers: [
@@ -236,10 +268,11 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                                     ),
                                   ],
                                 ),
-                                child: Icon(
-                                  Icons.pets,
-                                  color: isSelected ? AppColors.secondary : Colors.white,
-                                  size: isSelected ? 20 : 16,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(5),
+                                  child: Image.asset(
+                                    'assets/icons/Logo_Head.png',
+                                  ),
                                 ),
                               ),
                             ),
