@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../models/branch.dart';
 import '../../models/cart.dart';
@@ -18,6 +21,29 @@ final _branchesProvider = FutureProvider<List<Branch>>((ref) async {
   final data = await api.getBranches();
   return data.map((b) => Branch.fromJson(b as Map<String, dynamic>)).toList();
 });
+
+final _sortedBranchesProvider = Provider<AsyncValue<List<Branch>>>((ref) {
+  final branchesAsync = ref.watch(_branchesProvider);
+  final address = ref.watch(selectedAddressProvider).valueOrNull;
+
+  return branchesAsync.whenData((list) {
+    if (address == null) return list;
+    final sorted = List<Branch>.from(list);
+    sorted.sort((a, b) {
+      final dA = _distanceTo(address, a);
+      final dB = _distanceTo(address, b);
+      return dA.compareTo(dB);
+    });
+    return sorted;
+  });
+});
+
+double _distanceTo(SelectedAddress address, Branch branch) {
+  if (branch.latitude == null || branch.longitude == null) return double.infinity;
+  final dLat = branch.latitude! - address.latitude;
+  final dLng = branch.longitude! - address.longitude;
+  return dLat * dLat + dLng * dLng; // squared distance is fine for sorting
+}
 
 final _addressesProvider = FutureProvider<List<Map<String, dynamic>>>((
   ref,
@@ -43,6 +69,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   String? _notes;
   bool _isSubmitting = false;
   bool _initialized = false;
+
+  // Inline WebView state for Tilopay
+  bool _showInlineWebView = false;
+  WebViewController? _webViewController;
+  bool _webViewLoading = true;
+  String? _currentOrderId;
 
   void _initFromProviders() {
     if (_initialized) return;
@@ -112,6 +144,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       );
     }
 
+    // If inline WebView is active, show it fullscreen
+    if (_showInlineWebView) {
+      return _buildInlineWebViewScreen();
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_stepTitle),
@@ -134,6 +171,35 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               child: _buildCurrentStep(cart),
             )),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInlineWebViewScreen() {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Pago seguro'),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () {
+            setState(() => _showInlineWebView = false);
+            // Go to order detail since order is already created
+            if (_currentOrderId != null) {
+              context.go('/orders/$_currentOrderId');
+            }
+          },
+        ),
+      ),
+      body: Stack(
+        children: [
+          if (_webViewController != null)
+            WebViewWidget(controller: _webViewController!),
+          if (_webViewLoading)
+            Container(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              child: const Center(child: CircularProgressIndicator()),
+            ),
         ],
       ),
     );
@@ -216,28 +282,25 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       // Refresh cart (it's been converted)
       ref.read(cartProvider.notifier).refresh();
 
-      if (mounted) {
-        final orderId = result['order']?['id'] as String? ?? '';
-        final paymentUrl = result['payment_url'] as String?;
-        final orderName = result['odoo_order_name'] as String? ??
-            result['order']?['payment_reference'] as String?;
-        final total = (result['order']?['total'] as num?)?.toDouble();
+      if (!mounted) return;
 
-        // Route directly to payment screen based on method
-        if (_paymentMethod == 'tilopay' && paymentUrl != null) {
-          context.go('/payment/$orderId/tilopay', extra: {
-            'payment_url': paymentUrl,
-            'order_name': orderName,
-            'amount': total,
-          });
-        } else if (_paymentMethod == 'yappy') {
-          context.go('/payment/$orderId/yappy', extra: {
-            'order_name': orderName,
-            'amount': total,
-          });
-        } else {
-          context.go('/order-confirmation/$orderId', extra: result);
-        }
+      final orderId = result['order']?['id'] as String? ?? '';
+      final paymentUrl = result['payment_url'] as String?;
+      final orderName = result['odoo_order_name'] as String? ??
+          result['order']?['payment_reference'] as String?;
+      final total = (result['order']?['total'] as num?)?.toDouble();
+
+      _currentOrderId = orderId;
+
+      if (_paymentMethod == 'tilopay' && paymentUrl != null) {
+        _openInlineWebView(paymentUrl, orderId, orderName);
+      } else if (_paymentMethod == 'yappy') {
+        context.go('/payment/$orderId/yappy', extra: {
+          'order_name': orderName,
+          'amount': total,
+        });
+      } else {
+        context.go('/order-confirmation/$orderId', extra: result);
       }
     } catch (e) {
       setState(() => _isSubmitting = false);
@@ -248,6 +311,63 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         );
       }
     }
+  }
+
+  void _openInlineWebView(String paymentUrl, String orderId, String? orderName) {
+    if (kIsWeb) {
+      launchUrl(Uri.parse(paymentUrl), mode: LaunchMode.externalApplication);
+      context.go('/orders/$orderId');
+      return;
+    }
+
+    final controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (_) {
+            if (mounted) setState(() => _webViewLoading = true);
+          },
+          onPageFinished: (_) {
+            if (mounted) setState(() => _webViewLoading = false);
+          },
+          onNavigationRequest: (request) {
+            final url = request.url.toLowerCase();
+
+            // Success callbacks
+            if (url.contains('payment/success') ||
+                url.contains('payment/callback') ||
+                url.contains('status=approved') ||
+                url.contains('tilopay/result') && url.contains('status=paid')) {
+              setState(() => _showInlineWebView = false);
+              context.go('/order-confirmation/$orderId');
+              return NavigationDecision.prevent;
+            }
+
+            // Failure callbacks
+            if (url.contains('payment/cancel') ||
+                url.contains('payment/failed') ||
+                url.contains('status=declined') ||
+                url.contains('tilopay/result') && url.contains('status=failed')) {
+              setState(() => _showInlineWebView = false);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('El pago fue rechazado. Intenta de nuevo.')),
+              );
+              context.go('/orders/$orderId');
+              return NavigationDecision.prevent;
+            }
+
+            return NavigationDecision.navigate;
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse(paymentUrl));
+
+    setState(() {
+      _webViewController = controller;
+      _showInlineWebView = true;
+      _webViewLoading = true;
+      _isSubmitting = false;
+    });
   }
 }
 
@@ -275,7 +395,7 @@ class _DeliveryStep extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final branches = ref.watch(_branchesProvider);
+    final sortedBranches = ref.watch(_sortedBranchesProvider);
 
     return Column(
       children: [
@@ -283,15 +403,7 @@ class _DeliveryStep extends ConsumerWidget {
           child: ListView(
             padding: EdgeInsets.all(Responsive.padding(context)),
             children: [
-              // Delivery type radio cards
-              _RadioCard(
-                title: 'Recoger en tienda',
-                subtitle: 'Sin costo de delivery',
-                icon: Icons.store_outlined,
-                selected: deliveryType == 'pickup',
-                onTap: () => onDeliveryTypeChanged('pickup'),
-              ),
-              const SizedBox(height: 12),
+              // Delivery a domicilio first
               Consumer(builder: (context, ref, _) {
                 final nearest = ref.watch(nearestBranchProvider);
                 final canDeliver = nearest?.isDeliveryAvailable ?? true;
@@ -308,9 +420,46 @@ class _DeliveryStep extends ConsumerWidget {
                   compact: !canDeliver,
                 );
               }),
+              const SizedBox(height: 12),
+              _RadioCard(
+                title: 'Recoger en tienda',
+                subtitle: 'Sin costo de delivery',
+                icon: Icons.store_outlined,
+                selected: deliveryType == 'pickup',
+                onTap: () => onDeliveryTypeChanged('pickup'),
+              ),
+
+              // Address selector (only for delivery) — shown right after delivery option
+              if (deliveryType == 'delivery') ...[
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Dirección de entrega',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: () async {
+                        final result = await context.push<bool>('/checkout/add-address');
+                        if (result == true) {
+                          ref.invalidate(_addressesProvider);
+                        }
+                      },
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Nueva'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                _buildAddressList(context, ref),
+              ],
+
               const SizedBox(height: 24),
 
-              // Branch selector (always shown — used as source warehouse)
+              // Branch selector — sorted by nearest
               Text(
                 'Sucursal',
                 style: Theme.of(
@@ -318,7 +467,7 @@ class _DeliveryStep extends ConsumerWidget {
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 12),
-              branches.when(
+              sortedBranches.when(
                 data: (list) => Column(
                   children: list
                       .map(
@@ -337,37 +486,9 @@ class _DeliveryStep extends ConsumerWidget {
                       .toList(),
                 ),
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (context, error) =>
+                error: (err, _) =>
                     const Text('Error cargando sucursales'),
               ),
-
-              // Address selector (only for delivery)
-              if (deliveryType == 'delivery') ...[
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Dirección de entrega',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    TextButton.icon(
-                      onPressed: () async {
-                        final result = await context.push<bool>('/profile/addresses/add');
-                        if (result == true) {
-                          ref.invalidate(_addressesProvider);
-                        }
-                      },
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Nueva'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                _buildAddressList(context, ref),
-              ],
             ],
           ),
         ),
@@ -411,7 +532,7 @@ class _DeliveryStep extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (context, error) => const Text('Error cargando direcciones'),
+      error: (err, _) => const Text('Error cargando direcciones'),
     );
   }
 }
@@ -610,11 +731,21 @@ class _SummaryStep extends ConsumerWidget {
         _BottomButton(
           label: isSubmitting
               ? 'Procesando...'
-              : 'Confirmar Pedido  •  \$${total.toStringAsFixed(2)}',
+              : _confirmLabel(paymentMethod, total),
           onPressed: isSubmitting ? null : onConfirm,
         ),
       ],
     );
+  }
+
+  String _confirmLabel(String method, double total) {
+    final amount = '\$${total.toStringAsFixed(2)}';
+    return switch (method) {
+      'tilopay' => 'Pagar con tarjeta  •  $amount',
+      'yappy' => 'Pagar con Yappy  •  $amount',
+      'in_store' => 'Confirmar Pedido  •  $amount',
+      _ => 'Confirmar Pedido  •  $amount',
+    };
   }
 
   Widget _buildAddressRow(WidgetRef ref) {

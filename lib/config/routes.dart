@@ -261,6 +261,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/checkout',
         pageBuilder: (context, state) => _sharedAxisY(state, const CheckoutScreen()),
+        routes: [
+          GoRoute(
+            path: 'add-address',
+            pageBuilder: (context, state) => _sharedAxisY(state, const AddAddressScreen()),
+          ),
+        ],
       ),
       GoRoute(
         path: '/order-confirmation/:id',

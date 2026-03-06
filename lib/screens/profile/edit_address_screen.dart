@@ -148,8 +148,9 @@ class _EditAddressScreenState extends ConsumerState<EditAddressScreen> {
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    urlTemplate: Theme.of(context).brightness == Brightness.dark
+                        ? 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
+                        : 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
                   ),
                 ],
               ),
@@ -212,8 +213,9 @@ class _EditAddressScreenState extends ConsumerState<EditAddressScreen> {
                         ),
                         children: [
                           TileLayer(
-                            urlTemplate:
-                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            urlTemplate: Theme.of(context).brightness == Brightness.dark
+                                ? 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
+                                : 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
                           ),
                           MarkerLayer(
                             markers: [

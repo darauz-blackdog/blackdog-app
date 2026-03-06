@@ -175,9 +175,10 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.blackdog.app',
+                    urlTemplate: Theme.of(context).brightness == Brightness.dark
+                        ? 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
+                        : 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+                    userAgentPackageName: 'com.blackdogpanama.blackdog_app',
                   ),
                 ],
               ),
@@ -330,9 +331,10 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.blackdog.app',
+                    urlTemplate: Theme.of(context).brightness == Brightness.dark
+                        ? 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
+                        : 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+                    userAgentPackageName: 'com.blackdogpanama.blackdog_app',
                   ),
                   MarkerLayer(
                     markers: [
