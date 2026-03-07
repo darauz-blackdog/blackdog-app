@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/product.dart';
 import '../../providers/cart_provider.dart';
@@ -10,11 +11,10 @@ import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/responsive.dart';
 import '../../utils/responsive_grid.dart';
+import '../../widgets/cart_badge.dart';
+import '../../widgets/category_icon_box.dart';
 import '../../widgets/fade_in_up.dart';
 import '../../widgets/product_card.dart';
-import '../../widgets/category_chip.dart';
-import '../../widgets/cart_badge.dart';
-import 'filters_sheet.dart';
 
 class CatalogScreen extends ConsumerStatefulWidget {
   final int? categoryId;
@@ -105,7 +105,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
   Widget build(BuildContext context) {
     final firstPage = ref.watch(productListProvider(_params));
     final appCategories = ref.watch(appCategoriesProvider);
-    final brands = ref.watch(brandsProvider(_selectedAppCategoryId));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -113,138 +113,108 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
           padding: const EdgeInsets.all(10),
           child: Image.asset('assets/icons/Black_Dog_Logo_V.png'),
         ),
-        title: const Text('Catálogo'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () => context.push('/search'),
-          ),
-          const CartBadge(),
-          const SizedBox(width: 4),
-          IconButton(
-            icon: const Icon(Icons.tune_rounded),
-            tooltip: 'Filtros',
-            onPressed: () => showFiltersSheet(
-              context: context,
-              ref: ref,
-              appCategoryId: _selectedAppCategoryId,
-              currentBrand: _selectedBrand,
-              currentSort: _sort,
-              onApply: (result) {
-                setState(() {
-                  _selectedBrand = result.brand;
-                  _sort = result.sort;
-                });
-                _resetAndReload();
-              },
-            ),
-          ),
+        title: const Text('Catalogo'),
+        actions: const [
+          CartBadge(),
+          SizedBox(width: 8),
         ],
       ),
-      body: Column(
-        children: [
-          // App category filter chips
-          SizedBox(
-            height: 52,
-            child: appCategories.when(
-              data: (cats) => ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                scrollDirection: Axis.horizontal,
-                itemCount: cats.length + 1,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (_, i) {
-                  if (i == 0) {
-                    return CategoryChip(
-                      label: 'Todos',
-                      isSelected: _selectedAppCategoryId == null,
+      body: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          // Search bar
+          SliverToBoxAdapter(
+            child: GestureDetector(
+              onTap: () => context.push('/search'),
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF262626) : const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF444444) : const Color(0xFFE5E7EB),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.search_rounded,
+                      color: AppColors.textLight,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Buscar productos...',
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        color: AppColors.textLight,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Category cards
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 120,
+              child: appCategories.when(
+                data: (cats) => ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: cats.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (_, i) {
+                    final cat = cats[i];
+                    final style = CategoryStyle.forAppCategory(cat.icon);
+                    final isSelected = _selectedAppCategoryId == cat.id;
+                    return _CategoryCard(
+                      label: cat.shortName,
+                      icon: style.icon,
+                      isSelected: isSelected,
                       onTap: () {
                         setState(() {
-                          _selectedAppCategoryId = null;
+                          if (isSelected) {
+                            _selectedAppCategoryId = null;
+                          } else {
+                            _selectedAppCategoryId = cat.id;
+                          }
                           _selectedBrand = null;
                         });
                         _resetAndReload();
                       },
                     );
-                  }
-                  final cat = cats[i - 1];
-                  return CategoryChip(
-                    label: cat.shortName,
-                    isSelected: _selectedAppCategoryId == cat.id,
-                    onTap: () {
-                      setState(() {
-                        _selectedAppCategoryId = cat.id;
-                        _selectedBrand = null;
-                      });
-                      _resetAndReload();
-                    },
-                  );
-                },
+                  },
+                ),
+                loading: () => const SizedBox(),
+                error: (_, __) => const SizedBox(),
               ),
-              loading: () => const SizedBox(),
-              error: (_, _) => const SizedBox(),
             ),
           ),
 
-          // Brand filter chips (only when a category is selected)
-          if (_selectedAppCategoryId != null)
-            SizedBox(
-              height: 44,
-              child: brands.when(
-                data: (brandList) {
-                  if (brandList.isEmpty) return const SizedBox();
-                  return ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    scrollDirection: Axis.horizontal,
-                    itemCount: brandList.length + 1,
-                    separatorBuilder: (_, _) => const SizedBox(width: 6),
-                    itemBuilder: (_, i) {
-                      if (i == 0) {
-                        return CategoryChip(
-                          label: 'Todas las marcas',
-                          isSelected: _selectedBrand == null,
-                          onTap: () {
-                            setState(() => _selectedBrand = null);
-                            _resetAndReload();
-                          },
-                        );
-                      }
-                      final brand = brandList[i - 1];
-                      return CategoryChip(
-                        label: brand,
-                        isSelected: _selectedBrand == brand,
-                        onTap: () {
-                          setState(() => _selectedBrand = brand);
-                          _resetAndReload();
-                        },
-                      );
-                    },
-                  );
-                },
-                loading: () => const SizedBox(),
-                error: (_, _) => const SizedBox(),
-              ),
-            ),
+          const SliverToBoxAdapter(child: SizedBox(height: 8)),
 
-          // Product grid with infinite scroll
-          Expanded(
-            child: firstPage.when(
-              data: (result) {
-                // Merge first page + loaded pages
-                final products = [...result.products, ..._allProducts];
+          // Product grid
+          firstPage.when(
+            data: (result) {
+              final products = [...result.products, ..._allProducts];
 
-                if (_hasMore && _currentPage == 1) {
-                  // Initialize hasMore from first page result
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted && _currentPage == 1) {
-                      setState(() {
-                        _hasMore = result.totalPages > 1;
-                      });
-                    }
-                  });
-                }
+              if (_hasMore && _currentPage == 1) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted && _currentPage == 1) {
+                    setState(() {
+                      _hasMore = result.totalPages > 1;
+                    });
+                  }
+                });
+              }
 
-                if (products.isEmpty) {
-                  return Center(
+              if (products.isEmpty) {
+                return SliverFillRemaining(
+                  child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -254,66 +224,73 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                             style: Theme.of(context).textTheme.bodyLarge),
                       ],
                     ),
-                  );
-                }
+                  ),
+                );
+              }
 
-                final itemCount = products.length + (_hasMore ? 1 : 0);
+              final itemCount = products.length + (_hasMore ? 1 : 0);
 
-                return GridView.builder(
-                  controller: _scrollController,
-                  padding: EdgeInsets.all(Responsive.paddingSmall(context)),
+              return SliverPadding(
+                padding: EdgeInsets.all(Responsive.paddingSmall(context)),
+                sliver: SliverGrid(
                   gridDelegate: responsiveProductGrid(),
-                  itemCount: itemCount,
-                  itemBuilder: (_, i) {
-                    if (i >= products.length) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: CircularProgressIndicator(),
+                  delegate: SliverChildBuilderDelegate(
+                    (_, i) {
+                      if (i >= products.length) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+                      final product = products[i];
+                      return FadeInUp(
+                        delay: (i % 6) * 60,
+                        duration: const Duration(milliseconds: 400),
+                        offset: 20,
+                        child: ProductCard(
+                          product: product,
+                          isFavorite: ref.watch(favoritesProvider).contains(product.id),
+                          onFavorite: () => ref.read(favoritesProvider.notifier).toggle(product.id),
+                          onTap: () => context.push('/product/${product.id}'),
+                          onAddToCart: () async {
+                            try {
+                              await ref.read(cartProvider.notifier).addItem(product.id);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${product.name} agregado al carrito'),
+                                    duration: const Duration(seconds: 1),
+                                    action: SnackBarAction(
+                                      label: 'Ver',
+                                      textColor: AppColors.primary,
+                                      onPressed: () => context.go('/cart'),
+                                    ),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Error al agregar'), duration: Duration(seconds: 3)),
+                                );
+                              }
+                            }
+                          },
                         ),
                       );
-                    }
-                    final product = products[i];
-                    return FadeInUp(
-                      delay: (i % 6) * 60,
-                      duration: const Duration(milliseconds: 400),
-                      offset: 20,
-                      child: ProductCard(
-                      product: product,
-                      isFavorite: ref.watch(favoritesProvider).contains(product.id),
-                      onFavorite: () => ref.read(favoritesProvider.notifier).toggle(product.id),
-                      onTap: () => context.push('/product/${product.id}'),
-                      onAddToCart: () async {
-                        try {
-                          await ref.read(cartProvider.notifier).addItem(product.id);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('${product.name} agregado al carrito'),
-                                duration: const Duration(seconds: 1),
-                                action: SnackBarAction(
-                                  label: 'Ver',
-                                  textColor: AppColors.primary,
-                                  onPressed: () => context.go('/cart'),
-                                ),
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Error al agregar'), duration: Duration(seconds: 3)),
-                            );
-                          }
-                        }
-                      },
-                    ),
-                    );
-                  },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, _) => Center(
+                    },
+                    childCount: itemCount,
+                  ),
+                ),
+              );
+            },
+            loading: () => const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (err, _) => SliverFillRemaining(
+              child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -333,6 +310,81 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CategoryCard extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CategoryCard({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF262626) : const Color(0xFFF5F5F5);
+    final fgColor = isDark ? const Color(0xFFF7B104) : const Color(0xFF1A1A1A);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 88,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 76,
+              height: 76,
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(18),
+                border: isSelected
+                    ? Border.all(color: AppColors.primary, width: 2.5)
+                    : null,
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.06),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+              ),
+              child: Icon(icon, color: fgColor, size: 32),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected
+                    ? AppColors.primary
+                    : Theme.of(context).textTheme.bodySmall?.color,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }

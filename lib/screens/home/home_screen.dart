@@ -228,9 +228,6 @@ class HomeScreen extends ConsumerWidget {
                                 backgroundColor: style.backgroundColor,
                                 iconColor: style.iconColor,
                                 large: true,
-                                productCount: cat.productCount > 0
-                                    ? cat.productCount
-                                    : null,
                                 onTap: () => context.go(
                                   '/catalog?app_category_id=${cat.id}',
                                 ),
