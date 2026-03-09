@@ -154,14 +154,23 @@ class HomeScreen extends ConsumerWidget {
 
           // ── Hero Banner Carousel ──
           SliverToBoxAdapter(
-            child: FadeInUp(
-              delay: 100,
-              offset: 20,
-              duration: const Duration(milliseconds: 500),
-              child: const Padding(
+            child: ref.watch(homeBannersProvider).when(
+              data: (banners) => banners.isEmpty
+                  ? const SizedBox.shrink()
+                  : FadeInUp(
+                      delay: 100,
+                      offset: 20,
+                      duration: const Duration(milliseconds: 500),
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: HeroBannerCarousel(banners: banners),
+                      ),
+                    ),
+              loading: () => const Padding(
                 padding: EdgeInsets.only(top: 20),
-                child: HeroBannerCarousel(),
+                child: SizedBox(height: 160),
               ),
+              error: (_, _) => const SizedBox.shrink(),
             ),
           ),
 
@@ -323,6 +332,7 @@ class HomeScreen extends ConsumerWidget {
                   },
                   onTap: (product) => context.push('/product/${product.id}'),
                   onAddToCart: (product) async {
+                    if (!product.inStock) return;
                     try {
                       await ref
                           .read(cartProvider.notifier)

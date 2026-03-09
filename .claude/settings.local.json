@@ -29,7 +29,9 @@
       "mcp__plugin_playwright_playwright__browser_resize",
       "mcp__plugin_playwright_playwright__browser_wait_for",
       "mcp__plugin_playwright_playwright__browser_evaluate",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(xclip:*)",
+      "Skill(hookify:hookify)"
     ]
   }
 }

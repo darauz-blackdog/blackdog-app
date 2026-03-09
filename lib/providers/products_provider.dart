@@ -97,6 +97,13 @@ final productSearchProvider = FutureProvider.family<ProductListResult, String>((
   );
 });
 
+/// Home banners
+final homeBannersProvider = FutureProvider<List<HomeBanner>>((ref) async {
+  final api = ref.read(apiServiceProvider);
+  final result = await api.getHomeBanners();
+  return result.map((b) => HomeBanner.fromJson(b as Map<String, dynamic>)).toList();
+});
+
 /// Home screen sections (brands + categories with products)
 final homeSectionsProvider = FutureProvider<List<HomeSection>>((ref) async {
   final api = ref.read(apiServiceProvider);

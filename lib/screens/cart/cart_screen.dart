@@ -225,7 +225,9 @@ class _CartItemCard extends ConsumerWidget {
       data: (p) => p.totalStock.toInt(),
     ) ?? 999;
 
-    return Container(
+    return GestureDetector(
+      onTap: () => context.push('/product/${item.productId}'),
+      child: Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -344,6 +346,7 @@ class _CartItemCard extends ConsumerWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }

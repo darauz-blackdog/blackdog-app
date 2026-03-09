@@ -13,49 +13,13 @@ import '../../models/branch.dart';
 import '../../models/cart.dart';
 import '../../providers/address_provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/checkout_branch_provider.dart';
 import '../../providers/location_provider.dart';
 import '../../providers/service_providers.dart';
 import '../../utils/error_utils.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/step_indicator.dart';
-
-final _sortedBranchesProvider = Provider<AsyncValue<List<Branch>>>((ref) {
-  final branchesAsync = ref.watch(branchListProvider);
-  final address = ref.watch(selectedAddressProvider).valueOrNull;
-  final userPos = ref.watch(userLocationProvider).valueOrNull;
-
-  // Use selected address coordinates, or fall back to GPS
-  double? userLat;
-  double? userLng;
-  if (address != null) {
-    userLat = address.latitude;
-    userLng = address.longitude;
-  } else if (userPos != null) {
-    userLat = userPos.latitude;
-    userLng = userPos.longitude;
-  }
-
-  return branchesAsync.whenData((list) {
-    if (userLat == null || userLng == null) return list;
-    final lat = userLat;
-    final lng = userLng;
-    final sorted = List<Branch>.from(list);
-    sorted.sort((a, b) {
-      final dA = _distanceTo(lat, lng, a);
-      final dB = _distanceTo(lat, lng, b);
-      return dA.compareTo(dB);
-    });
-    return sorted;
-  });
-});
-
-double _distanceTo(double lat, double lng, Branch branch) {
-  if (branch.latitude == null || branch.longitude == null) return double.infinity;
-  final dLat = branch.latitude! - lat;
-  final dLng = branch.longitude! - lng;
-  return dLat * dLat + dLng * dLng; // squared distance is fine for sorting
-}
 
 final _addressesProvider = FutureProvider<List<Map<String, dynamic>>>((
   ref,
@@ -98,14 +62,22 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     if (_initialized) return;
     _initialized = true;
 
-    final nearest = ref.read(nearestBranchProvider);
+    final bestDelivery = ref.read(bestDeliveryBranchProvider);
     final address = ref.read(selectedAddressProvider).valueOrNull;
 
-    if (nearest != null) {
-      _selectedBranchId = nearest.branch.id;
-      if (nearest.isDeliveryAvailable && address != null) {
-        _deliveryType = 'delivery';
-        _selectedAddressId = address.id;
+    if (bestDelivery != null && address != null) {
+      // Delivery available — auto-assign best branch
+      _deliveryType = 'delivery';
+      _selectedBranchId = bestDelivery.branch.id;
+      _selectedAddressId = address.id;
+    } else {
+      // Pickup only — select best branch by stock
+      _deliveryType = 'pickup';
+      final ranked = ref.read(rankedBranchesProvider).valueOrNull;
+      if (ranked != null && ranked.isNotEmpty) {
+        // First pickup-enabled branch (already sorted by stock+distance)
+        final best = ranked.where((r) => r.branch.isPickupEnabled).firstOrNull;
+        if (best != null) _selectedBranchId = best.branch.id;
       }
     }
   }
@@ -245,7 +217,18 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           selectedAddressId: _selectedAddressId,
           onDeliveryTypeChanged: (v) => setState(() {
             _deliveryType = v;
-            if (v == 'pickup') _selectedAddressId = null;
+            if (v == 'delivery') {
+              // Auto-assign best delivery branch
+              _selectedAddressId = ref.read(selectedAddressProvider).valueOrNull?.id;
+              final best = ref.read(bestDeliveryBranchProvider);
+              _selectedBranchId = best?.branch.id;
+            } else {
+              // Pickup — auto-select best pickup branch by stock
+              _selectedAddressId = null;
+              final ranked = ref.read(rankedBranchesProvider).valueOrNull ?? [];
+              final best = ranked.where((r) => r.branch.isPickupEnabled).firstOrNull;
+              _selectedBranchId = best?.branch.id;
+            }
           }),
           onBranchSelected: (id) => setState(() => _selectedBranchId = id),
           onAddressSelected: (id) => setState(() => _selectedAddressId = id),
@@ -431,7 +414,9 @@ class _DeliveryStep extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final sortedBranches = ref.watch(_sortedBranchesProvider);
+    final rankedAsync = ref.watch(rankedBranchesProvider);
+    final canDeliver = ref.watch(deliveryAvailableProvider);
+    final bestDelivery = ref.watch(bestDeliveryBranchProvider);
 
     return Column(
       children: [
@@ -439,23 +424,19 @@ class _DeliveryStep extends ConsumerWidget {
           child: ListView(
             padding: EdgeInsets.all(Responsive.padding(context)),
             children: [
-              // Delivery a domicilio first
-              Consumer(builder: (context, ref, _) {
-                final nearest = ref.watch(nearestBranchProvider);
-                final canDeliver = nearest?.isDeliveryAvailable ?? true;
-                return _RadioCard(
-                  title: 'Delivery a domicilio',
-                  subtitle: canDeliver
-                      ? 'Costo: \$3.50'
-                      : 'Solo recogida — dirección a más de 2km',
-                  icon: Icons.delivery_dining_outlined,
-                  selected: deliveryType == 'delivery',
-                  onTap: canDeliver
-                      ? () => onDeliveryTypeChanged('delivery')
-                      : () {},
-                  compact: !canDeliver,
-                );
-              }),
+              // ── Delivery option ──
+              _RadioCard(
+                title: 'Delivery via ASAP',
+                subtitle: canDeliver
+                    ? 'El envío lo coordina y cobra ASAP'
+                    : 'No hay sucursales con delivery en tu zona',
+                icon: Icons.delivery_dining_outlined,
+                selected: deliveryType == 'delivery',
+                onTap: canDeliver
+                    ? () => onDeliveryTypeChanged('delivery')
+                    : () {},
+                compact: !canDeliver,
+              ),
               const SizedBox(height: 12),
               _RadioCard(
                 title: 'Recoger en tienda',
@@ -465,7 +446,7 @@ class _DeliveryStep extends ConsumerWidget {
                 onTap: () => onDeliveryTypeChanged('pickup'),
               ),
 
-              // Address selector (only for delivery) — shown right after delivery option
+              // ── Delivery: address + auto-assigned branch ──
               if (deliveryType == 'delivery') ...[
                 const SizedBox(height: 24),
                 Row(
@@ -491,40 +472,89 @@ class _DeliveryStep extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 _buildAddressList(context, ref),
-              ],
 
-              const SizedBox(height: 24),
-
-              // Branch selector — sorted by nearest
-              Text(
-                'Sucursal',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 12),
-              sortedBranches.when(
-                data: (list) => Column(
-                  children: list
-                      .map(
-                        (b) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: _RadioCard(
-                            title: b.name,
-                            subtitle: b.address ?? '',
-                            icon: Icons.location_on_outlined,
-                            selected: selectedBranchId == b.id,
-                            onTap: () => onBranchSelected(b.id),
-                            compact: true,
+                // Auto-assigned delivery branch info
+                if (bestDelivery != null) ...[
+                  const SizedBox(height: 24),
+                  Text(
+                    'Sucursal asignada',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _BranchStockCard(
+                    ranked: bestDelivery,
+                    selected: true,
+                    onTap: null,
+                  ),
+                  if (!bestDelivery.hasFullStock)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.warning.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppColors.warning.withValues(alpha: 0.3),
                           ),
                         ),
-                      )
-                      .toList(),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.warning_amber_rounded,
+                                color: AppColors.warning, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Productos sin stock: ${bestDelivery.missingProducts.join(", ")}',
+                                style: Theme.of(context).textTheme.bodySmall,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ],
+
+              // ── Pickup: user selects branch ──
+              if (deliveryType == 'pickup') ...[
+                const SizedBox(height: 24),
+                Text(
+                  'Selecciona sucursal',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, _) =>
-                    const Text('Error cargando sucursales'),
-              ),
+                const SizedBox(height: 12),
+                rankedAsync.when(
+                  data: (list) {
+                    final pickupBranches = list
+                        .where((r) => r.branch.isPickupEnabled)
+                        .toList();
+
+                    if (pickupBranches.isEmpty) {
+                      return const Text('No hay sucursales disponibles');
+                    }
+
+                    return Column(
+                      children: pickupBranches.map((r) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _BranchStockCard(
+                          ranked: r,
+                          selected: selectedBranchId == r.branch.id,
+                          onTap: () => onBranchSelected(r.branch.id),
+                        ),
+                      )).toList(),
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (err, _) => const Text('Error cargando sucursales'),
+                ),
+              ],
             ],
           ),
         ),
@@ -552,7 +582,6 @@ class _DeliveryStep extends ConsumerWidget {
         }
         // Auto-select first address if none selected
         if (selectedAddressId == null && list.isNotEmpty) {
-          // Find default address, or use first
           final defaultAddr = list.firstWhere(
             (a) => a['is_default'] == true,
             orElse: () => list.first,
@@ -581,6 +610,125 @@ class _DeliveryStep extends ConsumerWidget {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) => const Text('Error cargando direcciones'),
+    );
+  }
+}
+
+/// Card showing branch name, address, distance, and stock status.
+class _BranchStockCard extends StatelessWidget {
+  final RankedBranch ranked;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  const _BranchStockCard({
+    required this.ranked,
+    required this.selected,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final b = ranked.branch;
+    final hasStock = ranked.hasFullStock;
+    final distText = ranked.distanceKm < 100
+        ? '${ranked.distanceKm.toStringAsFixed(1)} km'
+        : '';
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.primary.withValues(alpha: 0.06)
+              : Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected
+                ? AppColors.primary
+                : Theme.of(context).colorScheme.outline,
+            width: selected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: selected
+                    ? AppColors.primary.withValues(alpha: 0.15)
+                    : Theme.of(context).dividerColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                Icons.location_on_outlined,
+                size: 20,
+                color: selected
+                    ? AppColors.primary
+                    : Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    b.name,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (b.address != null)
+                    Text(
+                      b.address!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).hintColor,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (distText.isNotEmpty)
+                  Text(
+                    distText,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).hintColor,
+                    ),
+                  ),
+                const SizedBox(height: 2),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: hasStock
+                        ? AppColors.success.withValues(alpha: 0.1)
+                        : AppColors.warning.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    hasStock
+                        ? 'Stock completo'
+                        : '${ranked.itemsInStock}/${ranked.totalItems} items',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: hasStock ? AppColors.success : AppColors.warning,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -678,8 +826,7 @@ class _SummaryStep extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final deliveryFee = deliveryType == 'delivery' ? 3.50 : 0.0;
-    final total = cart.subtotal + deliveryFee;
+    final total = cart.subtotal; // Sin fee — ASAP cobra aparte
     final branches = ref.watch(branchListProvider).valueOrNull ?? [];
     final branch = branches.where((b) => b.id == selectedBranchId).firstOrNull;
 
@@ -723,7 +870,7 @@ class _SummaryStep extends ConsumerWidget {
                 label: 'Entrega',
                 value: deliveryType == 'pickup'
                     ? 'Recoger en tienda'
-                    : 'Delivery a domicilio',
+                    : 'Delivery via ASAP',
               ),
               if (branch != null)
                 _SummaryRow(label: 'Sucursal', value: branch.name),
@@ -741,8 +888,8 @@ class _SummaryStep extends ConsumerWidget {
               ),
               _SummaryRow(
                 label: 'Delivery',
-                value: deliveryFee > 0
-                    ? '\$${deliveryFee.toStringAsFixed(2)}'
+                value: deliveryType == 'delivery'
+                    ? 'Coordinado por ASAP'
                     : 'Gratis',
               ),
               const SizedBox(height: 8),
@@ -764,6 +911,30 @@ class _SummaryStep extends ConsumerWidget {
                   ),
                 ],
               ),
+              if (deliveryType == 'delivery') ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.info_outline, size: 18,
+                          color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'El costo de envío lo gestiona y cobra ASAP directamente.',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 24),
 
               // Notes

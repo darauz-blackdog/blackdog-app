@@ -9,6 +9,7 @@ class Branch {
   final double? latitude;
   final double? longitude;
   final Map<String, dynamic>? openingHours;
+  final bool isActive;
   final bool isPickupEnabled;
   final bool isDeliveryEnabled;
 
@@ -23,6 +24,7 @@ class Branch {
     this.latitude,
     this.longitude,
     this.openingHours,
+    this.isActive = true,
     this.isPickupEnabled = true,
     this.isDeliveryEnabled = true,
   });
@@ -39,6 +41,7 @@ class Branch {
       latitude: json['latitude'] != null ? (json['latitude'] as num).toDouble() : null,
       longitude: json['longitude'] != null ? (json['longitude'] as num).toDouble() : null,
       openingHours: json['opening_hours'] as Map<String, dynamic>?,
+      isActive: json['is_active'] as bool? ?? true,
       isPickupEnabled: json['is_pickup_enabled'] as bool? ?? true,
       isDeliveryEnabled: json['is_delivery_enabled'] as bool? ?? true,
     );

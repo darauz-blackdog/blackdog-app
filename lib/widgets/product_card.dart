@@ -169,6 +169,28 @@ class ProductCard extends StatelessWidget {
                     ),
                   ),
 
+                  // "Agotado" badge - top right (compact mode, out of stock)
+                  if (compact && !product.inStock)
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.error,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          'Agotado',
+                          style: GoogleFonts.inter(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+
                   // Add to cart button - bottom right (compact mode)
                   if (compact && product.inStock)
                     Positioned(

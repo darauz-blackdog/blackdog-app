@@ -91,11 +91,13 @@ class NearestBranchResult {
 }
 
 /// Fetches branches typed as Branch models (shared across the app).
+/// Filters out inactive branches.
 final branchListProvider = FutureProvider<List<Branch>>((ref) async {
   final api = ref.read(apiServiceProvider);
   final data = await api.getBranches();
   return data
       .map((b) => Branch.fromJson(b as Map<String, dynamic>))
+      .where((b) => b.isActive)
       .toList();
 });
 
@@ -127,7 +129,7 @@ final nearestBranchProvider = Provider<NearestBranchResult?>((ref) {
   return NearestBranchResult(
     branch: closest,
     distanceKm: minDist,
-    isDeliveryAvailable: minDist <= 2.0,
+    isDeliveryAvailable: minDist <= 2.0 && closest.isDeliveryEnabled,
   );
 });
 

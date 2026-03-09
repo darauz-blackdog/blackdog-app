@@ -1,3 +1,38 @@
+class HomeBanner {
+  final int id;
+  final String title;
+  final String? subtitle;
+  final String? imageUrl;
+  final String linkType; // 'product', 'category', 'brand', 'url', 'none'
+  final String? linkValue;
+  final String? gradientStart;
+  final String? gradientEnd;
+
+  const HomeBanner({
+    required this.id,
+    required this.title,
+    this.subtitle,
+    this.imageUrl,
+    this.linkType = 'none',
+    this.linkValue,
+    this.gradientStart,
+    this.gradientEnd,
+  });
+
+  factory HomeBanner.fromJson(Map<String, dynamic> json) {
+    return HomeBanner(
+      id: json['id'] as int,
+      title: json['title'] as String,
+      subtitle: json['subtitle'] as String?,
+      imageUrl: json['image_url'] as String?,
+      linkType: json['link_type'] as String? ?? 'none',
+      linkValue: json['link_value'] as String?,
+      gradientStart: json['gradient_start'] as String?,
+      gradientEnd: json['gradient_end'] as String?,
+    );
+  }
+}
+
 class HomeSection {
   final String id;
   final String title;

@@ -70,6 +70,11 @@ class ApiService {
     return response.data as Map<String, dynamic>;
   }
 
+  Future<List<dynamic>> getHomeBanners() async {
+    final response = await _dio.get('/home/banners');
+    return (response.data as Map<String, dynamic>)['banners'] as List<dynamic>;
+  }
+
   Future<List<dynamic>> getHomeSections() async {
     final response = await _dio.get('/home/sections');
     return (response.data as Map<String, dynamic>)['sections'] as List<dynamic>;
@@ -99,6 +104,15 @@ class ApiService {
     final response = await _dio.get('/brands', queryParameters: params);
     final data = (response.data as Map<String, dynamic>)['data'] as List;
     return data.cast<String>();
+  }
+
+  // Stock
+  /// Returns { branch_id: { product_id: qty_available } }
+  Future<Map<String, dynamic>> checkStock(List<int> productIds) async {
+    final response = await _dio.post('/stock/check', data: {
+      'product_ids': productIds,
+    });
+    return (response.data as Map<String, dynamic>)['data'] as Map<String, dynamic>;
   }
 
   // Branches
@@ -178,6 +192,8 @@ class ApiService {
 
   // ── Orders ────────────────────────────────────────────────────
 
+  // TODO: When backend supports ASAP, change delivery_type 'delivery' → 'asap'
+  // and/or add 'delivery_provider': 'asap' to the payload.
   Future<Map<String, dynamic>> createOrder({
     required String deliveryType,
     required int branchId,
