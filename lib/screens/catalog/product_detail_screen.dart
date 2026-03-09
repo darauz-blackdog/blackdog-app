@@ -187,7 +187,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   // ── Bottom bar with add to cart ──────────────────────────────
 
   Widget _buildBottomBar(BuildContext context, ProductDetail p) {
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final bottomPadding = MediaQuery.paddingOf(context).bottom;
 
     return Container(
       padding: EdgeInsets.fromLTRB(20, 12, 20, 12 + bottomPadding),

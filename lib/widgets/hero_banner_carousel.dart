@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../theme/app_theme.dart';
+
 class PromoBanner {
   final String title;
   final String subtitle;
@@ -157,7 +159,7 @@ class _HeroBannerCarouselState extends State<HeroBannerCarousel> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
                 color: isActive
-                    ? const Color(0xFFF7B104)
+                    ? AppColors.primary
                     : Theme.of(context)
                         .colorScheme
                         .onSurface

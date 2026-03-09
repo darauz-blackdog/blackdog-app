@@ -62,6 +62,13 @@ class _TilopayPaymentScreenState extends ConsumerState<TilopayPaymentScreen> {
     final notifier = ref.read(paymentProvider(_params).notifier);
     notifier.startPayment();
 
+    // Only load whitelisted payment domains
+    final uri = Uri.parse(widget.paymentUrl);
+    const allowedDomains = ['tilopay.com', 'tilopay.cr'];
+    if (!allowedDomains.any((d) => uri.host == d || uri.host.endsWith('.$d'))) {
+      return;
+    }
+
     final controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
@@ -73,13 +80,22 @@ class _TilopayPaymentScreenState extends ConsumerState<TilopayPaymentScreen> {
             if (mounted) setState(() => _webViewLoading = false);
           },
           onNavigationRequest: (request) {
+            // Whitelist: only allow Tilopay domains
+            final navUri = Uri.tryParse(request.url);
+            if (navUri != null) {
+              final host = navUri.host;
+              if (!allowedDomains.any((d) => host == d || host.endsWith('.$d'))) {
+                return NavigationDecision.prevent;
+              }
+            }
+
             final url = request.url.toLowerCase();
 
             // Success callbacks
             if (url.contains('payment/success') ||
                 url.contains('payment/callback') ||
                 url.contains('status=approved') ||
-                url.contains('tilopay/result') && url.contains('status=paid')) {
+                (url.contains('tilopay/result') && url.contains('status=paid'))) {
               notifier.markProcessing();
               setState(() => _showWebView = false);
               return NavigationDecision.prevent;
@@ -89,7 +105,7 @@ class _TilopayPaymentScreenState extends ConsumerState<TilopayPaymentScreen> {
             if (url.contains('payment/cancel') ||
                 url.contains('payment/failed') ||
                 url.contains('status=declined') ||
-                url.contains('tilopay/result') && url.contains('status=failed')) {
+                (url.contains('tilopay/result') && url.contains('status=failed'))) {
               notifier.markFailed('El pago fue rechazado.');
               setState(() => _showWebView = false);
               return NavigationDecision.prevent;
@@ -99,7 +115,7 @@ class _TilopayPaymentScreenState extends ConsumerState<TilopayPaymentScreen> {
           },
         ),
       )
-      ..loadRequest(Uri.parse(widget.paymentUrl));
+      ..loadRequest(uri);
 
     setState(() {
       _webViewController = controller;

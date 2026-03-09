@@ -42,11 +42,6 @@ class AuthNotifier extends Notifier<AsyncValue<void>> {
   }) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      // Validate phone uniqueness before registering
-      if (phone != null && phone.isNotEmpty) {
-        await _checkPhoneAvailable(phone);
-      }
-
       final api = ref.read(apiServiceProvider);
       await api.register(
         email: email,
@@ -125,16 +120,4 @@ class AuthNotifier extends Notifier<AsyncValue<void>> {
     await Supabase.instance.client.auth.signOut();
   }
 
-  /// Check if phone number is already registered
-  Future<void> _checkPhoneAvailable(String phone) async {
-    final result = await Supabase.instance.client
-        .from('customer_profiles')
-        .select('id')
-        .eq('phone', phone)
-        .maybeSingle();
-
-    if (result != null) {
-      throw Exception('Este número de teléfono ya está registrado');
-    }
-  }
 }

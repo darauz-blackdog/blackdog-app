@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/service_providers.dart';
+import '../../theme/app_theme.dart';
 import '../../utils/error_utils.dart';
 import '../../utils/responsive.dart';
 

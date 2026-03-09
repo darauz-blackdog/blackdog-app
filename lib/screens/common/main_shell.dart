@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 
 /// Responsive main shell: NavigationBar on phones, NavigationRail on tablets (>600dp)
 class MainShell extends StatelessWidget {
@@ -36,7 +37,7 @@ class MainShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentIdx = _currentIndex(context);
-    final isWide = MediaQuery.sizeOf(context).width >= 600;
+    final isWide = Responsive.isExpanded(context);
 
     const destinations = [
       NavigationDestination(

@@ -19,9 +19,6 @@ class SelectedBranchNotifier extends AsyncNotifier<SelectedBranch?> {
     // Auto-sync with nearest branch when address changes
     final nearest = ref.watch(nearestBranchProvider);
     if (nearest != null) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(_keyId, nearest.branch.id);
-      await prefs.setString(_keyName, nearest.branch.name);
       return SelectedBranch(id: nearest.branch.id, name: nearest.branch.name);
     }
 

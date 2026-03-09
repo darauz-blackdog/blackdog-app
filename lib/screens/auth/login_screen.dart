@@ -145,7 +145,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ]),
                 const SizedBox(height: 24),
 
-                // Google Sign-In button (official branding)
+                // Google Sign-In button — colors follow Google brand guidelines
+                // (https://developers.google.com/identity/branding-guidelines)
+                // and are intentional exceptions to the AppColors rule.
                 SizedBox(
                   height: 44,
                   child: OutlinedButton.icon(
@@ -153,12 +155,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         : () => ref.read(authNotifierProvider.notifier).signInWithGoogle(),
                     style: OutlinedButton.styleFrom(
                       backgroundColor: Theme.of(context).brightness == Brightness.dark
-                          ? const Color(0xFF131314)
+                          ? const Color(0xFF131314) // Google dark bg
                           : Colors.white,
                       side: BorderSide(
                         color: Theme.of(context).brightness == Brightness.dark
-                            ? const Color(0xFF8E918F)
-                            : const Color(0xFF747775),
+                            ? const Color(0xFF8E918F) // Google dark border
+                            : const Color(0xFF747775), // Google light border
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(22),
@@ -169,8 +171,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       'Continuar con Google',
                       style: TextStyle(
                         color: Theme.of(context).brightness == Brightness.dark
-                            ? const Color(0xFFE3E3E3)
-                            : const Color(0xFF1F1F1F),
+                            ? const Color(0xFFE3E3E3) // Google dark text
+                            : const Color(0xFF1F1F1F), // Google light text
                         fontWeight: FontWeight.w500,
                       ),
                     ),

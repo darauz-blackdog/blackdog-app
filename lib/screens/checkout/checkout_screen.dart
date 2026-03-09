@@ -20,15 +20,8 @@ import '../../theme/app_theme.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/step_indicator.dart';
 
-/// Providers local to checkout
-final _branchesProvider = FutureProvider<List<Branch>>((ref) async {
-  final api = ref.read(apiServiceProvider);
-  final data = await api.getBranches();
-  return data.map((b) => Branch.fromJson(b as Map<String, dynamic>)).toList();
-});
-
 final _sortedBranchesProvider = Provider<AsyncValue<List<Branch>>>((ref) {
-  final branchesAsync = ref.watch(_branchesProvider);
+  final branchesAsync = ref.watch(branchListProvider);
   final address = ref.watch(selectedAddressProvider).valueOrNull;
   final userPos = ref.watch(userLocationProvider).valueOrNull;
 
@@ -89,6 +82,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   bool _isSubmitting = false;
   bool _initialized = false;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initFromProviders());
+  }
+
   // Inline WebView state for Tilopay
   bool _showInlineWebView = false;
   WebViewController? _webViewController;
@@ -113,7 +112,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    _initFromProviders();
     final cart = ref.watch(cartProvider).valueOrNull;
 
     if (cart == null || cart.isEmpty) {
@@ -339,6 +337,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       return;
     }
 
+    // Only load whitelisted payment domains
+    final uri = Uri.parse(paymentUrl);
+    const allowedDomains = ['tilopay.com', 'tilopay.cr'];
+    if (!allowedDomains.any((d) => uri.host == d || uri.host.endsWith('.$d'))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Dominio de pago no permitido'), duration: Duration(seconds: 3)),
+      );
+      return;
+    }
+
     final controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
@@ -350,13 +358,22 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             if (mounted) setState(() => _webViewLoading = false);
           },
           onNavigationRequest: (request) {
+            // Whitelist: only allow Tilopay domains
+            final navUri = Uri.tryParse(request.url);
+            if (navUri != null) {
+              final host = navUri.host;
+              if (!allowedDomains.any((d) => host == d || host.endsWith('.$d'))) {
+                return NavigationDecision.prevent;
+              }
+            }
+
             final url = request.url.toLowerCase();
 
             // Success callbacks
             if (url.contains('payment/success') ||
                 url.contains('payment/callback') ||
                 url.contains('status=approved') ||
-                url.contains('tilopay/result') && url.contains('status=paid')) {
+                (url.contains('tilopay/result') && url.contains('status=paid'))) {
               setState(() => _showInlineWebView = false);
               context.go('/order-confirmation/$orderId');
               return NavigationDecision.prevent;
@@ -366,7 +383,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             if (url.contains('payment/cancel') ||
                 url.contains('payment/failed') ||
                 url.contains('status=declined') ||
-                url.contains('tilopay/result') && url.contains('status=failed')) {
+                (url.contains('tilopay/result') && url.contains('status=failed'))) {
               setState(() => _showInlineWebView = false);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('El pago fue rechazado. Intenta de nuevo.'), duration: Duration(seconds: 3)),
@@ -379,7 +396,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           },
         ),
       )
-      ..loadRequest(Uri.parse(paymentUrl));
+      ..loadRequest(uri);
 
     setState(() {
       _webViewController = controller;
@@ -663,7 +680,7 @@ class _SummaryStep extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final deliveryFee = deliveryType == 'delivery' ? 3.50 : 0.0;
     final total = cart.subtotal + deliveryFee;
-    final branches = ref.watch(_branchesProvider).valueOrNull ?? [];
+    final branches = ref.watch(branchListProvider).valueOrNull ?? [];
     final branch = branches.where((b) => b.id == selectedBranchId).firstOrNull;
 
     return Column(
@@ -756,6 +773,7 @@ class _SummaryStep extends ConsumerWidget {
                   hintText: 'Instrucciones de entrega, alergias, etc.',
                 ),
                 maxLines: 2,
+                maxLength: 500,
                 onChanged: onNotesChanged,
               ),
             ],
@@ -790,7 +808,7 @@ class _SummaryStep extends ConsumerWidget {
     final display = label.isNotEmpty ? '$label — $line' : line;
 
     // Calculate distance from branch to delivery address
-    final branches = ref.watch(_branchesProvider).valueOrNull ?? [];
+    final branches = ref.watch(branchListProvider).valueOrNull ?? [];
     final branch = branches.where((b) => b.id == selectedBranchId).firstOrNull;
     final addrLat = (addr['latitude'] as num?)?.toDouble();
     final addrLng = (addr['longitude'] as num?)?.toDouble();

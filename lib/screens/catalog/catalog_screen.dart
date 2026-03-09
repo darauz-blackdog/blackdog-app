@@ -130,10 +130,10 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                 margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF262626) : const Color(0xFFF3F4F6),
+                  color: isDark ? AppColors.darkCard : AppColors.grayMedium,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: isDark ? const Color(0xFF444444) : const Color(0xFFE5E7EB),
+                    color: isDark ? AppColors.darkBorder : AppColors.border,
                   ),
                 ),
                 child: Row(
@@ -189,11 +189,26 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                     );
                   },
                 ),
-                loading: () => const SizedBox(),
+                loading: () => const Center(child: CircularProgressIndicator()),
                 error: (_, __) => const SizedBox(),
               ),
             ),
           ),
+
+          // Brand chips (only when a category is selected)
+          if (_selectedAppCategoryId != null)
+            SliverToBoxAdapter(
+              child: _BrandChipsRow(
+                appCategoryId: _selectedAppCategoryId!,
+                selectedBrand: _selectedBrand,
+                onBrandSelected: (brand) {
+                  setState(() {
+                    _selectedBrand = _selectedBrand == brand ? null : brand;
+                  });
+                  _resetAndReload();
+                },
+              ),
+            ),
 
           const SliverToBoxAdapter(child: SizedBox(height: 8)),
 
@@ -246,12 +261,13 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                       }
                       final product = products[i];
                       return FadeInUp(
+                        key: ValueKey(product.id),
                         delay: (i % 6) * 60,
                         duration: const Duration(milliseconds: 400),
                         offset: 20,
                         child: ProductCard(
                           product: product,
-                          isFavorite: ref.watch(favoritesProvider).contains(product.id),
+                          isFavorite: ref.watch(favoritesProvider.select((f) => f.contains(product.id))),
                           onFavorite: () => ref.read(favoritesProvider.notifier).toggle(product.id),
                           onTap: () => context.push('/product/${product.id}'),
                           onAddToCart: () async {
@@ -315,6 +331,63 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
   }
 }
 
+class _BrandChipsRow extends ConsumerWidget {
+  final int appCategoryId;
+  final String? selectedBrand;
+  final ValueChanged<String> onBrandSelected;
+
+  const _BrandChipsRow({
+    required this.appCategoryId,
+    required this.selectedBrand,
+    required this.onBrandSelected,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final brandsAsync = ref.watch(brandsProvider(appCategoryId));
+
+    return brandsAsync.when(
+      data: (brands) {
+        if (brands.isEmpty) return const SizedBox.shrink();
+        return SizedBox(
+          height: 48,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            scrollDirection: Axis.horizontal,
+            itemCount: brands.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (_, i) {
+              final brand = brands[i];
+              final isSelected = selectedBrand == brand;
+              return ChoiceChip(
+                label: Text(brand),
+                selected: isSelected,
+                onSelected: (_) => onBrandSelected(brand),
+                selectedColor: AppColors.primary.withValues(alpha: 0.15),
+                side: BorderSide(
+                  color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.outline,
+                ),
+                labelStyle: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected ? AppColors.primary : Theme.of(context).textTheme.bodyMedium?.color,
+                ),
+                backgroundColor: Colors.transparent,
+                showCheckmark: false,
+              );
+            },
+          ),
+        );
+      },
+      loading: () => const SizedBox(
+        height: 48,
+        child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+}
+
 class _CategoryCard extends StatelessWidget {
   final String label;
   final IconData icon;
@@ -331,8 +404,8 @@ class _CategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF262626) : const Color(0xFFF5F5F5);
-    final fgColor = isDark ? const Color(0xFFF7B104) : const Color(0xFF1A1A1A);
+    final bgColor = isDark ? AppColors.darkCard : AppColors.divider;
+    final fgColor = isDark ? AppColors.primary : AppColors.textPrimary;
 
     return GestureDetector(
       onTap: onTap,

@@ -6,16 +6,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../models/branch.dart';
+import '../../providers/address_provider.dart';
 import '../../providers/location_provider.dart';
-import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/cart_badge.dart';
-
-final branchesProvider = FutureProvider<List<dynamic>>((ref) async {
-  final api = ref.read(apiServiceProvider);
-  return api.getBranches();
-});
 
 class BranchesScreen extends ConsumerStatefulWidget {
   const BranchesScreen({super.key});
@@ -34,24 +30,22 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
   String _searchQuery = '';
   bool _sheetExpanded = false;
 
-  void _zoomToNearestBranch(Position position, List<dynamic> branches) {
+  void _zoomToNearestBranch(Position position, List<Branch> branches) {
     if (branches.isEmpty) return;
 
     double? minDist;
-    Map<String, dynamic>? nearest;
+    Branch? nearest;
     int nearestIndex = 0;
 
     for (int i = 0; i < branches.length; i++) {
-      final b = branches[i] as Map<String, dynamic>;
-      final lat = b['latitude'] as double?;
-      final lng = b['longitude'] as double?;
-      if (lat == null || lng == null) continue;
+      final b = branches[i];
+      if (b.latitude == null || b.longitude == null) continue;
 
       const distance = Distance();
       final d = distance.as(
         LengthUnit.Kilometer,
         LatLng(position.latitude, position.longitude),
-        LatLng(lat, lng),
+        LatLng(b.latitude!, b.longitude!),
       );
       if (minDist == null || d < minDist) {
         minDist = d;
@@ -60,11 +54,10 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
       }
     }
 
-    if (nearest != null) {
+    if (nearest != null && nearest.latitude != null && nearest.longitude != null) {
       try {
         _mapController.move(
-          LatLng(
-              nearest['latitude'] as double, nearest['longitude'] as double),
+          LatLng(nearest.latitude!, nearest.longitude!),
           15.0,
         );
         setState(() => _selectedIndex = nearestIndex);
@@ -72,16 +65,14 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
     }
   }
 
-  double? _distanceKm(Map<String, dynamic> branch, Position? userPosition) {
+  double? _distanceKm(Branch branch, Position? userPosition) {
     if (userPosition == null) return null;
-    final lat = branch['latitude'] as double?;
-    final lng = branch['longitude'] as double?;
-    if (lat == null || lng == null) return null;
+    if (branch.latitude == null || branch.longitude == null) return null;
     const distance = Distance();
     return distance.as(
       LengthUnit.Kilometer,
       LatLng(userPosition.latitude, userPosition.longitude),
-      LatLng(lat, lng),
+      LatLng(branch.latitude!, branch.longitude!),
     );
   }
 
@@ -90,13 +81,11 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
     return '${km.toStringAsFixed(1)} km';
   }
 
-  void _selectBranch(int index, Map<String, dynamic> branch) {
-    final lat = branch['latitude'] as double?;
-    final lng = branch['longitude'] as double?;
-    if (lat == null || lng == null) return;
+  void _selectBranch(int index, Branch branch) {
+    if (branch.latitude == null || branch.longitude == null) return;
 
     setState(() => _selectedIndex = index);
-    _mapController.move(LatLng(lat, lng), 15);
+    _mapController.move(LatLng(branch.latitude!, branch.longitude!), 15);
     _scrollToSelected(index);
   }
 
@@ -112,12 +101,12 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
     }
   }
 
-  void _fitAllMarkers(List<dynamic> branches, Position? userPosition) {
+  void _fitAllMarkers(List<Branch> branches, Position? userPosition) {
     final points = <LatLng>[];
     for (final b in branches) {
-      final lat = b['latitude'] as double?;
-      final lng = b['longitude'] as double?;
-      if (lat != null && lng != null) points.add(LatLng(lat, lng));
+      if (b.latitude != null && b.longitude != null) {
+        points.add(LatLng(b.latitude!, b.longitude!));
+      }
     }
     if (userPosition != null) {
       points.add(LatLng(userPosition.latitude, userPosition.longitude));
@@ -151,23 +140,20 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
     );
   }
 
-  List<dynamic> _filterAndSort(
-      List<dynamic> allBranches, Position? userPosition) {
+  List<Branch> _filterAndSort(
+      List<Branch> allBranches, Position? userPosition) {
     var branches = allBranches.where((b) {
-      final lat = b['latitude'] as double?;
-      final lng = b['longitude'] as double?;
-      final address = b['address'] as String?;
-      if (lat == null || lng == null) return false;
-      if (address != null && address.contains('NW 35TH')) return false;
+      if (b.latitude == null || b.longitude == null) return false;
+      if (b.address != null && b.address!.contains('NW 35TH')) return false;
       return true;
     }).toList();
 
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
       branches = branches.where((b) {
-        final name = (b['name'] as String? ?? '').toLowerCase();
-        final city = (b['city'] as String? ?? '').toLowerCase();
-        final address = (b['address'] as String? ?? '').toLowerCase();
+        final name = b.name.toLowerCase();
+        final city = (b.city ?? '').toLowerCase();
+        final address = (b.address ?? '').toLowerCase();
         return name.contains(q) || city.contains(q) || address.contains(q);
       }).toList();
     }
@@ -195,7 +181,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final branchesAsync = ref.watch(branchesProvider);
+    final branchesAsync = ref.watch(branchListProvider);
     final userPosAsync = ref.watch(userLocationProvider);
     final userPosition = userPosAsync.valueOrNull;
     final isWide = Responsive.isExpanded(context);
@@ -245,7 +231,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
 
   // ── Map widget (shared) ──────────────────────────────────────────────
 
-  Widget _buildMap(List<dynamic> branches, Position? userPosition,
+  Widget _buildMap(List<Branch> branches, Position? userPosition,
       LatLng center, double zoom) {
     return FlutterMap(
       mapController: _mapController,
@@ -290,14 +276,12 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
             ...List.generate(branches.length, (i) {
               final b = branches[i];
               final isSelected = _selectedIndex == i;
+              if (b.latitude == null || b.longitude == null) return const Marker(point: LatLng(0, 0), child: SizedBox.shrink());
               final markerSize =
                   Responsive.isExpanded(context) ? 44.0 : 38.0;
               final selectedSize = markerSize + 8;
               return Marker(
-                point: LatLng(
-                  b['latitude'] as double,
-                  b['longitude'] as double,
-                ),
+                point: LatLng(b.latitude!, b.longitude!),
                 width: isSelected ? selectedSize : markerSize,
                 height: isSelected ? selectedSize : markerSize,
                 child: GestureDetector(
@@ -336,7 +320,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
   // ── FABs over the map ────────────────────────────────────────────────
 
   Widget _buildMapFabs(
-      List<dynamic> branches, Position? userPosition, double bottomOffset) {
+      List<Branch> branches, Position? userPosition, double bottomOffset) {
     return Positioned(
       right: Responsive.paddingSmall(context),
       bottom: bottomOffset,
@@ -378,7 +362,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
   // ── Narrow layout (phone): map + sliding bottom panel ─────────────
 
   Widget _buildNarrowLayout(
-      Widget mapWidget, List<dynamic> branches, Position? userPosition) {
+      Widget mapWidget, List<Branch> branches, Position? userPosition) {
     final screenHeight = MediaQuery.sizeOf(context).height;
     final expandedHeight = screenHeight * 0.65;
     // Collapsed: header only (~76px). Expanded: 65% of screen.
@@ -447,8 +431,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                                   ),
                                   itemCount: branches.length,
                                   itemBuilder: (context, index) {
-                                    final branch = branches[index]
-                                        as Map<String, dynamic>;
+                                    final branch = branches[index];
                                     final isSelected =
                                         _selectedIndex == index;
                                     final dist =
@@ -469,12 +452,12 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                                               _sheetExpanded = false);
                                         },
                                         onGoogleMaps: () => _openGoogleMaps(
-                                          branch['latitude'] as double,
-                                          branch['longitude'] as double,
+                                          branch.latitude!,
+                                          branch.longitude!,
                                         ),
                                         onWaze: () => _openWaze(
-                                          branch['latitude'] as double,
-                                          branch['longitude'] as double,
+                                          branch.latitude!,
+                                          branch.longitude!,
                                         ),
                                       ),
                                     );
@@ -496,7 +479,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
   // ── Collapsed header (always visible in narrow) ──────────────────────
 
   Widget _buildCollapsedHeader(
-      List<dynamic> branches, Position? userPosition) {
+      List<Branch> branches, Position? userPosition) {
     return GestureDetector(
       onTap: _toggleSheet,
       behavior: HitTestBehavior.opaque,
@@ -568,7 +551,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
   // ── Wide layout (tablet): map + side panel ───────────────────────────
 
   Widget _buildWideLayout(
-      Widget mapWidget, List<dynamic> branches, Position? userPosition) {
+      Widget mapWidget, List<Branch> branches, Position? userPosition) {
     return Row(
       children: [
         // Map takes remaining space
@@ -653,8 +636,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           itemCount: branches.length,
                           itemBuilder: (context, index) {
-                            final branch =
-                                branches[index] as Map<String, dynamic>;
+                            final branch = branches[index];
                             final isSelected = _selectedIndex == index;
                             final dist = _distanceKm(branch, userPosition);
                             return Padding(
@@ -670,12 +652,12 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
                                 onTap: () =>
                                     _selectBranch(index, branch),
                                 onGoogleMaps: () => _openGoogleMaps(
-                                  branch['latitude'] as double,
-                                  branch['longitude'] as double,
+                                  branch.latitude!,
+                                  branch.longitude!,
                                 ),
                                 onWaze: () => _openWaze(
-                                  branch['latitude'] as double,
-                                  branch['longitude'] as double,
+                                  branch.latitude!,
+                                  branch.longitude!,
                                 ),
                               ),
                             );
@@ -728,7 +710,7 @@ class _BranchesScreenState extends ConsumerState<BranchesScreen> {
 }
 
 class _BranchCard extends StatelessWidget {
-  final Map<String, dynamic> branch;
+  final Branch branch;
   final bool isSelected;
   final double? distanceKm;
   final String? formatDistance;
@@ -748,11 +730,11 @@ class _BranchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = branch['name'] ?? 'Sucursal';
-    final address = branch['address'] as String?;
-    final city = branch['city'] as String?;
-    final phone = branch['phone'] as String?;
-    final email = branch['email'] as String?;
+    final name = branch.name;
+    final address = branch.address;
+    final city = branch.city;
+    final phone = branch.phone;
+    final email = branch.email;
 
     return GestureDetector(
       onTap: onTap,
