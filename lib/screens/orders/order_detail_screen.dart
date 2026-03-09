@@ -1,11 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/order.dart';
 import '../../providers/orders_provider.dart';
+import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/fade_in_up.dart';
+
+Color _statusColor(String status) {
+  return switch (status) {
+    'delivered' => AppColors.success,
+    'cancelled' => AppColors.error,
+    'confirmed' || 'ready_pickup' || 'shipping' || 'preparing' => AppColors.info,
+    'pending_payment' => AppColors.warning,
+    _ => AppColors.warning,
+  };
+}
 
 class OrderDetailScreen extends ConsumerWidget {
   final String orderId;
@@ -20,18 +33,18 @@ class OrderDetailScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Detalle del Pedido')),
       body: orderAsync.when(
-        data: (order) => _buildContent(context, order),
+        data: (order) => ResponsiveCenter(child: _buildContent(context, ref, order)),
         loading: () => extraOrder != null
-            ? _buildContent(context, extraOrder!)
+            ? ResponsiveCenter(child: _buildContent(context, ref, extraOrder!))
             : const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text('Error: $err')),
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context, Order order) {
+  Widget _buildContent(BuildContext context, WidgetRef ref, Order order) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(Responsive.padding(context)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -44,21 +57,24 @@ class OrderDetailScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Orden #${order.odooOrderName ?? order.id.substring(0, 8).toUpperCase()}',
+                  order.displayName,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                Container(
-                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                   decoration: BoxDecoration(
-                     color: AppColors.primary.withValues(alpha: 0.1),
-                     borderRadius: BorderRadius.circular(8),
-                     border: Border.all(color: AppColors.primary),
-                   ),
-                   child: Text(
-                     order.statusLabel,
-                     style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
-                   ),
-                )
+                Builder(builder: (context) {
+                  final color = _statusColor(order.status);
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: color),
+                    ),
+                    child: Text(
+                      order.statusLabel,
+                      style: TextStyle(color: color, fontWeight: FontWeight.bold),
+                    ),
+                  );
+                })
               ],
             ),
           ),
@@ -76,6 +92,73 @@ class OrderDetailScreen extends ConsumerWidget {
               ),
             ),
           ),
+
+          // Pay button (pending payment orders)
+          if (order.status == 'pending_payment')
+            FadeInUp(
+              delay: 80,
+              offset: 15,
+              duration: const Duration(milliseconds: 400),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => context.push(
+                      '/payment/${order.id}',
+                      extra: {
+                        'payment_url': order.paymentLink,
+                        'payment_method': order.paymentMethod,
+                      },
+                    ),
+                    icon: const Icon(Icons.payment_rounded),
+                    label: const Text('Pagar ahora'),
+                  ),
+                ),
+              ),
+            ),
+
+          // Tracking button
+          if (order.status != 'pending_payment' && order.status != 'cancelled')
+            FadeInUp(
+              delay: 80,
+              offset: 15,
+              duration: const Duration(milliseconds: 400),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => context.push('/orders/${order.id}/tracking'),
+                    icon: const Icon(Icons.local_shipping_outlined),
+                    label: const Text('Ver seguimiento'),
+                  ),
+                ),
+              ),
+            ),
+
+          // Cancel button
+          if (order.canCancel)
+            FadeInUp(
+              delay: 90,
+              offset: 15,
+              duration: const Duration(milliseconds: 400),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _confirmCancel(context, ref, order),
+                    icon: const Icon(Icons.cancel_outlined, color: AppColors.error),
+                    label: const Text('Cancelar pedido'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.error,
+                      side: const BorderSide(color: AppColors.error),
+                    ),
+                  ),
+                ),
+              ),
+            ),
 
           const Divider(height: 32),
 
@@ -170,6 +253,47 @@ class OrderDetailScreen extends ConsumerWidget {
       case 'in_store': return 'Pago en Tienda';
       default: return method;
     }
+  }
+
+  void _confirmCancel(BuildContext context, WidgetRef ref, Order order) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cancelar pedido'),
+        content: const Text('¿Estás seguro de que deseas cancelar este pedido?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              try {
+                final api = ref.read(apiServiceProvider);
+                await api.cancelOrder(order.id);
+                ref.invalidate(orderDetailProvider(order.id));
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Pedido cancelado'), duration: Duration(seconds: 3)),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error al cancelar: $e'), duration: const Duration(seconds: 3)),
+                  );
+                }
+              }
+            },
+            child: const Text(
+              'Sí, cancelar',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

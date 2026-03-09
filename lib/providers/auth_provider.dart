@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../config/env.dart';
 import 'service_providers.dart';
 
 /// Stream of Supabase auth state changes
@@ -58,31 +61,63 @@ class AuthNotifier extends Notifier<AsyncValue<void>> {
   Future<void> signInWithGoogle() async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      await Supabase.instance.client.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: 'com.blackdogpanama.blackdog_app://login-callback',
-      );
+      if (kIsWeb) {
+        await _signInWithGoogleWeb();
+      } else {
+        await _signInWithGoogleNative();
+      }
     });
   }
 
-  Future<void> signInWithApple() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      await Supabase.instance.client.auth.signInWithOAuth(
-        OAuthProvider.apple,
-        redirectTo: 'com.blackdogpanama.blackdog_app://login-callback',
-      );
-    });
+  Future<void> _signInWithGoogleWeb() async {
+    await Supabase.instance.client.auth.signInWithOAuth(
+      OAuthProvider.google,
+      redirectTo: 'com.blackdogpanama.blackdog_app://login-callback',
+    );
+  }
+
+  Future<void> _signInWithGoogleNative() async {
+    final googleSignIn = GoogleSignIn(
+      serverClientId: Env.googleWebClientId,
+    );
+
+    final googleUser = await googleSignIn.signIn();
+    if (googleUser == null) {
+      throw Exception('Inicio de sesión cancelado');
+    }
+
+    final googleAuth = await googleUser.authentication;
+    final idToken = googleAuth.idToken;
+    final accessToken = googleAuth.accessToken;
+
+    if (idToken == null) {
+      throw Exception('No se pudo obtener el token de Google');
+    }
+
+    await Supabase.instance.client.auth.signInWithIdToken(
+      provider: OAuthProvider.google,
+      idToken: idToken,
+      accessToken: accessToken,
+    );
   }
 
   Future<void> resetPassword(String email) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      await Supabase.instance.client.auth.resetPasswordForEmail(email);
+      await Supabase.instance.client.auth.resetPasswordForEmail(
+        email,
+        redirectTo: 'com.blackdogpanama.blackdog_app://reset-callback',
+      );
     });
   }
 
   Future<void> signOut() async {
+    if (!kIsWeb) {
+      try {
+        await GoogleSignIn().signOut();
+      } catch (_) {}
+    }
     await Supabase.instance.client.auth.signOut();
   }
+
 }

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_bd_app_config_form" model="ir.ui.view">
+        <field name="name">blackdog.app.config.form</field>
+        <field name="model">blackdog.app.config</field>
+        <field name="arch" type="xml">
+            <form string="Configuración App Móvil">
+                <sheet>
+                    <group>
+                        <group string="General">
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Defaults">
+                            <field name="default_warehouse_id"/>
+                            <field name="default_sales_team_id"/>
+                            <field name="delivery_product_id"/>
+                            <field name="auto_process_queue"/>
+                            <field name="auto_confirm_paid"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Tilopay">
+                            <group>
+                                <group>
+                                    <field name="tilopay_api_user"/>
+                                    <field name="tilopay_api_password" password="True"/>
+                                    <field name="tilopay_api_key" password="True"/>
+                                </group>
+                                <group>
+                                    <field name="tilopay_api_base_url"/>
+                                    <field name="tilopay_success_url"/>
+                                    <field name="tilopay_fail_url"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Yappy">
+                            <group>
+                                <group>
+                                    <field name="yappy_merchant_id"/>
+                                    <field name="yappy_secret_key" password="True"/>
+                                </group>
+                                <group>
+                                    <field name="yappy_domain"/>
+                                    <field name="yappy_success_url"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Backend API">
+                            <group>
+                                <field name="backend_api_url"/>
+                                <field name="backend_api_secret" password="True"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_bd_app_config" model="ir.actions.act_window">
+        <field name="name">Configuración App</field>
+        <field name="res_model">blackdog.app.config</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+    </record>
+
+    <!-- Server action to open config singleton -->
+    <record id="action_bd_app_config_open" model="ir.actions.server">
+        <field name="name">Abrir Configuración App</field>
+        <field name="model_id" ref="model_blackdog_app_config"/>
+        <field name="state">code</field>
+        <field name="code">
+config = env['blackdog.app.config']._get_config()
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Configuración App',
+    'res_model': 'blackdog.app.config',
+    'res_id': config.id,
+    'view_mode': 'form',
+    'target': 'inline',
+}
+        </field>
+    </record>
+
+</odoo>

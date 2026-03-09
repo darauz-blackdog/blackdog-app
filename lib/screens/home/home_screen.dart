@@ -3,15 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../providers/branch_provider.dart';
+import '../../providers/address_provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/notifications_provider.dart';
 import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/address_selector_sheet.dart';
 import '../../widgets/brand_circle.dart';
 import '../../widgets/cart_badge.dart';
 import '../../widgets/category_icon_box.dart';
 import '../../widgets/fade_in_up.dart';
 import '../../widgets/hero_banner_carousel.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/product_carousel_section.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -32,19 +35,49 @@ class HomeScreen extends ConsumerWidget {
             backgroundColor: Theme.of(context).colorScheme.surface,
             surfaceTintColor: Colors.transparent,
             elevation: 0,
-            centerTitle: false,
-            titleSpacing: 0,
-            title: const _BranchSelectorHeader(),
+            centerTitle: true,
+            leadingWidth: 160,
+            leading: const _BranchSelectorHeader(),
+            title: Image.asset(
+              Theme.of(context).brightness == Brightness.dark
+                  ? 'assets/images/logo.png'
+                  : 'assets/images/logo_dark.png',
+              height: 32,
+              fit: BoxFit.contain,
+            ),
             actions: [
-              IconButton(
-                onPressed: () {
-                  // TODO: Notifications
-                },
-                icon: Icon(
-                  Icons.notifications_outlined,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
+              Builder(builder: (ctx) {
+                final unread = ref.watch(unreadCountProvider);
+                return Stack(
+                  children: [
+                    IconButton(
+                      onPressed: () => context.push('/notifications'),
+                      icon: Icon(
+                        Icons.notifications_outlined,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    if (unread > 0)
+                      Positioned(
+                        right: 6,
+                        top: 6,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: AppColors.error,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                          child: Text(
+                            '$unread',
+                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              }),
               const CartBadge(),
               const SizedBox(width: 4),
             ],
@@ -67,7 +100,7 @@ class HomeScreen extends ConsumerWidget {
               offset: 15,
               duration: const Duration(milliseconds: 400),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                padding: EdgeInsets.fromLTRB(Responsive.padding(context), 16, Responsive.padding(context), 0),
                 child: GestureDetector(
                   onTap: () => context.go('/search'),
                   child: Container(
@@ -144,7 +177,7 @@ class HomeScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: EdgeInsets.symmetric(horizontal: Responsive.padding(context)),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -174,14 +207,14 @@ class HomeScreen extends ConsumerWidget {
                       const SizedBox(height: 14),
                       // Grid of top 4 categories
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: EdgeInsets.symmetric(horizontal: Responsive.padding(context)),
                         child: GridView.count(
-                          crossAxisCount: 2,
+                          crossAxisCount: Responsive.homeGridCols(context),
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           mainAxisSpacing: 12,
                           crossAxisSpacing: 12,
-                          childAspectRatio: 1.45,
+                          childAspectRatio: 1.3,
                           children: featured.map((cat) {
                             final style =
                                 CategoryStyle.forAppCategory(cat.icon);
@@ -195,9 +228,6 @@ class HomeScreen extends ConsumerWidget {
                                 backgroundColor: style.backgroundColor,
                                 iconColor: style.iconColor,
                                 large: true,
-                                productCount: cat.productCount > 0
-                                    ? cat.productCount
-                                    : null,
                                 onTap: () => context.go(
                                   '/catalog?app_category_id=${cat.id}',
                                 ),
@@ -213,7 +243,7 @@ class HomeScreen extends ConsumerWidget {
                           height: 110,
                           child: ListView.separated(
                             padding:
-                                const EdgeInsets.symmetric(horizontal: 20),
+                                EdgeInsets.symmetric(horizontal: Responsive.padding(context)),
                             scrollDirection: Axis.horizontal,
                             itemCount: rest.length,
                             separatorBuilder: (_, _) =>
@@ -317,6 +347,7 @@ class HomeScreen extends ConsumerWidget {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Error al agregar'),
+                            duration: Duration(seconds: 3),
                           ),
                         );
                       }
@@ -367,41 +398,35 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-/// Header widget showing branch selector (PedidosYa style)
+/// Header widget showing address selector with nearest branch info
 class _BranchSelectorHeader extends ConsumerWidget {
   const _BranchSelectorHeader();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final branchAsync = ref.watch(selectedBranchProvider);
-    final branch = branchAsync.valueOrNull;
+    final address = ref.watch(selectedAddressProvider).valueOrNull;
+    final nearest = ref.watch(nearestBranchProvider);
 
     return GestureDetector(
-      onTap: () => context.push('/branches'),
+      onTap: () => showAddressSelectorSheet(context),
       child: Padding(
         padding: const EdgeInsets.only(left: 16),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset(
-              'assets/icons/Black_Dog_Logo_V.png',
-              height: 32,
-              width: 32,
-            ),
-            const SizedBox(width: 8),
             Icon(
               Icons.location_on_rounded,
               color: AppColors.primary,
               size: 22,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 4),
             Flexible(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Entregar en',
+                    address != null ? 'Entregar en' : 'Enviar a',
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       color: Theme.of(context).textTheme.bodySmall?.color,
@@ -412,10 +437,10 @@ class _BranchSelectorHeader extends ConsumerWidget {
                     children: [
                       Flexible(
                         child: Text(
-                          branch?.name ?? 'Selecciona sucursal',
+                          address?.label ?? 'Selecciona dirección',
                           style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
                             color: Theme.of(context).colorScheme.onSurface,
                           ),
                           maxLines: 1,
@@ -430,6 +455,18 @@ class _BranchSelectorHeader extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  if (nearest != null)
+                    Text(
+                      nearest.branch.name,
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        color: nearest.isDeliveryAvailable
+                            ? AppColors.primary
+                            : Theme.of(context).hintColor,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                 ],
               ),
             ),

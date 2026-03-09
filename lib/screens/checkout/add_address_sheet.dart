@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/service_providers.dart';
+import '../../theme/app_theme.dart';
+import '../../utils/error_utils.dart';
+import '../../utils/responsive.dart';
 
 class AddAddressSheet extends ConsumerStatefulWidget {
   const AddAddressSheet({super.key});
@@ -31,10 +34,10 @@ class _AddAddressSheetState extends ConsumerState<AddAddressSheet> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        left: Responsive.padding(context),
+        right: Responsive.padding(context),
+        top: Responsive.padding(context),
+        bottom: MediaQuery.of(context).viewInsets.bottom + Responsive.padding(context),
       ),
       child: Form(
         key: _formKey,
@@ -130,7 +133,7 @@ class _AddAddressSheetState extends ConsumerState<AddAddressSheet> {
       setState(() => _saving = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+          SnackBar(content: Text(friendlyError(e)), backgroundColor: AppColors.error, duration: const Duration(seconds: 3)),
         );
       }
     }

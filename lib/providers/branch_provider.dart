@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'address_provider.dart';
+
 class SelectedBranch {
   final int id;
   final String name;
@@ -14,6 +16,12 @@ class SelectedBranchNotifier extends AsyncNotifier<SelectedBranch?> {
 
   @override
   Future<SelectedBranch?> build() async {
+    // Auto-sync with nearest branch when address changes
+    final nearest = ref.watch(nearestBranchProvider);
+    if (nearest != null) {
+      return SelectedBranch(id: nearest.branch.id, name: nearest.branch.name);
+    }
+
     final prefs = await SharedPreferences.getInstance();
     final id = prefs.getInt(_keyId);
     final name = prefs.getString(_keyName);

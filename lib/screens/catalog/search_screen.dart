@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../utils/responsive_grid.dart';
 import '../../widgets/product_card.dart';
 
@@ -98,13 +99,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                      padding: EdgeInsets.fromLTRB(Responsive.paddingSmall(context), 8, Responsive.paddingSmall(context), 8),
                       child: Text('${result.total} resultados',
                           style: Theme.of(context).textTheme.bodySmall),
                     ),
                     Expanded(
                       child: GridView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: EdgeInsets.symmetric(horizontal: Responsive.paddingSmall(context)),
                         gridDelegate: responsiveProductGrid(),
                         itemCount: result.products.length,
                         itemBuilder: (_, i) => ProductCard(

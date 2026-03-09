@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../theme/app_theme.dart';
+
 class PromoBanner {
   final String title;
   final String subtitle;
@@ -73,10 +75,12 @@ class _HeroBannerCarouselState extends State<HeroBannerCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    final bannerHeight = MediaQuery.sizeOf(context).width * 0.4;
+    final clampedHeight = bannerHeight.clamp(140.0, 220.0);
     return Column(
       children: [
         SizedBox(
-          height: 160,
+          height: clampedHeight,
           child: PageView.builder(
             controller: _controller,
             itemCount: _banners.length,
@@ -155,7 +159,7 @@ class _HeroBannerCarouselState extends State<HeroBannerCarousel> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
                 color: isActive
-                    ? const Color(0xFFF7B104)
+                    ? AppColors.primary
                     : Theme.of(context)
                         .colorScheme
                         .onSurface

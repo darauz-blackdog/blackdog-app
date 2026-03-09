@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Operadores solo ven pedidos de su almacén/sucursal -->
+        <record id="rule_app_order_branch_operator" model="ir.rule">
+            <field name="name">App Order: Operador ve solo su sucursal</field>
+            <field name="model_id" ref="model_blackdog_app_order"/>
+            <field name="groups" eval="[(4, ref('group_app_branch_operator'))]"/>
+            <field name="domain_force">[
+                '|',
+                ('warehouse_id', '=', False),
+                ('warehouse_id', '=', user.property_warehouse_id.id)
+            ]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Managers ven todo -->
+        <record id="rule_app_order_manager" model="ir.rule">
+            <field name="name">App Order: Manager ve todo</field>
+            <field name="model_id" ref="model_blackdog_app_order"/>
+            <field name="groups" eval="[(4, ref('group_app_sales_manager'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+    </data>
+</odoo>

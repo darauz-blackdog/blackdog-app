@@ -23,6 +23,11 @@ class AppColors {
   static const warningLight = Color(0xFFFEF3C7);
   static const successLight = Color(0xFFD1FAE5);
 
+  // Payment-specific
+  static const paymentGold = Color(0xFFF7B104);
+  static const paymentDark = Color(0xFF1A1A2E);
+  static const yappyPurple = Color(0xFF6C2DC7);
+
   // Dark mode colors
   static const darkBackground = Color(0xFF121212);
   static const darkSurface = Color(0xFF1E1E1E);

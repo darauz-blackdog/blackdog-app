@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/error_utils.dart';
+import '../../utils/responsive.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -37,8 +39,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (state.hasError && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(state.error.toString()),
+          content: Text(friendlyError(state.error!)),
           backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 3),
         ),
       );
     }
@@ -52,8 +55,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
+          padding: EdgeInsets.all(Responsive.padding(context)),
+          child: ResponsiveCenter(maxWidth: Responsive.maxFormWidth, child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -61,7 +64,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 40),
                 Center(
                   child: Image.asset(
-                    'assets/images/logo.png',
+                    Theme.of(context).brightness == Brightness.dark
+                        ? 'assets/images/logo.png'
+                        : 'assets/images/logo_dark.png',
                     width: 320,
                     fit: BoxFit.contain,
                   ),
@@ -140,26 +145,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ]),
                 const SizedBox(height: 24),
 
-                // Social buttons
-                Row(children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: isLoading ? null
-                          : () => ref.read(authNotifierProvider.notifier).signInWithGoogle(),
-                      icon: const Icon(Icons.g_mobiledata, size: 24),
-                      label: const Text('Google'),
+                // Google Sign-In button — colors follow Google brand guidelines
+                // (https://developers.google.com/identity/branding-guidelines)
+                // and are intentional exceptions to the AppColors rule.
+                SizedBox(
+                  height: 44,
+                  child: OutlinedButton.icon(
+                    onPressed: isLoading ? null
+                        : () => ref.read(authNotifierProvider.notifier).signInWithGoogle(),
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF131314) // Google dark bg
+                          : Colors.white,
+                      side: BorderSide(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFF8E918F) // Google dark border
+                            : const Color(0xFF747775), // Google light border
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                    ),
+                    icon: Image.asset('assets/images/google_logo.png', width: 20, height: 20),
+                    label: Text(
+                      'Continuar con Google',
+                      style: TextStyle(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFFE3E3E3) // Google dark text
+                            : const Color(0xFF1F1F1F), // Google light text
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: isLoading ? null
-                          : () => ref.read(authNotifierProvider.notifier).signInWithApple(),
-                      icon: const Icon(Icons.apple, size: 24),
-                      label: const Text('Apple'),
-                    ),
-                  ),
-                ]),
+                ),
                 const SizedBox(height: 32),
 
                 // Register link
@@ -169,7 +187,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ]),
               ],
             ),
-          ),
+          )),
         ),
       ),
     );
@@ -207,7 +225,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ref.read(authNotifierProvider.notifier).resetPassword(emailCtrl.text.trim());
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context)
-                    .showSnackBar(const SnackBar(content: Text('Enlace enviado a tu correo')));
+                    .showSnackBar(const SnackBar(content: Text('Enlace enviado a tu correo'), duration: Duration(seconds: 3)));
               },
               child: const Text('Enviar enlace'),
             ),

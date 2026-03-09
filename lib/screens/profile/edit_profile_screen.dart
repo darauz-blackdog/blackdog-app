@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/error_utils.dart';
+import '../../utils/responsive.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -47,7 +49,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Perfil actualizado')),
+          const SnackBar(content: Text('Perfil actualizado'), duration: Duration(seconds: 3)),
         );
         context.pop();
       }
@@ -55,9 +57,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     } catch (e) {
       setState(() => _saving = false);
       if (mounted) {
-        final msg = e.toString().replaceAll('Exception: ', '');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al guardar: $msg')),
+          SnackBar(content: Text(friendlyError(e)), backgroundColor: AppColors.error, duration: const Duration(seconds: 3)),
         );
       }
     }
@@ -72,8 +73,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       body: profileAsync.when(
         data: (profile) {
           _initFields(profile);
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+          return ResponsiveCenter(
+            maxWidth: Responsive.maxFormWidth,
+            child: SingleChildScrollView(
+            padding: EdgeInsets.all(Responsive.padding(context)),
             child: Form(
               key: _formKey,
               child: Column(
@@ -165,6 +168,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 ],
               ),
             ),
+          ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),

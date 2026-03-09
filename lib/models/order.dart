@@ -1,6 +1,9 @@
+import 'payment_state.dart';
+
 class Order {
   final String id;
   final String? odooOrderName;
+  final String? paymentReference;
   final String status;
   final String deliveryType;
   final int? branchId;
@@ -17,6 +20,7 @@ class Order {
   final List<OrderItem> items;
   final List<OrderTracking> tracking;
   final OrderBranch? branch;
+  final int? itemCount;
   // Payment-related fields from create response
   final String? paymentUrl;
   final Map<String, dynamic>? yappyInstructions;
@@ -24,6 +28,7 @@ class Order {
   Order({
     required this.id,
     this.odooOrderName,
+    this.paymentReference,
     required this.status,
     required this.deliveryType,
     this.branchId,
@@ -40,9 +45,17 @@ class Order {
     this.items = const [],
     this.tracking = const [],
     this.branch,
+    this.itemCount,
     this.paymentUrl,
     this.yappyInstructions,
   });
+
+  /// Typed payment state from string status
+  PaymentState get paymentState => PaymentState.fromString(paymentStatus);
+
+  /// Display name: Odoo name > payment reference > fallback
+  String get displayName =>
+      odooOrderName ?? paymentReference ?? 'Pedido';
 
   factory Order.fromJson(Map<String, dynamic> json) {
     // The create response nests order data inside 'order' key
@@ -53,6 +66,7 @@ class Order {
     return Order(
       id: orderData['id'] as String,
       odooOrderName: json['odoo_order_name'] as String? ?? orderData['odoo_order_name'] as String?,
+      paymentReference: json['payment_reference'] as String? ?? orderData['payment_reference'] as String?,
       status: orderData['status'] as String? ?? 'pending_payment',
       deliveryType: orderData['delivery_type'] as String? ?? 'pickup',
       branchId: orderData['branch_id'] as int?,
@@ -77,6 +91,7 @@ class Order {
           : (orderData['branch'] != null
               ? OrderBranch.fromJson(orderData['branch'] as Map<String, dynamic>)
               : null),
+      itemCount: json['item_count'] as int? ?? orderData['item_count'] as int?,
       paymentUrl: json['payment_url'] as String?,
       yappyInstructions: json['yappy'] as Map<String, dynamic>?,
     );

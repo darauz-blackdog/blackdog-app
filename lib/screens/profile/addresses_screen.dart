@@ -6,6 +6,7 @@ import '../../providers/profile_provider.dart';
 import '../../providers/service_providers.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/fade_in_up.dart';
 
 class AddressesScreen extends ConsumerWidget {
@@ -68,8 +69,9 @@ class AddressesScreen extends ConsumerWidget {
             );
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
+          return ResponsiveCenter(
+            child: ListView.separated(
+            padding: EdgeInsets.all(Responsive.paddingSmall(context)),
             itemCount: addresses.length,
             separatorBuilder: (_, _) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
@@ -78,12 +80,22 @@ class AddressesScreen extends ConsumerWidget {
                 delay: index * 80,
                 offset: 15,
                 duration: const Duration(milliseconds: 400),
-                child: _AddressCard(
-                  address: addr,
-                  onDelete: () => _deleteAddress(context, ref, addr['id'].toString()),
+                child: GestureDetector(
+                  onTap: () async {
+                    final result = await context.push<bool>(
+                      '/profile/addresses/${addr['id']}/edit',
+                      extra: addr,
+                    );
+                    if (result == true) ref.invalidate(addressesProvider);
+                  },
+                  child: _AddressCard(
+                    address: addr,
+                    onDelete: () => _deleteAddress(context, ref, addr['id'].toString()),
+                  ),
                 ),
               );
             },
+          ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -141,13 +153,13 @@ class AddressesScreen extends ConsumerWidget {
       ref.invalidate(addressesProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Dirección eliminada')),
+          const SnackBar(content: Text('Dirección eliminada'), duration: Duration(seconds: 3)),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('Error: $e'), duration: const Duration(seconds: 3)),
         );
       }
     }

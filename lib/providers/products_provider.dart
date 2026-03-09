@@ -72,7 +72,7 @@ class ProductListResult {
 }
 
 /// Single product detail
-final productDetailProvider = FutureProvider.family<ProductDetail, int>((ref, productId) async {
+final productDetailProvider = FutureProvider.autoDispose.family<ProductDetail, int>((ref, productId) async {
   final api = ref.read(apiServiceProvider);
   final result = await api.getProduct(productId);
   return ProductDetail.fromJson(result);

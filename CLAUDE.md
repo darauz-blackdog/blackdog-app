@@ -129,6 +129,38 @@ flutter run --dart-define=API_BASE_URL=http://TU_IP_VPS:3002/api
 - Todo en español en la UI, código en inglés
 - NO agregar dependencias sin discutir primero
 
+## Diseño y Responsiveness
+
+### Layout
+- **NUNCA usar alturas fijas** en contenedores con texto o contenido dinámico — usar `Flexible`, `Expanded`, `IntrinsicHeight`, o constraints con `minHeight`
+- **Siempre usar `Responsive`** (`lib/utils/responsive.dart`) para padding y breakpoints — nunca hardcodear padding en screens
+- **Breakpoint tablet (>=600dp)**: usar layout alternativo (side panel, multi-column) en vez de escalar el layout mobile
+- **Probar en 3 anchos**: compact (<360), normal (360-600), expanded (>=600)
+- **`SafeArea`** y `MediaQuery.of(context).padding` en contenido que toque bordes de pantalla
+- **`maxContentWidth`** (700px) para limitar ancho de contenido en pantallas grandes
+
+### Widgets seguros
+- Texto largo siempre con `maxLines` + `overflow: TextOverflow.ellipsis` o `Flexible`/`Expanded`
+- Imágenes con `fit: BoxFit.contain` o `BoxFit.cover`, nunca sin constraint
+- Listas horizontales con `SizedBox(height:)` envolvente, listas verticales con `Expanded` o `Flexible`
+- `AnimatedContainer` para transiciones de tamaño — nunca cambiar height en `setState` sin animar
+
+### Accesibilidad
+- Touch targets mínimo 48x48 (Material guideline)
+- Contraste mínimo 4.5:1 para texto normal, 3:1 para texto grande
+- Usar `Semantics` en widgets interactivos custom (no en Material widgets estándar)
+- Labels en español para screen readers
+
+## Seguridad
+
+- **Input sanitization**: validar y sanitizar todo input del usuario antes de enviarlo al API
+- **Deep links**: validar scheme, host y parámetros antes de navegar
+- **WebView**: solo cargar URLs de dominios whitelisted (tilopay, supabase)
+- **Almacenamiento**: datos sensibles (tokens) solo en secure storage, nunca en SharedPreferences
+- **Certificados**: en producción, habilitar certificate pinning en Dio
+- **Logging**: nunca loguear tokens, passwords, o datos personales del usuario
+- **Permisos**: solicitar permisos (location, camera, etc.) just-in-time con explicación, no al inicio
+
 ## Prohibiciones
 
 - No usar `setState` para estado global (usar Riverpod)
@@ -136,3 +168,7 @@ flutter run --dart-define=API_BASE_URL=http://TU_IP_VPS:3002/api
 - No hardcodear URLs ni keys (usar Env)
 - No modificar la estructura de carpetas sin razón
 - No commitear keys/secrets
+- No usar `height:` fijo en contenedores con texto dinámico
+- No usar `MediaQuery.of(context).size` para responsive — usar `MediaQuery.sizeOf(context)` (más eficiente, no rebuilds innecesarios)
+- No ignorar `SafeArea` en pantallas con contenido que toque bordes
+- No usar colores hardcodeados — usar `AppColors` o `Theme.of(context).colorScheme`

@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         LIST VIEW
+         ═══════════════════════════════════════════════════════════ -->
+    <record id="view_bd_app_order_list" model="ir.ui.view">
+        <field name="name">blackdog.app.order.list</field>
+        <field name="model">blackdog.app.order</field>
+        <field name="arch" type="xml">
+            <list string="Pedidos App"
+                  decoration-info="state in ('pending',)"
+                  decoration-warning="state in ('confirmed','preparing')"
+                  decoration-success="state in ('paid','ready','delivered')"
+                  decoration-danger="state == 'cancelled'"
+                  default_order="create_date desc">
+                <field name="name" string="Pedido"/>
+                <field name="app_ref" string="Ref. App" optional="show"/>
+                <field name="create_date" string="Fecha"/>
+                <field name="partner_id" string="Cliente"/>
+                <field name="customer_phone" string="Teléfono" optional="show"/>
+                <field name="warehouse_id" string="Sucursal"/>
+                <field name="delivery_method" string="Entrega"
+                       widget="badge"
+                       decoration-info="delivery_method == 'delivery'"
+                       decoration-success="delivery_method == 'pickup'"/>
+                <field name="payment_method" string="Método Pago" optional="show"/>
+                <field name="payment_status" string="Estado Pago"
+                       widget="badge"
+                       decoration-success="payment_status == 'paid'"
+                       decoration-info="payment_status == 'pending'"
+                       decoration-danger="payment_status in ('failed',)"
+                       decoration-warning="payment_status == 'refunded'"/>
+                <field name="amount_total" string="Total" sum="Total"/>
+                <field name="state" string="Estado"
+                       widget="badge"
+                       decoration-info="state == 'pending'"
+                       decoration-warning="state in ('confirmed','preparing')"
+                       decoration-success="state in ('paid','ready','delivered','dispatched')"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         KANBAN VIEW
+         ═══════════════════════════════════════════════════════════ -->
+    <record id="view_bd_app_order_kanban" model="ir.ui.view">
+        <field name="name">blackdog.app.order.kanban</field>
+        <field name="model">blackdog.app.order</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state"
+                    default_order="create_date desc"
+                    class="o_kanban_small_column">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="amount_total"/>
+                <field name="warehouse_id"/>
+                <field name="delivery_method"/>
+                <field name="state"/>
+                <field name="payment_method"/>
+                <field name="payment_status"/>
+                <field name="customer_phone"/>
+                <field name="create_date"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between mb-1">
+                            <strong>
+                                <field name="name"/>
+                            </strong>
+                            <span class="badge rounded-pill"
+                                  t-attf-class="#{record.delivery_method.raw_value == 'delivery' ? 'text-bg-info' : 'text-bg-success'}">
+                                <field name="delivery_method"/>
+                            </span>
+                        </div>
+                        <div class="text-muted mb-1">
+                            <field name="partner_id"/>
+                        </div>
+                        <div class="mb-1" t-if="record.customer_phone.raw_value">
+                            <i class="fa fa-phone me-1"/>
+                            <field name="customer_phone"/>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-muted">
+                                <i class="fa fa-building me-1"/>
+                                <field name="warehouse_id"/>
+                            </span>
+                            <strong class="fs-5 text-primary">
+                                $<field name="amount_total"/>
+                            </strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge rounded-pill"
+                                  t-attf-class="#{record.payment_status.raw_value == 'paid' ? 'text-bg-success' : record.payment_status.raw_value == 'pending' ? 'text-bg-warning' : 'text-bg-secondary'}">
+                                <field name="payment_method"/>:
+                                <field name="payment_status"/>
+                            </span>
+                            <span class="text-muted" style="font-size: 0.8em;">
+                                <field name="create_date" widget="date"/>
+                            </span>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         FORM VIEW
+         ═══════════════════════════════════════════════════════════ -->
+    <record id="view_bd_app_order_form" model="ir.ui.view">
+        <field name="name">blackdog.app.order.form</field>
+        <field name="model">blackdog.app.order</field>
+        <field name="arch" type="xml">
+            <form string="Pedido App">
+                <!-- Banner pagado -->
+                <field name="payment_status" invisible="1"/>
+                <div class="alert alert-success text-center" role="status"
+                     invisible="payment_status != 'paid'"
+                     style="font-size: 20px; font-weight: bold; padding: 16px; margin-bottom: 0; border-radius: 0;">
+                    <i class="fa fa-check-circle" style="margin-right: 8px; font-size: 24px;"/>
+                    PAGADO VÍA APP MÓVIL
+                </div>
+
+                <header>
+                    <button name="action_mark_paid" string="Marcar Pagado"
+                            type="object" class="btn-success"
+                            invisible="state != 'pending'"
+                            groups="blackdog_app_sales.group_app_sales_manager"/>
+                    <button name="action_confirm" string="Confirmar"
+                            type="object" class="btn-primary"
+                            invisible="state not in ('pending','paid')"
+                            groups="blackdog_app_sales.group_app_branch_operator,blackdog_app_sales.group_app_sales_manager"/>
+                    <button name="action_start_preparing" string="Iniciar Preparación"
+                            type="object" class="btn-primary"
+                            invisible="state != 'confirmed'"
+                            groups="blackdog_app_sales.group_app_branch_operator,blackdog_app_sales.group_app_sales_manager"/>
+                    <button name="action_mark_ready" string="Marcar Listo"
+                            type="object" class="btn-success"
+                            invisible="state != 'preparing'"
+                            groups="blackdog_app_sales.group_app_branch_operator,blackdog_app_sales.group_app_sales_manager"/>
+                    <button name="action_dispatch" string="Despachar"
+                            type="object" class="btn-warning"
+                            invisible="state != 'ready' or delivery_method != 'delivery'"
+                            groups="blackdog_app_sales.group_app_branch_operator,blackdog_app_sales.group_app_sales_manager"/>
+                    <button name="action_mark_delivered" string="Entregado"
+                            type="object" class="btn-success"
+                            invisible="state not in ('ready','dispatched')"
+                            groups="blackdog_app_sales.group_app_branch_operator,blackdog_app_sales.group_app_sales_manager"/>
+                    <button name="action_cancel" string="Cancelar"
+                            type="object" class="btn-danger"
+                            invisible="state in ('delivered','cancelled')"
+                            groups="blackdog_app_sales.group_app_sales_manager"
+                            confirm="¿Estás seguro de cancelar este pedido?"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="pending,paid,confirmed,preparing,ready,delivered"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_sale_order" type="object"
+                                class="oe_stat_button" icon="fa-file-text-o"
+                                invisible="not sale_order_id">
+                            <field name="sale_order_id" widget="statinfo"
+                                   string="Pedido Venta"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Cliente">
+                            <field name="partner_id"/>
+                            <field name="customer_phone" widget="phone"/>
+                            <field name="customer_email"/>
+                        </group>
+                        <group string="Entrega">
+                            <field name="warehouse_id"/>
+                            <field name="delivery_method"/>
+                            <field name="delivery_address_id"
+                                   invisible="delivery_method != 'delivery'"/>
+                            <field name="delivery_fee"
+                                   invisible="delivery_method != 'delivery'"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Pago">
+                            <field name="payment_method"/>
+                            <field name="payment_status" readonly="1"/>
+                        </group>
+                        <group string="Referencia">
+                            <field name="app_ref"/>
+                            <field name="source_id" readonly="1"/>
+                            <field name="medium_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Líneas de Pedido" name="lines">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id"/>
+                                    <field name="product_name" optional="hide"/>
+                                    <field name="product_sku" optional="hide"/>
+                                    <field name="quantity"/>
+                                    <field name="price_unit"/>
+                                    <field name="tax_ids" widget="many2many_tags"/>
+                                    <field name="subtotal"/>
+                                    <field name="tax_amount"/>
+                                    <field name="total"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer">
+                                <field name="amount_subtotal"/>
+                                <field name="amount_tax"/>
+                                <field name="amount_delivery"
+                                       invisible="delivery_method != 'delivery'"/>
+                                <field name="amount_total" class="oe_subtotal_footer_separator"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                        </page>
+                        <page string="Pagos" name="payments">
+                            <field name="payment_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="payment_method"/>
+                                    <field name="amount"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'paid'"
+                                           decoration-info="state == 'pending'"
+                                           decoration-danger="state in ('failed','expired')"/>
+                                    <field name="external_ref"/>
+                                    <field name="paid_date"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notas" name="notes">
+                            <field name="delivery_notes"
+                                   placeholder="Instrucciones especiales del cliente..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SEARCH VIEW
+         ═══════════════════════════════════════════════════════════ -->
+    <record id="view_bd_app_order_search" model="ir.ui.view">
+        <field name="name">blackdog.app.order.search</field>
+        <field name="model">blackdog.app.order</field>
+        <field name="arch" type="xml">
+            <search string="Pedidos App">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="app_ref"/>
+                <field name="warehouse_id"/>
+                <separator/>
+                <filter string="Pendientes" name="filter_pending"
+                        domain="[('state','in',['pending','paid'])]"/>
+                <filter string="En Proceso" name="filter_in_progress"
+                        domain="[('state','in',['confirmed','preparing'])]"/>
+                <filter string="Listos" name="filter_ready"
+                        domain="[('state','=','ready')]"/>
+                <filter string="Entregados" name="filter_delivered"
+                        domain="[('state','=','delivered')]"/>
+                <filter string="Cancelados" name="filter_cancelled"
+                        domain="[('state','=','cancelled')]"/>
+                <separator/>
+                <filter string="Pagados" name="filter_paid"
+                        domain="[('payment_status','=','paid')]"/>
+                <filter string="Pago Pendiente" name="filter_payment_pending"
+                        domain="[('payment_status','in',['pending','none'])]"/>
+                <filter string="Pago Fallido" name="filter_payment_failed"
+                        domain="[('payment_status','=','failed')]"/>
+                <separator/>
+                <filter string="Delivery" name="filter_delivery"
+                        domain="[('delivery_method','=','delivery')]"/>
+                <filter string="Pickup" name="filter_pickup"
+                        domain="[('delivery_method','=','pickup')]"/>
+                <separator/>
+                <filter string="Tilopay" name="filter_tilopay"
+                        domain="[('payment_method','=','tilopay')]"/>
+                <filter string="Yappy" name="filter_yappy"
+                        domain="[('payment_method','=','yappy')]"/>
+                <filter string="Efectivo" name="filter_cash"
+                        domain="[('payment_method','=','cash')]"/>
+                <separator/>
+                <filter string="Hoy" name="filter_today" date="create_date"/>
+                <filter string="Esta Semana" name="filter_this_week"
+                        domain="[('create_date','&gt;=', (context_today() - relativedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Estado" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Estado Pago" name="group_payment_status"
+                            context="{'group_by': 'payment_status'}"/>
+                    <filter string="Método de Pago" name="group_payment_method"
+                            context="{'group_by': 'payment_method'}"/>
+                    <filter string="Sucursal" name="group_warehouse"
+                            context="{'group_by': 'warehouse_id'}"/>
+                    <filter string="Método de Entrega" name="group_delivery_method"
+                            context="{'group_by': 'delivery_method'}"/>
+                    <filter string="Fecha" name="group_date"
+                            context="{'group_by': 'create_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ACTIONS
+         ═══════════════════════════════════════════════════════════ -->
+    <record id="action_bd_app_orders" model="ir.actions.act_window">
+        <field name="name">Pedidos Pendientes</field>
+        <field name="res_model">blackdog.app.order</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="context">{'search_default_filter_pending': 1}</field>
+        <field name="search_view_id" ref="view_bd_app_order_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay pedidos pendientes
+            </p>
+            <p>
+                Los pedidos aparecerán aquí automáticamente cuando los clientes
+                compren desde la app BlackDog.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_bd_app_orders_all" model="ir.actions.act_window">
+        <field name="name">Todos los Pedidos</field>
+        <field name="res_model">blackdog.app.order</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_bd_app_order_search"/>
+    </record>
+
+</odoo>

@@ -140,8 +140,8 @@ class ApiService {
 
   Future<Map<String, dynamic>> updateProfile({String? fullName, String? phone}) async {
     final response = await _dio.put('/auth/profile', data: {
-      'full_name': ?fullName,
-      'phone': ?phone,
+      if (fullName != null) 'full_name': fullName,
+      if (phone != null) 'phone': phone,
     });
     return response.data as Map<String, dynamic>;
   }
@@ -189,8 +189,8 @@ class ApiService {
       'delivery_type': deliveryType,
       'branch_id': branchId,
       'payment_method': paymentMethod,
-      'address_id': ?addressId,
-      'notes': ?notes,
+      if (addressId != null) 'address_id': addressId,
+      if (notes != null) 'notes': notes,
     });
     return response.data as Map<String, dynamic>;
   }
@@ -213,14 +213,38 @@ class ApiService {
 
   // ── Payments ──────────────────────────────────────────────────
 
-  Future<Map<String, dynamic>> checkTilopayStatus(String orderId) async {
+  /// Generalized payment status check (works for tilopay + yappy)
+  Future<Map<String, dynamic>> checkPaymentStatus(String orderId) async {
     final response = await _dio.get('/payments/tilopay/status/$orderId');
     return response.data as Map<String, dynamic>;
   }
 
+  @Deprecated('Use checkPaymentStatus instead')
+  Future<Map<String, dynamic>> checkTilopayStatus(String orderId) =>
+      checkPaymentStatus(orderId);
+
   Future<Map<String, dynamic>> getYappyInstructions(String orderId) async {
     final response = await _dio.get('/payments/yappy/instructions/$orderId');
     return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> createYappyPayment(String orderId, String phone) async {
+    final response = await _dio.post('/payments/yappy/create', data: {
+      'order_id': orderId,
+      'phone': phone,
+    });
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> retryPayment(String orderId) async {
+    final response = await _dio.post('/payments/$orderId/retry');
+    return response.data as Map<String, dynamic>;
+  }
+
+  // ── Account ──────────────────────────────────────────────────
+
+  Future<void> deleteAccount() async {
+    await _dio.delete('/auth/account');
   }
 
   // ── Addresses ─────────────────────────────────────────────────
@@ -241,10 +265,30 @@ class ApiService {
     final response = await _dio.post('/addresses', data: {
       'label': label,
       'address_line': addressLine,
-      'city': ?city,
-      'zone': ?zone,
-      'latitude': ?latitude,
-      'longitude': ?longitude,
+      if (city != null) 'city': city,
+      if (zone != null) 'zone': zone,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+    });
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> updateAddress(
+    String id, {
+    required String label,
+    required String addressLine,
+    String? city,
+    String? zone,
+    double? latitude,
+    double? longitude,
+  }) async {
+    final response = await _dio.put('/addresses/$id', data: {
+      'label': label,
+      'address_line': addressLine,
+      if (city != null) 'city': city,
+      if (zone != null) 'zone': zone,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
     });
     return response.data as Map<String, dynamic>;
   }

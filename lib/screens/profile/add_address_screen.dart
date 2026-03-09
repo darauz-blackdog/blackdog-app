@@ -8,6 +8,8 @@ import 'package:latlong2/latlong.dart';
 
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/error_utils.dart';
+import '../../utils/responsive.dart';
 
 class AddAddressScreen extends ConsumerStatefulWidget {
   const AddAddressScreen({super.key});
@@ -129,7 +131,7 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
         // Instructions
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: EdgeInsets.symmetric(horizontal: Responsive.padding(context), vertical: 12),
           color: AppColors.primary.withValues(alpha: 0.08),
           child: Row(
             children: [
@@ -173,9 +175,10 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.blackdog.app',
+                    urlTemplate: Theme.of(context).brightness == Brightness.dark
+                        ? 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
+                        : 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+                    userAgentPackageName: 'com.blackdogpanama.blackdog_app',
                   ),
                 ],
               ),
@@ -282,7 +285,7 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
 
         // Confirm location button
         Container(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(Responsive.padding(context)),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             border: Border(
@@ -328,9 +331,10 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.blackdog.app',
+                    urlTemplate: Theme.of(context).brightness == Brightness.dark
+                        ? 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
+                        : 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+                    userAgentPackageName: 'com.blackdogpanama.blackdog_app',
                   ),
                   MarkerLayer(
                     markers: [
@@ -388,7 +392,7 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
         // Form
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(Responsive.padding(context)),
             child: Form(
               key: _formKey,
               child: Column(
@@ -485,7 +489,7 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
 
         // Save button
         Container(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(Responsive.padding(context)),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             border: Border(
@@ -538,7 +542,7 @@ class _AddAddressScreenState extends ConsumerState<AddAddressScreen> {
       setState(() => _saving = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+          SnackBar(content: Text(friendlyError(e)), backgroundColor: AppColors.error, duration: const Duration(seconds: 3)),
         );
       }
     }

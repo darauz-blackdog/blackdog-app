@@ -7,6 +7,7 @@ import '../../models/order.dart';
 import '../../providers/orders_provider.dart';
 import '../../theme/app_theme.dart';
 
+import '../../utils/responsive.dart';
 import '../../widgets/fade_in_up.dart';
 
 class OrdersScreen extends ConsumerWidget {
@@ -30,8 +31,8 @@ class OrdersScreen extends ConsumerWidget {
           if (result.orders.isEmpty) {
             return FadeInUp(child: _buildEmptyState(context));
           }
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
+          return ResponsiveCenter(child: ListView.separated(
+            padding: EdgeInsets.all(Responsive.paddingSmall(context)),
             itemCount: result.orders.length,
             separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
@@ -40,7 +41,7 @@ class OrdersScreen extends ConsumerWidget {
                 child: _OrderCard(order: result.orders[index]),
               );
             },
-          );
+          ));
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(
@@ -138,7 +139,7 @@ class _OrderCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '#${order.odooOrderName ?? order.id.substring(0, 8).toUpperCase()}',
+                    order.displayName,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   _StatusChip(status: order.status, label: order.statusLabel),
@@ -156,7 +157,13 @@ class _OrderCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '${order.items.length} productos',
+                    () {
+                      final totalQty = order.itemCount ??
+                          order.items.fold<int>(
+                            0, (sum, item) => sum + item.quantity,
+                          );
+                      return '$totalQty ${totalQty == 1 ? 'producto' : 'productos'}';
+                    }(),
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const Spacer(),

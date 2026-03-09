@@ -7,7 +7,10 @@ import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/fade_in_up.dart';
+
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -34,7 +37,10 @@ class ProfileScreen extends ConsumerWidget {
       appBar: AppBar(
         leading: Padding(
           padding: const EdgeInsets.all(10),
-          child: Image.asset('assets/icons/Black_Dog_Logo_V.png'),
+          child: Image.asset(
+            'assets/icons/Black_Dog_Logo_V.png',
+            semanticLabel: 'Logo de Black Dog',
+          ),
         ),
         title: const Text('Mi Perfil'),
       ),
@@ -45,8 +51,8 @@ class ProfileScreen extends ConsumerWidget {
           // Wait for the profile to reload
           await ref.read(profileProvider.future).catchError((_) => <String, dynamic>{});
         },
-        child: ListView(
-          padding: const EdgeInsets.all(20),
+        child: ResponsiveCenter(child: ListView(
+          padding: EdgeInsets.all(Responsive.padding(context)),
           children: [
             // Avatar
             Center(
@@ -132,12 +138,61 @@ class ProfileScreen extends ConsumerWidget {
                 onTap: () => context.go('/orders'),
               ),
             ),
+            // Only show change password for email users (not social login)
+            if (_isEmailUser())
+              FadeInUp(
+                delay: 300,
+                offset: 15,
+                duration: const Duration(milliseconds: 400),
+                child: _MenuItem(
+                  icon: Icons.lock_outlined,
+                  title: 'Cambiar contraseña',
+                  subtitle: 'Actualiza tu contraseña',
+                  onTap: () => context.push('/profile/change-password'),
+                ),
+              ),
             const SizedBox(height: 20),
 
             // Section: Preferencias
-            FadeInUp(delay: 300, offset: 15, duration: const Duration(milliseconds: 400), child: _SectionHeader(title: 'Preferencias')),
+            FadeInUp(delay: 350, offset: 15, duration: const Duration(milliseconds: 400), child: _SectionHeader(title: 'Preferencias')),
             const SizedBox(height: 8),
-            FadeInUp(delay: 350, offset: 15, duration: const Duration(milliseconds: 400), child: _ThemeToggle()),
+            FadeInUp(delay: 400, offset: 15, duration: const Duration(milliseconds: 400), child: _ThemeToggle()),
+            const SizedBox(height: 20),
+
+            // Section: Información
+            FadeInUp(delay: 450, offset: 15, duration: const Duration(milliseconds: 400), child: _SectionHeader(title: 'Información')),
+            const SizedBox(height: 8),
+            FadeInUp(
+              delay: 500,
+              offset: 15,
+              duration: const Duration(milliseconds: 400),
+              child: _MenuItem(
+                icon: Icons.info_outlined,
+                title: 'Acerca de',
+                subtitle: 'Versión, contacto y soporte',
+                onTap: () => context.push('/profile/about'),
+              ),
+            ),
+            FadeInUp(
+              delay: 550,
+              offset: 15,
+              duration: const Duration(milliseconds: 400),
+              child: _MenuItem(
+                icon: Icons.privacy_tip_outlined,
+                title: 'Política de privacidad',
+                onTap: () => context.push('/profile/privacy'),
+              ),
+            ),
+            FadeInUp(
+              delay: 600,
+              offset: 15,
+              duration: const Duration(milliseconds: 400),
+              child: _MenuItem(
+                icon: Icons.description_outlined,
+                title: 'Términos y condiciones',
+                onTap: () => context.push('/profile/terms'),
+              ),
+            ),
             const SizedBox(height: 28),
 
             // Logout
@@ -152,11 +207,33 @@ class ProfileScreen extends ConsumerWidget {
                 side: const BorderSide(color: AppColors.error),
               ),
             ),
+            const SizedBox(height: 12),
+
+            // Delete account
+            TextButton(
+              onPressed: () => context.push('/profile/delete-account'),
+              child: Text(
+                'Eliminar mi cuenta',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: AppColors.textLight,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
             const SizedBox(height: 32),
           ],
-        ),
+        )),
       ),
     );
+  }
+
+  bool _isEmailUser() {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return false;
+    final providers = user.appMetadata['providers'] as List<dynamic>?;
+    if (providers != null) return providers.contains('email');
+    return user.appMetadata['provider'] == 'email';
   }
 
   void _confirmLogout(BuildContext context, WidgetRef ref) {

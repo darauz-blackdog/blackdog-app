@@ -6,8 +6,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/product.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/favorites_provider.dart';
 import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/cart_badge.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
@@ -52,6 +54,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         const SnackBar(
           content: Text('Producto sin stock disponible'),
           backgroundColor: AppColors.error,
+          duration: Duration(seconds: 3),
         ),
       );
       return;
@@ -63,6 +66,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Agregado al carrito'),
+            duration: const Duration(seconds: 3),
             action: SnackBarAction(
               label: 'Ver carrito',
               textColor: AppColors.primary,
@@ -74,7 +78,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error al agregar al carrito')),
+          const SnackBar(content: Text('Error al agregar al carrito'), duration: Duration(seconds: 3)),
         );
       }
     } finally {
@@ -93,6 +97,16 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           onPressed: () => context.pop(),
         ),
         actions: [
+          Consumer(builder: (context, ref, _) {
+            final isFav = ref.watch(favoritesProvider).contains(_activeProductId);
+            return IconButton(
+              icon: Icon(
+                isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                color: isFav ? AppColors.error : null,
+              ),
+              onPressed: () => ref.read(favoritesProvider.notifier).toggle(_activeProductId),
+            );
+          }),
           const CartBadge(),
           IconButton(icon: const Icon(Icons.share_outlined), onPressed: () {}),
         ],
@@ -106,12 +120,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               // Scrollable content
               Expanded(
                 child: SingleChildScrollView(
-                  child: Column(
+                  child: ResponsiveCenter(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildImageGallery(p),
                       Padding(
-                        padding: const EdgeInsets.all(20),
+                        padding: EdgeInsets.all(Responsive.padding(context)),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -142,7 +156,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         ),
                       ),
                     ],
-                  ),
+                  )),
                 ),
               ),
 
@@ -173,7 +187,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   // ── Bottom bar with add to cart ──────────────────────────────
 
   Widget _buildBottomBar(BuildContext context, ProductDetail p) {
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final bottomPadding = MediaQuery.paddingOf(context).bottom;
 
     return Container(
       padding: EdgeInsets.fromLTRB(20, 12, 20, 12 + bottomPadding),
@@ -490,7 +504,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     if (images.isEmpty) {
       return Container(
         width: double.infinity,
-        height: 300,
+        height: Responsive.imageHeight(context),
         color: AppColors.divider,
         child: const Icon(Icons.image_outlined, size: 80, color: AppColors.textLight),
       );
@@ -499,7 +513,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     if (images.length == 1) {
       return Container(
         width: double.infinity,
-        height: 300,
+        height: Responsive.imageHeight(context),
         color: Colors.white,
         padding: const EdgeInsets.all(16),
         child: CachedNetworkImage(
@@ -517,7 +531,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     return Column(
       children: [
         SizedBox(
-          height: 300,
+          height: Responsive.imageHeight(context),
           child: PageView.builder(
             itemCount: images.length,
             onPageChanged: (i) => setState(() => _currentImageIndex = i),

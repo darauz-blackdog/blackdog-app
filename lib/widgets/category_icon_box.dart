@@ -69,6 +69,7 @@ class _CategoryIconBoxState extends State<CategoryIconBox>
   }
 
   Widget _buildCompact(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SizedBox(
       width: 80,
       child: Column(
@@ -78,10 +79,14 @@ class _CategoryIconBoxState extends State<CategoryIconBox>
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: widget.backgroundColor,
+              color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFFEEAA0),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(widget.icon, color: widget.iconColor, size: 32),
+            child: Icon(
+              widget.icon,
+              color: isDark ? const Color(0xFFF7B104) : const Color(0xFF1A1A1A),
+              size: 32,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -103,7 +108,7 @@ class _CategoryIconBoxState extends State<CategoryIconBox>
   Widget _buildLarge(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF262626) : Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -124,15 +129,19 @@ class _CategoryIconBoxState extends State<CategoryIconBox>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 52,
-            height: 52,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: widget.backgroundColor,
+              color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFFEEAA0),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(widget.icon, color: widget.iconColor, size: 28),
+            child: Icon(
+              widget.icon,
+              color: isDark ? const Color(0xFFF7B104) : const Color(0xFF1A1A1A),
+              size: 24,
+            ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             widget.label,
             style: GoogleFonts.inter(

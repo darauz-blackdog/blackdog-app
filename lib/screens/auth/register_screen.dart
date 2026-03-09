@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/error_utils.dart';
+import '../../utils/responsive.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -89,7 +91,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final state = ref.read(authNotifierProvider);
     if (state.hasError && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(state.error.toString()), backgroundColor: AppColors.error),
+        SnackBar(content: Text(friendlyError(state.error!)), backgroundColor: AppColors.error, duration: const Duration(seconds: 3)),
       );
     }
   }
@@ -105,8 +107,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
+          padding: EdgeInsets.all(Responsive.padding(context)),
+          child: ResponsiveCenter(maxWidth: Responsive.maxFormWidth, child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -286,29 +288,40 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ]),
                 const SizedBox(height: 24),
 
-                // Social buttons
-                Row(children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: isLoading ? null
-                          : () => ref.read(authNotifierProvider.notifier).signInWithGoogle(),
-                      icon: const Icon(Icons.g_mobiledata, size: 24),
-                      label: const Text('Google'),
+                // Google Sign-In button (official branding)
+                SizedBox(
+                  height: 44,
+                  child: OutlinedButton.icon(
+                    onPressed: isLoading ? null
+                        : () => ref.read(authNotifierProvider.notifier).signInWithGoogle(),
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF131314)
+                          : Colors.white,
+                      side: BorderSide(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFF8E918F)
+                            : const Color(0xFF747775),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                    ),
+                    icon: Image.asset('assets/images/google_logo.png', width: 20, height: 20),
+                    label: Text(
+                      'Registrarse con Google',
+                      style: TextStyle(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFFE3E3E3)
+                            : const Color(0xFF1F1F1F),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: isLoading ? null
-                          : () => ref.read(authNotifierProvider.notifier).signInWithApple(),
-                      icon: const Icon(Icons.apple, size: 24),
-                      label: const Text('Apple'),
-                    ),
-                  ),
-                ]),
+                ),
               ],
             ),
-          ),
+          )),
         ),
       ),
     );

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/app_theme.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/fade_in_up.dart';
 
 class OrderConfirmationScreen extends ConsumerStatefulWidget {
@@ -63,9 +64,18 @@ class _OrderConfirmationScreenState
     final total = (order['total'] as num?)?.toDouble() ?? 0;
 
     return Scaffold(
-      body: SafeArea(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => context.go('/home'),
+          ),
+        ],
+      ),
+      body: ResponsiveCenter(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(Responsive.padding(context)),
           child: Column(
             children: [
               const SizedBox(height: 40),
@@ -149,12 +159,34 @@ class _OrderConfirmationScreenState
                 duration: const Duration(milliseconds: 500),
                 child: Column(
                   children: [
+                    if (paymentUrl != null) ...[
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => context.go(
+                            '/payment/${widget.orderId}/tilopay',
+                            extra: {
+                              'payment_url': paymentUrl,
+                              'order_name': orderNumber,
+                              'amount': total,
+                            },
+                          ),
+                          child: const Text('Pagar con tarjeta'),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => context.go('/home'),
-                        child: const Text('Seguir comprando'),
-                      ),
+                      child: paymentUrl == null
+                          ? ElevatedButton(
+                              onPressed: () => context.go('/home'),
+                              child: const Text('Seguir comprando'),
+                            )
+                          : OutlinedButton(
+                              onPressed: () => context.go('/home'),
+                              child: const Text('Seguir comprando'),
+                            ),
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
