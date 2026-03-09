@@ -75,6 +75,10 @@ class PaymentNotifier extends StateNotifier<PaymentSession> {
   void markProcessing() {
     if (state.state.isTerminal) return;
     state = state.copyWith(state: PaymentState.processing);
+    // Ensure polling is running to confirm the payment
+    if (_pollTimer == null || !_pollTimer!.isActive) {
+      _startPolling();
+    }
   }
 
   /// Transition to failed

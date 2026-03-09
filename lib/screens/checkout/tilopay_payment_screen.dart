@@ -80,35 +80,32 @@ class _TilopayPaymentScreenState extends ConsumerState<TilopayPaymentScreen> {
             if (mounted) setState(() => _webViewLoading = false);
           },
           onNavigationRequest: (request) {
-            // Whitelist: only allow Tilopay domains
+            final url = request.url.toLowerCase();
             final navUri = Uri.tryParse(request.url);
+
+            // Intercept our return URL — Tilopay redirects here after payment
+            if (url.contains('tilopay/return') ||
+                url.contains('api.blackdogpanama.com') ||
+                url.contains('blackdogapp://')) {
+              // Parse the code param: code=1 means approved
+              final code = navUri?.queryParameters['code'];
+              if (code == '1') {
+                notifier.markProcessing();
+              } else {
+                final desc = navUri?.queryParameters['description'] ?? 'El pago no se completó.';
+                notifier.markFailed(desc);
+              }
+              setState(() => _showWebView = false);
+              return NavigationDecision.prevent;
+            }
+
+            // Whitelist: only allow Tilopay domains + our API domain
             if (navUri != null) {
               final host = navUri.host;
-              if (!allowedDomains.any((d) => host == d || host.endsWith('.$d'))) {
+              const allowed = ['tilopay.com', 'tilopay.cr', 'blackdogpanama.com'];
+              if (!allowed.any((d) => host == d || host.endsWith('.$d'))) {
                 return NavigationDecision.prevent;
               }
-            }
-
-            final url = request.url.toLowerCase();
-
-            // Success callbacks
-            if (url.contains('payment/success') ||
-                url.contains('payment/callback') ||
-                url.contains('status=approved') ||
-                (url.contains('tilopay/result') && url.contains('status=paid'))) {
-              notifier.markProcessing();
-              setState(() => _showWebView = false);
-              return NavigationDecision.prevent;
-            }
-
-            // Failure callbacks
-            if (url.contains('payment/cancel') ||
-                url.contains('payment/failed') ||
-                url.contains('status=declined') ||
-                (url.contains('tilopay/result') && url.contains('status=failed'))) {
-              notifier.markFailed('El pago fue rechazado.');
-              setState(() => _showWebView = false);
-              return NavigationDecision.prevent;
             }
 
             return NavigationDecision.navigate;
