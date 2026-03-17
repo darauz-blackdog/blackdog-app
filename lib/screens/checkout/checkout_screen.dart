@@ -15,6 +15,7 @@ import '../../providers/address_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/checkout_branch_provider.dart';
 import '../../providers/location_provider.dart';
+import '../../providers/profile_provider.dart';
 import '../../providers/service_providers.dart';
 import '../../utils/error_utils.dart';
 import '../../theme/app_theme.dart';
@@ -75,8 +76,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       _deliveryType = 'pickup';
       final ranked = ref.read(rankedBranchesProvider).valueOrNull;
       if (ranked != null && ranked.isNotEmpty) {
-        // First pickup-enabled branch (already sorted by stock+distance)
-        final best = ranked.where((r) => r.branch.isPickupEnabled).firstOrNull;
+        // First pickup-enabled branch with full stock (already sorted by stock+distance)
+        final best = ranked.where((r) => r.branch.isPickupEnabled && r.hasFullStock).firstOrNull;
         if (best != null) _selectedBranchId = best.branch.id;
       }
     }
@@ -84,6 +85,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // WebView check FIRST — cart is already empty after order creation
+    if (_showInlineWebView) {
+      return _buildInlineWebViewScreen();
+    }
+
     final cart = ref.watch(cartProvider).valueOrNull;
 
     if (cart == null || cart.isEmpty) {
@@ -131,11 +137,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           ),
         ),
       );
-    }
-
-    // If inline WebView is active, show it fullscreen
-    if (_showInlineWebView) {
-      return _buildInlineWebViewScreen();
     }
 
     return Scaffold(
@@ -226,12 +227,28 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               // Pickup — auto-select best pickup branch by stock
               _selectedAddressId = null;
               final ranked = ref.read(rankedBranchesProvider).valueOrNull ?? [];
-              final best = ranked.where((r) => r.branch.isPickupEnabled).firstOrNull;
+              final best = ranked.where((r) => r.branch.isPickupEnabled && r.hasFullStock).firstOrNull;
               _selectedBranchId = best?.branch.id;
             }
           }),
           onBranchSelected: (id) => setState(() => _selectedBranchId = id),
-          onAddressSelected: (id) => setState(() => _selectedAddressId = id),
+          onAddressSelected: (id) {
+            setState(() => _selectedAddressId = id);
+            // Persist selection globally
+            final addresses = ref.read(_addressesProvider).valueOrNull ?? [];
+            final addr = addresses.where((a) => a['id'] == id).firstOrNull;
+            if (addr != null) {
+              ref.read(selectedAddressProvider.notifier).selectAddress(
+                SelectedAddress(
+                  id: addr['id'] as String,
+                  label: addr['label'] as String? ?? '',
+                  addressLine: addr['address_line'] as String? ?? '',
+                  latitude: (addr['latitude'] as num?)?.toDouble() ?? 0,
+                  longitude: (addr['longitude'] as num?)?.toDouble() ?? 0,
+                ),
+              );
+            }
+          },
           onNext: _canProceedDelivery ? () => setState(() => _step = 1) : null,
         );
       case 1:
@@ -254,6 +271,23 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           isSubmitting: _isSubmitting,
           onNotesChanged: (v) => _notes = v,
           onConfirm: _submitOrder,
+          onAddressChanged: _deliveryType == 'delivery' ? (id) {
+            setState(() => _selectedAddressId = id);
+            // Persist globally
+            final addresses = ref.read(_addressesProvider).valueOrNull ?? [];
+            final addr = addresses.where((a) => a['id'] == id).firstOrNull;
+            if (addr != null) {
+              ref.read(selectedAddressProvider.notifier).selectAddress(
+                SelectedAddress(
+                  id: addr['id'] as String,
+                  label: addr['label'] as String? ?? '',
+                  addressLine: addr['address_line'] as String? ?? '',
+                  latitude: (addr['latitude'] as num?)?.toDouble() ?? 0,
+                  longitude: (addr['longitude'] as num?)?.toDouble() ?? 0,
+                ),
+              );
+            }
+          } : null,
         );
       default:
         return const SizedBox.shrink();
@@ -292,16 +326,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
       _currentOrderId = orderId;
 
-      if (_paymentMethod == 'tilopay' && paymentUrl != null) {
-        _openInlineWebView(paymentUrl, orderId, orderName);
-      } else if (_paymentMethod == 'yappy') {
-        context.go('/payment/$orderId/yappy', extra: {
-          'order_name': orderName,
-          'amount': total,
-        });
-      } else {
-        context.go('/order-confirmation/$orderId', extra: result);
+      // Navigate to order confirmation (with payment_method in result for "Pagar ahora")
+      if (result is Map<String, dynamic> && !result.containsKey('payment_method')) {
+        result['payment_method'] = _paymentMethod;
       }
+      context.go('/order-confirmation/$orderId', extra: result);
     } catch (e) {
       setState(() => _isSubmitting = false);
       if (mounted) {
@@ -322,7 +351,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     // Only load whitelisted payment domains
     final uri = Uri.parse(paymentUrl);
-    const allowedDomains = ['tilopay.com', 'tilopay.cr'];
+    const allowedDomains = ['tilopay.com', 'tilopay.cr', 'blackdogpanama.com'];
     if (!allowedDomains.any((d) => uri.host == d || uri.host.endsWith('.$d'))) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Dominio de pago no permitido'), duration: Duration(seconds: 3)),
@@ -463,6 +492,7 @@ class _DeliveryStep extends ConsumerWidget {
                         final result = await context.push<bool>('/checkout/add-address');
                         if (result == true) {
                           ref.invalidate(_addressesProvider);
+                          ref.invalidate(addressesProvider);
                         }
                       },
                       icon: const Icon(Icons.add, size: 18),
@@ -533,11 +563,11 @@ class _DeliveryStep extends ConsumerWidget {
                 rankedAsync.when(
                   data: (list) {
                     final pickupBranches = list
-                        .where((r) => r.branch.isPickupEnabled)
+                        .where((r) => r.branch.isPickupEnabled && r.hasFullStock)
                         .toList();
 
                     if (pickupBranches.isEmpty) {
-                      return const Text('No hay sucursales disponibles');
+                      return const Text('No hay sucursales con stock completo para tu pedido');
                     }
 
                     return Column(
@@ -765,19 +795,11 @@ class _PaymentStep extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               _RadioCard(
-                title: 'Tarjeta de crédito / débito',
-                subtitle: 'Pago seguro con Tilopay',
-                icon: Icons.credit_card,
+                title: 'Pago en línea',
+                subtitle: 'Tarjeta de crédito, débito o Yappy',
+                icon: Icons.payment_rounded,
                 selected: paymentMethod == 'tilopay',
                 onTap: () => onPaymentMethodChanged('tilopay'),
-              ),
-              const SizedBox(height: 12),
-              _RadioCard(
-                title: 'Yappy',
-                subtitle: 'Pago móvil',
-                icon: Icons.phone_android,
-                selected: paymentMethod == 'yappy',
-                onTap: () => onPaymentMethodChanged('yappy'),
               ),
               if (deliveryType == 'pickup') ...[
                 const SizedBox(height: 12),
@@ -810,6 +832,7 @@ class _SummaryStep extends ConsumerWidget {
   final bool isSubmitting;
   final ValueChanged<String> onNotesChanged;
   final VoidCallback onConfirm;
+  final ValueChanged<String>? onAddressChanged;
 
   const _SummaryStep({
     super.key,
@@ -822,6 +845,7 @@ class _SummaryStep extends ConsumerWidget {
     required this.isSubmitting,
     required this.onNotesChanged,
     required this.onConfirm,
+    this.onAddressChanged,
   });
 
   @override
@@ -963,8 +987,7 @@ class _SummaryStep extends ConsumerWidget {
   String _confirmLabel(String method, double total) {
     final amount = '\$${total.toStringAsFixed(2)}';
     return switch (method) {
-      'tilopay' => 'Pagar con tarjeta  •  $amount',
-      'yappy' => 'Pagar con Yappy  •  $amount',
+      'tilopay' => 'Pagar  •  $amount',
       'in_store' => 'Confirmar Pedido  •  $amount',
       _ => 'Confirmar Pedido  •  $amount',
     };
@@ -994,7 +1017,69 @@ class _SummaryStep extends ConsumerWidget {
 
     return Column(
       children: [
-        _SummaryRow(label: 'Dirección', value: display),
+        InkWell(
+          onTap: onAddressChanged != null ? () async {
+            final addresses = ref.read(_addressesProvider).valueOrNull ?? [];
+            if (addresses.isEmpty) return;
+            await showModalBottomSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              builder: (_) => DraggableScrollableSheet(
+                initialChildSize: 0.5,
+                minChildSize: 0.3,
+                maxChildSize: 0.8,
+                expand: false,
+                builder: (ctx, scrollController) => ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    Text(
+                      'Cambiar dirección',
+                      style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ...addresses.map((a) {
+                      final aId = a['id'] as String;
+                      final aLabel = a['label'] as String? ?? 'Dirección';
+                      final aLine = a['address_line'] as String? ?? '';
+                      return ListTile(
+                        leading: Icon(
+                          selectedAddressId == aId
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_unchecked,
+                          color: selectedAddressId == aId
+                              ? AppColors.primary
+                              : null,
+                        ),
+                        title: Text(aLabel),
+                        subtitle: Text(aLine, maxLines: 2, overflow: TextOverflow.ellipsis),
+                        onTap: () {
+                          onAddressChanged!(aId);
+                          Navigator.pop(ctx);
+                        },
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            );
+          } : null,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _SummaryRow(label: 'Dirección', value: display),
+                ),
+                if (onAddressChanged != null)
+                  Icon(Icons.edit_location_alt, size: 20, color: AppColors.primary),
+              ],
+            ),
+          ),
+        ),
         if (distanceText != null)
           _SummaryRow(label: 'Distancia', value: distanceText),
       ],
@@ -1050,8 +1135,7 @@ class _SummaryStep extends ConsumerWidget {
 
   String _paymentLabel(String method) {
     return switch (method) {
-      'tilopay' => 'Tarjeta de crédito / débito',
-      'yappy' => 'Yappy',
+      'tilopay' => 'Pago en línea',
       'in_store' => 'Pago en tienda',
       _ => method,
     };
