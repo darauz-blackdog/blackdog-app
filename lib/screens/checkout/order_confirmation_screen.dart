@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/app_theme.dart';
 import '../../utils/responsive.dart';
@@ -57,11 +56,13 @@ class _OrderConfirmationScreenState
   Widget build(BuildContext context) {
     final order =
         widget.orderData?['order'] as Map<String, dynamic>? ?? {};
-    final paymentUrl = widget.orderData?['payment_url'] as String?;
+    final paymentMethod = widget.orderData?['payment_method'] as String? ??
+        order['payment_method'] as String? ?? '';
     final orderNumber = widget.orderData?['odoo_order_name'] as String? ??
         order['payment_reference'] as String? ??
         widget.orderId.substring(0, 8).toUpperCase();
     final total = (order['total'] as num?)?.toDouble() ?? 0;
+    final needsPayment = paymentMethod == 'tilopay' || paymentMethod == 'yappy';
 
     return Scaffold(
       appBar: AppBar(
@@ -139,51 +140,40 @@ class _OrderConfirmationScreenState
                       ),
                 ),
               ),
-              const SizedBox(height: 32),
-
-              // Payment section
-              if (paymentUrl != null)
-                FadeInUp(
-                  delay: 600,
-                  offset: 20,
-                  duration: const Duration(milliseconds: 500),
-                  child: _buildTilopaySection(context, paymentUrl),
-                ),
-
               const SizedBox(height: 40),
 
               // Actions
               FadeInUp(
-                delay: 700,
+                delay: 600,
                 offset: 20,
                 duration: const Duration(milliseconds: 500),
                 child: Column(
                   children: [
-                    if (paymentUrl != null) ...[
+                    if (needsPayment) ...[
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () => context.go(
-                            '/payment/${widget.orderId}/tilopay',
+                        child: ElevatedButton.icon(
+                          onPressed: () => context.push(
+                            '/payment/${widget.orderId}',
                             extra: {
-                              'payment_url': paymentUrl,
-                              'order_name': orderNumber,
+                              'payment_method': paymentMethod,
                               'amount': total,
                             },
                           ),
-                          child: const Text('Pagar con tarjeta'),
+                          icon: const Icon(Icons.payment_rounded),
+                          label: const Text('Pagar ahora'),
                         ),
                       ),
                       const SizedBox(height: 12),
                     ],
                     SizedBox(
                       width: double.infinity,
-                      child: paymentUrl == null
-                          ? ElevatedButton(
+                      child: needsPayment
+                          ? OutlinedButton(
                               onPressed: () => context.go('/home'),
-                              child: const Text('Seguir comprando'),
+                              child: const Text('Pagar después'),
                             )
-                          : OutlinedButton(
+                          : ElevatedButton(
                               onPressed: () => context.go('/home'),
                               child: const Text('Seguir comprando'),
                             ),
@@ -204,50 +194,5 @@ class _OrderConfirmationScreenState
         ),
       ),
     );
-  }
-
-  Widget _buildTilopaySection(BuildContext context, String paymentUrl) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.infoLight,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.info.withValues(alpha: 0.4)),
-      ),
-      child: Column(
-        children: [
-          const Icon(Icons.credit_card, size: 40, color: AppColors.info),
-          const SizedBox(height: 12),
-          Text('Pagar con tarjeta',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          const Text(
-            'Serás redirigido a Tilopay para completar tu pago de forma segura.',
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _openPaymentLink(paymentUrl),
-              icon: const Icon(Icons.open_in_new),
-              label: const Text('Ir a pagar'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.info,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _openPaymentLink(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
   }
 }

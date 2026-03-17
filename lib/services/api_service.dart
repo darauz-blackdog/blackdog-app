@@ -240,6 +240,29 @@ class ApiService {
   Future<Map<String, dynamic>> checkTilopayStatus(String orderId) =>
       checkPaymentStatus(orderId);
 
+  /// Initialize Tilopay SDK V2 — returns token + order_number + amount + currency
+  Future<Map<String, dynamic>> initTilopaySDK(String orderId) async {
+    final response = await _dio.post('/payments/sdk/init-tilopay', data: {
+      'order_id': orderId,
+    });
+    return response.data as Map<String, dynamic>;
+  }
+
+  /// Create Yappy V2 order — returns transactionId, token, documentName
+  Future<Map<String, dynamic>> createYappyV2Order(String orderId, String phone) async {
+    final response = await _dio.post('/payments/yappy-v2/create-order', data: {
+      'order_id': orderId,
+      'phone': phone,
+    });
+    return response.data as Map<String, dynamic>;
+  }
+
+  /// Generic payment status check — reads from Supabase, works for all payment methods
+  Future<Map<String, dynamic>> getPaymentStatus(String orderId) async {
+    final response = await _dio.get('/payments/status/$orderId');
+    return response.data as Map<String, dynamic>;
+  }
+
   Future<Map<String, dynamic>> getYappyInstructions(String orderId) async {
     final response = await _dio.get('/payments/yappy/instructions/$orderId');
     return response.data as Map<String, dynamic>;

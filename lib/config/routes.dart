@@ -17,9 +17,7 @@ import '../screens/catalog/search_screen.dart';
 import '../screens/cart/cart_screen.dart';
 import '../screens/checkout/checkout_screen.dart';
 import '../screens/checkout/order_confirmation_screen.dart';
-import '../screens/checkout/payment_status_screen.dart';
-import '../screens/checkout/tilopay_payment_screen.dart';
-import '../screens/checkout/yappy_payment_screen.dart';
+import '../screens/checkout/payment_screen.dart';
 import '../screens/favorites/favorites_screen.dart';
 import '../screens/notifications/notifications_screen.dart';
 import '../screens/branches/branches_screen.dart';
@@ -289,47 +287,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/payment/:orderId',
         pageBuilder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>?;
+          final extra = state.extra as Map<String, dynamic>? ?? {};
           return _sharedAxisY(
             state,
-            PaymentStatusScreen(
+            PaymentScreen(
               orderId: state.pathParameters['orderId']!,
-              paymentUrl: extra?['payment_url'] as String?,
-              paymentMethod: extra?['payment_method'] as String?,
+              paymentMethod: extra['payment_method'] as String? ?? 'tilopay',
+              amount: (extra['amount'] as num?)?.toDouble() ?? 0,
             ),
           );
         },
-        routes: [
-          GoRoute(
-            path: 'tilopay',
-            pageBuilder: (context, state) {
-              final extra = state.extra as Map<String, dynamic>?;
-              return _sharedAxisY(
-                state,
-                TilopayPaymentScreen(
-                  orderId: state.pathParameters['orderId']!,
-                  paymentUrl: extra?['payment_url'] as String? ?? '',
-                  orderName: extra?['order_name'] as String?,
-                  amount: (extra?['amount'] as num?)?.toDouble(),
-                ),
-              );
-            },
-          ),
-          GoRoute(
-            path: 'yappy',
-            pageBuilder: (context, state) {
-              final extra = state.extra as Map<String, dynamic>?;
-              return _sharedAxisY(
-                state,
-                YappyPaymentScreen(
-                  orderId: state.pathParameters['orderId']!,
-                  orderName: extra?['order_name'] as String?,
-                  amount: (extra?['amount'] as num?)?.toDouble(),
-                ),
-              );
-            },
-          ),
-        ],
       ),
     ],
   );

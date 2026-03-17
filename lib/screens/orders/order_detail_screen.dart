@@ -107,8 +107,8 @@ class OrderDetailScreen extends ConsumerWidget {
                     onPressed: () => context.push(
                       '/payment/${order.id}',
                       extra: {
-                        'payment_url': order.paymentLink,
                         'payment_method': order.paymentMethod,
+                        'amount': order.total,
                       },
                     ),
                     icon: const Icon(Icons.payment_rounded),
