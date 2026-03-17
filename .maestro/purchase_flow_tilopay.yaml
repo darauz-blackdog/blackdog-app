@@ -1,0 +1,204 @@
+appId: com.blackdogpanama.blackdog_app
+name: "Flujo de compra con pago Tilopay - BlackDog App"
+tags:
+  - e2e
+  - purchase
+  - tilopay
+
+env:
+  TEST_EMAIL: "fertruckx3113@gmail.com"
+  TEST_PASSWORD: "arauz3113"
+
+---
+
+# ============================================================
+# PASO 1: Login
+# ============================================================
+- launchApp
+
+- assertVisible: "Iniciar sesión"
+
+- tapOn:
+    text: "Correo electrónico"
+- inputText: ${TEST_EMAIL}
+
+- tapOn:
+    text: "Contraseña"
+- inputText: ${TEST_PASSWORD}
+
+- hideKeyboard
+
+- tapOn:
+    text: "Iniciar sesión"
+
+- extendedWaitUntil:
+    visible: "Buscar comida, juguetes, accesorios..."
+    timeout: 15000
+
+# ============================================================
+# PASO 2: Buscar un producto específico
+# ============================================================
+- tapOn:
+    text: "Buscar comida, juguetes, accesorios..."
+
+- extendedWaitUntil:
+    visible: "Buscar productos"
+    timeout: 5000
+
+- tapOn:
+    id: "search_field"
+    optional: true
+- inputText: "comida"
+
+- hideKeyboard
+
+- extendedWaitUntil:
+    visible: "Agregar"
+    timeout: 8000
+
+- takeScreenshot: "01_search_results"
+
+# ============================================================
+# PASO 3: Abrir detalle del producto
+# ============================================================
+- tapOn:
+    id: "product_card_0"
+    optional: true
+
+# Fallback: tap en la primera imagen/nombre de producto
+- tapOn:
+    index: 0
+    point: "50%,30%"
+    optional: true
+
+- extendedWaitUntil:
+    visible: "Agregar al carrito"
+    timeout: 5000
+
+- takeScreenshot: "02_product_detail"
+
+# ============================================================
+# PASO 4: Agregar al carrito desde detalle
+# ============================================================
+- tapOn:
+    text: "Agregar al carrito"
+
+- extendedWaitUntil:
+    visible: "Agregado al carrito"
+    timeout: 5000
+
+- tapOn:
+    text: "Ver carrito"
+
+- extendedWaitUntil:
+    visible: "Carrito"
+    timeout: 5000
+
+- takeScreenshot: "03_cart_with_item"
+
+# ============================================================
+# PASO 5: Proceder al checkout
+# ============================================================
+- tapOn:
+    text: "Proceder al Checkout"
+
+- extendedWaitUntil:
+    visible: "Método de entrega"
+    timeout: 5000
+
+# ============================================================
+# PASO 6: Seleccionar Delivery
+# ============================================================
+- tapOn:
+    text: "Delivery via ASAP"
+    optional: true
+
+# Si delivery no está disponible, usar pickup
+- runFlow:
+    when:
+      notVisible: "Dirección de entrega"
+    commands:
+      - tapOn:
+          text: "Recoger en tienda"
+      - scrollUntilVisible:
+          element:
+            text: "Continuar"
+          direction: DOWN
+      - tapOn:
+          id: "branch_card_0"
+          optional: true
+
+- takeScreenshot: "04_delivery_method"
+
+- scrollUntilVisible:
+    element:
+      text: "Continuar"
+    direction: DOWN
+
+- tapOn:
+    text: "Continuar"
+
+# ============================================================
+# PASO 7: Seleccionar pago en línea (Tilopay)
+# ============================================================
+- extendedWaitUntil:
+    visible: "Método de pago"
+    timeout: 3000
+
+- tapOn:
+    text: "Pago en línea"
+
+- takeScreenshot: "05_payment_method_tilopay"
+
+- tapOn:
+    text: "Continuar"
+
+# ============================================================
+# PASO 8: Resumen y confirmar
+# ============================================================
+- extendedWaitUntil:
+    visible: "Resumen del pedido"
+    timeout: 3000
+
+- assertVisible: "Pago en línea"
+
+- scrollUntilVisible:
+    element:
+      text: "Pagar"
+    direction: DOWN
+
+- takeScreenshot: "06_summary_before_pay"
+
+- tapOn:
+    text: "Pagar"
+
+# ============================================================
+# PASO 9: Pantalla de confirmación del pedido
+# ============================================================
+- extendedWaitUntil:
+    visible: "Pedido Creado"
+    timeout: 25000
+
+- takeScreenshot: "07_order_confirmation"
+
+# ============================================================
+# PASO 10: Ir a pantalla de pago Tilopay
+# ============================================================
+- tapOn:
+    text: "Pagar ahora"
+
+- extendedWaitUntil:
+    visible: "Pago seguro"
+    timeout: 15000
+
+- takeScreenshot: "08_payment_screen"
+
+# Esperar que cargue el formulario del bridge
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: "09_payment_bridge_loaded"
+
+# ============================================================
+# FIN - El test llega hasta el formulario de pago embedded
+# (No se puede completar el pago real en test)
+# ============================================================
