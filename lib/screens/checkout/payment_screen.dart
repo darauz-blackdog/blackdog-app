@@ -64,22 +64,29 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     super.dispose();
   }
 
-  // ── Step 1: fetch order number + SDK token (for tilopay) ──────
+  // ── Step 1: fetch order number + SDK token / payment link ────
 
   Future<void> _initOrder() async {
     try {
       final api = ref.read(apiServiceProvider);
 
-      // For Tilopay: get SDK token first (validates order is pending_payment)
       if (widget.paymentMethod == 'tilopay') {
         final data = await api.initTilopaySDK(widget.orderId);
         _orderNumber = data['order_number'] as String?;
-        _buildWebView(sdkToken: data['token'] as String?);
+        final sdkToken = data['token'] as String?;
+        final paymentLink = data['payment_link'] as String?;
+
+        if (paymentLink != null) {
+          // SDK V2 not available — load the Tilopay payment page directly
+          _buildDirectWebView(paymentLink);
+        } else {
+          _buildBridgeWebView(sdkToken: sdkToken);
+        }
       } else {
         // For Yappy: just need the order number from the order detail
         final orderAsync = ref.read(orderDetailProvider(widget.orderId));
         _orderNumber = orderAsync.valueOrNull?.odooOrderName;
-        _buildWebView();
+        _buildBridgeWebView();
       }
     } catch (e) {
       if (mounted) {
@@ -91,9 +98,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     }
   }
 
-  // ── Step 2: build WebView with the bridge URL ─────────────────
+  // ── Step 2a: build WebView for HTML Bridge (Yappy / Tilopay SDK V2) ──
 
-  void _buildWebView({String? sdkToken}) {
+  void _buildBridgeWebView({String? sdkToken}) {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(NavigationDelegate(
@@ -108,7 +115,38 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       )
       ..loadRequest(Uri.parse(_bridgeUrl));
 
-    if (mounted) setState(() {}); // trigger rebuild to show WebViewWidget
+    if (mounted) setState(() {});
+  }
+
+  // ── Step 2b: build WebView loading Tilopay payment link directly ──
+
+  void _buildDirectWebView(String paymentLink) {
+    final returnBase = Env.apiBaseUrl.replaceAll(RegExp(r'/api$'), '');
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(NavigationDelegate(
+        onNavigationRequest: (request) {
+          final url = request.url;
+          // Tilopay redirects to our return URL after payment
+          if (url.contains('/payments/tilopay/return') || url.contains('$returnBase/checkout/result')) {
+            final uri = Uri.parse(url);
+            final code = uri.queryParameters['code'];
+            if (code == '1') {
+              _handleSuccess();
+            } else if (uri.queryParameters.containsKey('code')) {
+              setState(() {
+                _processing = false;
+                _errorMessage = 'Pago rechazado (${uri.queryParameters['description'] ?? 'error'})';
+              });
+            }
+            return NavigationDecision.prevent;
+          }
+          return NavigationDecision.navigate;
+        },
+      ))
+      ..loadRequest(Uri.parse(paymentLink));
+
+    if (mounted) setState(() {});
   }
 
   // ── Step 3: inject config after page loads ────────────────────
@@ -240,7 +278,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       canPop: !_processing,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Pago seguro 🔒'),
+          title: const Text('Pago seguro'),
           leading: _processing
               ? null
               : IconButton(
