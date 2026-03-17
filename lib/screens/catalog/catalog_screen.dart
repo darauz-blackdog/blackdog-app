@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:dio/dio.dart';
+
 import '../../models/product.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/favorites_provider.dart';
@@ -11,6 +13,7 @@ import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/responsive.dart';
 import '../../utils/responsive_grid.dart';
+import '../../utils/snackbar_utils.dart';
 import '../../widgets/cart_badge.dart';
 import '../../widgets/category_icon_box.dart';
 import '../../widgets/fade_in_up.dart';
@@ -35,6 +38,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
   bool _hasMore = true;
   bool _isLoadingMore = false;
   final _scrollController = ScrollController();
+  CancelToken? _cancelToken;
 
   @override
   void initState() {
@@ -46,6 +50,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
 
   @override
   void dispose() {
+    _cancelToken?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
@@ -58,6 +63,8 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
   }
 
   void _resetAndReload() {
+    _cancelToken?.cancel();
+    _cancelToken = CancelToken();
     setState(() {
       _currentPage = 1;
       _allProducts.clear();
@@ -77,6 +84,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
         appCategoryId: _selectedAppCategoryId,
         brand: _selectedBrand,
         sort: _sort,
+        cancelToken: _cancelToken,
       );
 
       final products = (result['data'] as List)
@@ -127,7 +135,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
             child: GestureDetector(
               onTap: () => context.push('/search'),
               child: Container(
-                margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                margin: EdgeInsets.fromLTRB(Responsive.padding(context), 8, Responsive.padding(context), 16),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.darkCard : AppColors.grayMedium,
@@ -163,7 +171,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
               height: 120,
               child: appCategories.when(
                 data: (cats) => ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: EdgeInsets.symmetric(horizontal: Responsive.padding(context)),
                   scrollDirection: Axis.horizontal,
                   itemCount: cats.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 12),
@@ -273,24 +281,12 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                           onAddToCart: () async {
                             try {
                               await ref.read(cartProvider.notifier).addItem(product.id);
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('${product.name} agregado al carrito'),
-                                    duration: const Duration(seconds: 1),
-                                    action: SnackBarAction(
-                                      label: 'Ver',
-                                      textColor: AppColors.primary,
-                                      onPressed: () => context.go('/cart'),
-                                    ),
-                                  ),
-                                );
-                              }
                             } catch (e) {
                               if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Error al agregar'), duration: Duration(seconds: 3)),
-                                );
+                                showAppSnackBar(const SnackBar(
+                                  content: Text('Error al agregar'),
+                                  duration: Duration(seconds: 3),
+                                ));
                               }
                             }
                           },
@@ -352,7 +348,7 @@ class _BrandChipsRow extends ConsumerWidget {
         return SizedBox(
           height: 48,
           child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: Responsive.padding(context)),
             scrollDirection: Axis.horizontal,
             itemCount: brands.length,
             separatorBuilder: (_, __) => const SizedBox(width: 8),
@@ -404,8 +400,8 @@ class _CategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.darkCard : AppColors.divider;
-    final fgColor = isDark ? AppColors.primary : AppColors.textPrimary;
+    final bgColor = isDark ? AppColors.darkCard : AppColors.primary;
+    final fgColor = isDark ? AppColors.primary : AppColors.secondary;
 
     return GestureDetector(
       onTap: onTap,

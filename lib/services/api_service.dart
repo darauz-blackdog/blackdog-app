@@ -39,6 +39,7 @@ class ApiService {
     int? appCategoryId,
     String? brand,
     String sort = 'name',
+    CancelToken? cancelToken,
   }) async {
     final params = <String, dynamic>{
       'page': page,
@@ -52,7 +53,7 @@ class ApiService {
     }
     if (brand != null) params['brand'] = brand;
 
-    final response = await _dio.get('/products', queryParameters: params);
+    final response = await _dio.get('/products', queryParameters: params, cancelToken: cancelToken);
     return response.data as Map<String, dynamic>;
   }
 
@@ -61,12 +62,12 @@ class ApiService {
     return response.data as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> searchProducts(String query, {int page = 1, int limit = 20}) async {
+  Future<Map<String, dynamic>> searchProducts(String query, {int page = 1, int limit = 20, CancelToken? cancelToken}) async {
     final response = await _dio.get('/products/search', queryParameters: {
       'q': query,
       'page': page,
       'limit': limit,
-    });
+    }, cancelToken: cancelToken);
     return response.data as Map<String, dynamic>;
   }
 

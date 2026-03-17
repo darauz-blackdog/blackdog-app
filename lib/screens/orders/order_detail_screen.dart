@@ -118,7 +118,7 @@ class OrderDetailScreen extends ConsumerWidget {
               ),
             ),
 
-          // Tracking button
+          // Tracking button — adapts to delivery type and payment status
           if (order.status != 'pending_payment' && order.status != 'cancelled')
             FadeInUp(
               delay: 80,
@@ -128,11 +128,27 @@ class OrderDetailScreen extends ConsumerWidget {
                 padding: const EdgeInsets.only(top: 12),
                 child: SizedBox(
                   width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () => context.push('/orders/${order.id}/tracking'),
-                    icon: const Icon(Icons.local_shipping_outlined),
-                    label: const Text('Ver seguimiento'),
-                  ),
+                  child: order.status == 'confirmed'
+                    ? ElevatedButton.icon(
+                        onPressed: () => context.push('/orders/${order.id}/tracking'),
+                        icon: const Icon(Icons.check_circle_outline),
+                        label: Text(order.deliveryType == 'pickup'
+                            ? 'Pagado — Ver estado de retiro'
+                            : 'Pagado — Ver seguimiento'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.success,
+                          foregroundColor: Colors.white,
+                        ),
+                      )
+                    : OutlinedButton.icon(
+                        onPressed: () => context.push('/orders/${order.id}/tracking'),
+                        icon: Icon(order.deliveryType == 'pickup'
+                            ? Icons.store_outlined
+                            : Icons.local_shipping_outlined),
+                        label: Text(order.deliveryType == 'pickup'
+                            ? 'Ver estado de retiro'
+                            : 'Ver seguimiento'),
+                      ),
                 ),
               ),
             ),

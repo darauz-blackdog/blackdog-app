@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../providers/address_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/location_provider.dart';
 import '../../providers/products_provider.dart';
+import '../../providers/profile_provider.dart';
 import '../../theme/app_theme.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -63,7 +67,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     // 3. Exit Animation (Netflix massive zoom out)
     _exitController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 300),
     );
     _exitScaleAnimation = Tween<double>(begin: 1.0, end: 15.0).animate(
       CurvedAnimation(parent: _exitController, curve: Curves.easeInCubic),
@@ -98,24 +102,73 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Future<String> _loadData() async {
-    // Minimum wait time for aesthetic purposes
-    await Future.delayed(const Duration(milliseconds: 1000));
-
     final user = ref.read(currentUserProvider);
     if (user != null) {
+      // Fire GPS in background — don't block navigation
+      ref.read(userLocationProvider.future).ignore();
+
       await Future.wait([
         ref.read(featuredProductsProvider.future),
         ref.read(appCategoriesProvider.future),
         ref.read(cartProvider.future),
+        ref.read(addressesProvider.future),
+        ref.read(selectedAddressProvider.future),
+        ref.read(branchListProvider.future),
+        ref.read(homeBannersProvider.future),
       ]).timeout(
         const Duration(seconds: 5),
-        onTimeout: () => [null, null, null],
+        onTimeout: () => [null, null, null, null, null, null, null],
       );
+
+      // Auto-select nearest address from GPS in background (don't block navigation)
+      _autoSelectNearestAddress();
+
       return '/home';
     } else {
       final prefs = await SharedPreferences.getInstance();
       final onboardingDone = prefs.getBool('onboarding_complete') ?? false;
       return onboardingDone ? '/login' : '/onboarding';
+    }
+  }
+
+  Future<void> _autoSelectNearestAddress() async {
+    try {
+      final selectedAddr = ref.read(selectedAddressProvider).valueOrNull;
+      if (selectedAddr != null) return;
+
+      final position = await ref.read(userLocationProvider.future);
+      final addresses = ref.read(addressesProvider).valueOrNull ?? [];
+      if (addresses.isEmpty || position == null) return;
+
+      Map<String, dynamic>? closest;
+      double minDist = double.infinity;
+      for (final a in addresses) {
+        final map = a as Map<String, dynamic>;
+        final lat = (map['latitude'] as num?)?.toDouble();
+        final lng = (map['longitude'] as num?)?.toDouble();
+        if (lat != null && lng != null) {
+          final dist = Geolocator.distanceBetween(
+            position.latitude, position.longitude, lat, lng,
+          );
+          if (dist < minDist) {
+            minDist = dist;
+            closest = map;
+          }
+        }
+      }
+      if (closest != null) {
+        await ref.read(selectedAddressProvider.notifier).selectAddress(
+          SelectedAddress(
+            id: closest['id'] as String,
+            label: closest['label'] as String? ?? '',
+            addressLine: closest['address_line'] as String? ?? '',
+            latitude: (closest['latitude'] as num).toDouble(),
+            longitude: (closest['longitude'] as num).toDouble(),
+          ),
+        );
+      }
+    } catch (_) {
+      // GPS not available — silently skip
     }
   }
 
@@ -131,8 +184,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.secondary,
-      body: Center(
-        child: AnimatedBuilder(
+      body: SafeArea(
+        child: Center(
+          child: AnimatedBuilder(
           animation: Listenable.merge([
             _entryController,
             _pulseController,
@@ -178,6 +232,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               ),
             );
           },
+          ),
         ),
       ),
     );

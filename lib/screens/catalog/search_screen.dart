@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../providers/cart_provider.dart';
+import '../../providers/favorites_provider.dart';
 import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/responsive.dart';
 import '../../utils/responsive_grid.dart';
+import '../../utils/snackbar_utils.dart';
 import '../../widgets/product_card.dart';
 
 /// Debounced search query provider
@@ -33,7 +36,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   void _onSearchChanged(String query) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 400), () {
+    _debounce = Timer(const Duration(milliseconds: 600), () {
       ref.read(_searchQueryProvider.notifier).state = query.trim();
     });
   }
@@ -108,10 +111,27 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         padding: EdgeInsets.symmetric(horizontal: Responsive.paddingSmall(context)),
                         gridDelegate: responsiveProductGrid(),
                         itemCount: result.products.length,
-                        itemBuilder: (_, i) => ProductCard(
-                          product: result.products[i],
-                          onTap: () => context.push('/product/${result.products[i].id}'),
-                        ),
+                        itemBuilder: (_, i) {
+                          final product = result.products[i];
+                          return ProductCard(
+                            product: product,
+                            isFavorite: ref.watch(favoritesProvider.select((f) => f.contains(product.id))),
+                            onFavorite: () => ref.read(favoritesProvider.notifier).toggle(product.id),
+                            onTap: () => context.push('/product/${product.id}'),
+                            onAddToCart: () async {
+                              try {
+                                await ref.read(cartProvider.notifier).addItem(product.id);
+                              } catch (e) {
+                                if (context.mounted) {
+                                  showAppSnackBar(const SnackBar(
+                                    content: Text('Error al agregar'),
+                                    duration: Duration(seconds: 3),
+                                  ));
+                                }
+                              }
+                            },
+                          );
+                        },
                       ),
                     ),
                   ],

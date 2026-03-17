@@ -1,0 +1,291 @@
+appId: com.blackdogpanama.blackdog_app
+name: "Audit de rendimiento y tiempos de carga"
+tags:
+  - performance
+  - audit
+
+---
+
+# ============================================================
+# 1. COLD START - Tiempo de arranque de la app
+# ============================================================
+- stopApp
+- launchApp
+
+- takeScreenshot: "01_cold_start"
+
+# Wait for splash + home to load (no text matching in Flutter)
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+- takeScreenshot: "02_home_loaded"
+
+# ============================================================
+# 2. HOME SCREEN - Scroll performance
+# ============================================================
+- swipe:
+    direction: UP
+    duration: 300
+
+- takeScreenshot: "03_home_scroll_1"
+
+- swipe:
+    direction: UP
+    duration: 300
+
+- takeScreenshot: "04_home_scroll_2"
+
+- swipe:
+    direction: UP
+    duration: 300
+
+- takeScreenshot: "05_home_scroll_3"
+
+# Scroll rápido de vuelta
+- swipe:
+    direction: DOWN
+    duration: 200
+
+- swipe:
+    direction: DOWN
+    duration: 200
+
+- swipe:
+    direction: DOWN
+    duration: 200
+
+- takeScreenshot: "06_home_back_to_top"
+
+# ============================================================
+# 3. CATÁLOGO - Carga inicial y scroll
+# ============================================================
+- tapOn:
+    point: "30%,97%"
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+- takeScreenshot: "07_catalog_loaded"
+
+# Scroll rápido por productos (simula browsing)
+- swipe:
+    direction: UP
+    duration: 200
+
+- swipe:
+    direction: UP
+    duration: 200
+
+- swipe:
+    direction: UP
+    duration: 200
+
+- takeScreenshot: "08_catalog_scrolled"
+
+# Scroll rápido más (cargar más páginas)
+- swipe:
+    direction: UP
+    duration: 150
+
+- swipe:
+    direction: UP
+    duration: 150
+
+- swipe:
+    direction: UP
+    duration: 150
+
+- swipe:
+    direction: UP
+    duration: 150
+
+- takeScreenshot: "09_catalog_deep_scroll"
+
+# ============================================================
+# 4. FILTRO POR CATEGORÍA - Tiempo de respuesta
+# ============================================================
+# Volver arriba
+- swipe:
+    direction: DOWN
+    duration: 100
+
+- swipe:
+    direction: DOWN
+    duration: 100
+
+- swipe:
+    direction: DOWN
+    duration: 100
+
+- swipe:
+    direction: DOWN
+    duration: 100
+
+- swipe:
+    direction: DOWN
+    duration: 100
+
+- swipe:
+    direction: DOWN
+    duration: 100
+
+# Tap en categoría "Gato" (2nd category card)
+- tapOn:
+    point: "45%,16%"
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+- takeScreenshot: "10_category_filter"
+
+# Cambiar a otra categoría "Snacks" (3rd category card)
+- tapOn:
+    point: "65%,16%"
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+- takeScreenshot: "11_category_switch"
+
+# ============================================================
+# 5. BÚSQUEDA - Tiempo de respuesta
+# ============================================================
+# Tap search bar area
+- tapOn:
+    point: "50%,8%"
+
+- waitForAnimationToEnd
+
+- takeScreenshot: "12_search_screen"
+
+- inputText: "comida"
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+- takeScreenshot: "13_search_results"
+
+# Volver
+- back
+
+# ============================================================
+# 6. DETALLE DE PRODUCTO - Carga
+# ============================================================
+# Go to catalog tab
+- tapOn:
+    point: "30%,97%"
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# Tap first product
+- tapOn:
+    point: "25%,50%"
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+- takeScreenshot: "15_product_detail"
+
+# Scroll en detalle
+- swipe:
+    direction: UP
+    duration: 300
+
+- takeScreenshot: "16_product_detail_scroll"
+
+- back
+
+# ============================================================
+# 7. AGREGAR AL CARRITO - Tiempo de respuesta
+# ============================================================
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# Tap "Agregar" button on first product card (bottom-right area of first card)
+- tapOn:
+    point: "42%,42%"
+
+- takeScreenshot: "17_after_add_to_cart"
+
+# Tap "Agregar" on second product card
+- tapOn:
+    point: "92%,42%"
+
+- takeScreenshot: "18_after_add_to_cart_2"
+
+# ============================================================
+# 8. CARRITO - Carga y manipulación
+# ============================================================
+# Tap cart icon (top-right)
+- tapOn:
+    point: "95%,4%"
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+- takeScreenshot: "19_cart_loaded"
+
+# Incrementar cantidad (+ button)
+- tapOn:
+    point: "60%,22%"
+
+- waitForAnimationToEnd
+
+- takeScreenshot: "20_cart_qty_changed"
+
+# ============================================================
+# 9. FAVORITOS - Toggle performance
+# ============================================================
+- back
+
+- waitForAnimationToEnd
+
+# Tap heart icon on first product
+- tapOn:
+    point: "42%,37%"
+
+- waitForAnimationToEnd
+
+- takeScreenshot: "21_favorite_toggled"
+
+# ============================================================
+# 10. NAVEGACIÓN ENTRE TABS - Fluidez
+# ============================================================
+# Home
+- tapOn:
+    point: "10%,97%"
+- waitForAnimationToEnd
+- takeScreenshot: "22_tab_home"
+
+# Catálogo
+- tapOn:
+    point: "30%,97%"
+- waitForAnimationToEnd
+- takeScreenshot: "23_tab_catalog"
+
+# Sucursales
+- tapOn:
+    point: "50%,97%"
+- waitForAnimationToEnd
+- takeScreenshot: "24_tab_branches"
+
+# Pedidos
+- tapOn:
+    point: "70%,97%"
+- waitForAnimationToEnd
+- takeScreenshot: "25_tab_orders"
+
+# Perfil
+- tapOn:
+    point: "90%,97%"
+- waitForAnimationToEnd
+- takeScreenshot: "26_tab_profile"
+
+# Vuelta a Home
+- tapOn:
+    point: "10%,97%"
+- waitForAnimationToEnd
+- takeScreenshot: "27_back_to_home"

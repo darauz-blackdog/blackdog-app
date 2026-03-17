@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/cart.dart';
 import 'service_providers.dart';
 
-/// Cart state notifier — manages the server-side cart
+/// Cart state notifier — manages the server-side cart with optimistic UI
 final cartProvider = AsyncNotifierProvider<CartNotifier, Cart?>(CartNotifier.new);
 
 class CartNotifier extends AsyncNotifier<Cart?> {
@@ -22,33 +22,135 @@ class CartNotifier extends AsyncNotifier<Cart?> {
   }
 
   Future<void> addItem(int productId, {int quantity = 1}) async {
+    final previous = state.valueOrNull;
+
+    // Optimistic update: increment item count immediately
+    if (previous != null) {
+      final existingIndex = previous.items.indexWhere((i) => i.productId == productId);
+      final updatedItems = List<CartItem>.from(previous.items);
+      if (existingIndex >= 0) {
+        final existing = updatedItems[existingIndex];
+        updatedItems[existingIndex] = CartItem(
+          id: existing.id,
+          cartId: existing.cartId,
+          productId: existing.productId,
+          productName: existing.productName,
+          productPrice: existing.productPrice,
+          imageUrl: existing.imageUrl,
+          quantity: existing.quantity + quantity,
+        );
+      } else {
+        updatedItems.add(CartItem(
+          id: 'optimistic_$productId',
+          cartId: previous.id,
+          productId: productId,
+          quantity: quantity,
+        ));
+      }
+      state = AsyncValue.data(Cart(
+        id: previous.id,
+        status: previous.status,
+        items: updatedItems,
+        subtotal: updatedItems.fold(0.0, (sum, item) => sum + item.lineTotal),
+      ));
+    }
+
     try {
       final api = ref.read(apiServiceProvider);
       await api.addToCart(productId: productId, quantity: quantity);
-      // Refresh cart from server
+      // Sync with server in background
       state = AsyncValue.data(await _fetchCart());
     } catch (e) {
-      // Re-throw to be caught by the UI
+      // Revert to previous state on failure
+      if (previous != null) {
+        state = AsyncValue.data(previous);
+      }
       rethrow;
     }
   }
 
   Future<void> updateItemQuantity(String itemId, int quantity) async {
-    final api = ref.read(apiServiceProvider);
-    await api.updateCartItem(itemId, quantity);
-    state = AsyncValue.data(await _fetchCart());
+    final previous = state.valueOrNull;
+
+    // Optimistic update
+    if (previous != null) {
+      final updatedItems = previous.items.map((item) {
+        if (item.id == itemId) {
+          return CartItem(
+            id: item.id,
+            cartId: item.cartId,
+            productId: item.productId,
+            productName: item.productName,
+            productPrice: item.productPrice,
+            imageUrl: item.imageUrl,
+            quantity: quantity,
+          );
+        }
+        return item;
+      }).toList();
+      state = AsyncValue.data(Cart(
+        id: previous.id,
+        status: previous.status,
+        items: updatedItems,
+        subtotal: updatedItems.fold(0.0, (sum, item) => sum + item.lineTotal),
+      ));
+    }
+
+    try {
+      final api = ref.read(apiServiceProvider);
+      await api.updateCartItem(itemId, quantity);
+      state = AsyncValue.data(await _fetchCart());
+    } catch (e) {
+      if (previous != null) state = AsyncValue.data(previous);
+      rethrow;
+    }
   }
 
   Future<void> removeItem(String itemId) async {
-    final api = ref.read(apiServiceProvider);
-    await api.removeCartItem(itemId);
-    state = AsyncValue.data(await _fetchCart());
+    final previous = state.valueOrNull;
+
+    // Optimistic update: remove item immediately
+    if (previous != null) {
+      final updatedItems = previous.items.where((i) => i.id != itemId).toList();
+      state = AsyncValue.data(Cart(
+        id: previous.id,
+        status: previous.status,
+        items: updatedItems,
+        subtotal: updatedItems.fold(0.0, (sum, item) => sum + item.lineTotal),
+      ));
+    }
+
+    try {
+      final api = ref.read(apiServiceProvider);
+      await api.removeCartItem(itemId);
+      state = AsyncValue.data(await _fetchCart());
+    } catch (e) {
+      if (previous != null) state = AsyncValue.data(previous);
+      rethrow;
+    }
   }
 
   Future<void> clear() async {
-    final api = ref.read(apiServiceProvider);
-    await api.clearCart();
-    state = AsyncValue.data(await _fetchCart());
+    final previous = state.valueOrNull;
+
+    // Optimistic: clear immediately
+    if (previous != null) {
+      state = AsyncValue.data(Cart(
+        id: previous.id,
+        status: previous.status,
+        items: [],
+        subtotal: 0,
+      ));
+    }
+
+    try {
+      final api = ref.read(apiServiceProvider);
+      await api.clearCart();
+      state = AsyncValue.data(await _fetchCart());
+    } catch (e) {
+      if (previous != null) state = AsyncValue.data(previous);
+      rethrow;
+    }
   }
 
   void refresh() {
