@@ -326,11 +326,24 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
       _currentOrderId = orderId;
 
-      // Navigate to order confirmation (with payment_method in result for "Pagar ahora")
-      if (result is Map<String, dynamic> && !result.containsKey('payment_method')) {
-        result['payment_method'] = _paymentMethod;
+      // For online payment methods, go directly to payment — no intermediate screen.
+      // Order confirmation is shown only after successful payment (or for in_store).
+      if (_paymentMethod == 'tilopay' || _paymentMethod == 'yappy') {
+        context.go(
+          '/payment/$orderId',
+          extra: {
+            'payment_method': _paymentMethod,
+            'amount': total ?? 0.0,
+            'order_number': orderName,
+          },
+        );
+      } else {
+        // in_store: show confirmation immediately
+        if (result is Map<String, dynamic> && !result.containsKey('payment_method')) {
+          result['payment_method'] = _paymentMethod;
+        }
+        context.go('/order-confirmation/$orderId', extra: result);
       }
-      context.go('/order-confirmation/$orderId', extra: result);
     } catch (e) {
       setState(() => _isSubmitting = false);
       if (mounted) {

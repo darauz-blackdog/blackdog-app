@@ -223,7 +223,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
       case 'cancel':
         _fallbackTimer?.cancel();
-        if (mounted) context.pop();
+        if (mounted) _handleCancel();
         break;
     }
   }
@@ -240,6 +240,14 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       final msg = e.toString().replaceAll("'", " ").replaceAll('"', ' ');
       await _controller?.runJavaScript("setYappyError('$msg')");
     }
+  }
+
+  // ── Cancel: go to order detail so user can retry payment ─────
+
+  void _handleCancel() {
+    if (!mounted) return;
+    // Order exists as pending_payment — let user retry from order detail
+    context.go('/orders/${widget.orderId}');
   }
 
   // ── Success: invalidate order cache and navigate ──────────────
@@ -275,7 +283,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: !_processing,
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!_processing) _handleCancel();
+      },
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Pago seguro'),
@@ -283,7 +294,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               ? null
               : IconButton(
                   icon: const Icon(Icons.close),
-                  onPressed: () => context.pop(),
+                  onPressed: _handleCancel,
                 ),
           automaticallyImplyLeading: false,
         ),
