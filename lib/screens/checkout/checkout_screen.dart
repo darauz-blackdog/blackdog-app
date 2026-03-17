@@ -808,11 +808,19 @@ class _PaymentStep extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               _RadioCard(
-                title: 'Pago en línea',
-                subtitle: 'Tarjeta de crédito, débito o Yappy',
-                icon: Icons.payment_rounded,
+                title: 'Tarjeta de crédito / débito',
+                subtitle: 'Pago seguro con Tilopay',
+                icon: Icons.credit_card_rounded,
                 selected: paymentMethod == 'tilopay',
                 onTap: () => onPaymentMethodChanged('tilopay'),
+              ),
+              const SizedBox(height: 12),
+              _RadioCard(
+                title: 'Yappy',
+                subtitle: 'Paga rápido con tu número de teléfono',
+                icon: Icons.phone_android_rounded,
+                selected: paymentMethod == 'yappy',
+                onTap: () => onPaymentMethodChanged('yappy'),
               ),
               if (deliveryType == 'pickup') ...[
                 const SizedBox(height: 12),
@@ -1148,7 +1156,8 @@ class _SummaryStep extends ConsumerWidget {
 
   String _paymentLabel(String method) {
     return switch (method) {
-      'tilopay' => 'Pago en línea',
+      'tilopay' => 'Tarjeta de crédito / débito',
+      'yappy' => 'Yappy',
       'in_store' => 'Pago en tienda',
       _ => method,
     };
