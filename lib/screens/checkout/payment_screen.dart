@@ -83,10 +83,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           _buildBridgeWebView(sdkToken: sdkToken);
         }
       } else {
-        // For Yappy: just need the order number from the order detail
-        final orderAsync = ref.read(orderDetailProvider(widget.orderId));
-        _orderNumber = orderAsync.valueOrNull?.odooOrderName;
-        _buildBridgeWebView();
+        // For Yappy: get order number + merchant ID from backend
+        final data = await api.initYappySDK(widget.orderId);
+        _orderNumber = data['order_number'] as String?;
+        _buildBridgeWebView(yappyMerchantId: data['merchant_id'] as String?);
       }
     } catch (e) {
       if (mounted) {
@@ -100,13 +100,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
   // ── Step 2a: build WebView for HTML Bridge (Yappy / Tilopay SDK V2) ──
 
-  void _buildBridgeWebView({String? sdkToken}) {
+  void _buildBridgeWebView({String? sdkToken, String? yappyMerchantId}) {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(NavigationDelegate(
         onPageFinished: (url) {
           if (!mounted) return;
-          _callInitPayment(sdkToken: sdkToken);
+          _callInitPayment(sdkToken: sdkToken, yappyMerchantId: yappyMerchantId);
         },
       ))
       ..addJavaScriptChannel(
@@ -151,7 +151,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
   // ── Step 3: inject config after page loads ────────────────────
 
-  Future<void> _callInitPayment({String? sdkToken}) async {
+  Future<void> _callInitPayment({String? sdkToken, String? yappyMerchantId}) async {
     if (_sdkInited) return;
     _sdkInited = true;
 
@@ -171,6 +171,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         'bill_to_address': 'Panama City',
         'redirect_url': '${Env.apiBaseUrl}/payments/tilopay/return?source=sdk',
         if (sdkToken != null) 'token': sdkToken,
+        if (yappyMerchantId != null) 'merchant_id': yappyMerchantId,
       };
 
       final configJson = jsonEncode(config).replaceAll("'", "\\'");

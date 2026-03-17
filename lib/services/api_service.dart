@@ -248,6 +248,13 @@ class ApiService {
     return response.data as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> initYappySDK(String orderId) async {
+    final response = await _dio.post('/payments/sdk/init-yappy', data: {
+      'order_id': orderId,
+    });
+    return response.data as Map<String, dynamic>;
+  }
+
   /// Create Yappy V2 order — returns transactionId, token, documentName
   Future<Map<String, dynamic>> createYappyV2Order(String orderId, String phone) async {
     final response = await _dio.post('/payments/yappy-v2/create-order', data: {
