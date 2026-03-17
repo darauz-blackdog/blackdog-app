@@ -1,0 +1,155 @@
+appId: com.blackdogpanama.blackdog_app
+name: "Compra delivery + Tilopay"
+tags:
+  - e2e
+  - delivery
+  - tilopay
+
+env:
+  TEST_EMAIL: "fertruckx3113@gmail.com"
+  TEST_PASSWORD: "arauz3113"
+
+---
+
+- launchApp
+- waitForAnimationToEnd
+
+- runFlow:
+    when:
+      visible: "Iniciar sesión"
+    commands:
+      - tapOn:
+          text: "Correo electrónico"
+      - inputText: ${TEST_EMAIL}
+      - tapOn:
+          text: "Contraseña"
+      - inputText: ${TEST_PASSWORD}
+      - hideKeyboard
+      - tapOn:
+          text: "Iniciar sesión"
+
+- extendedWaitUntil:
+    visible: "Buscar comida, juguetes, accesorios..."
+    timeout: 15000
+
+# Vaciar carrito
+- tapOn:
+    point: "93%,6%"
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Vaciar carrito"
+    commands:
+      - tapOn:
+          point: "95%,5%"
+      - waitForAnimationToEnd
+      - tapOn:
+          text: "Vaciar"
+          optional: true
+      - waitForAnimationToEnd
+
+# Ir al catálogo via bottom nav
+- tapOn:
+    point: "30%,97%"
+- extendedWaitUntil:
+    visible: "Catalogo"
+    timeout: 5000
+
+- takeScreenshot: "01_catalog"
+
+# Agregar primer producto
+- tapOn:
+    text: "Agregar"
+    index: 0
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+- takeScreenshot: "02_after_add"
+
+# Ir al carrito via cart icon en AppBar del catálogo
+- tapOn:
+    point: "95%,4%"
+
+- extendedWaitUntil:
+    visible: "Carrito"
+    timeout: 5000
+
+- takeScreenshot: "03_cart"
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# Proceder al checkout
+- tapOn:
+    point: "50%,87%"
+
+- extendedWaitUntil:
+    visible: "Método de entrega"
+    timeout: 10000
+
+- takeScreenshot: "04_delivery"
+
+# Delivery via ASAP
+- tapOn:
+    point: "50%,27%"
+- waitForAnimationToEnd
+
+- scrollUntilVisible:
+    element:
+      text: "Continuar"
+    direction: DOWN
+- tapOn:
+    text: "Continuar"
+
+# Pago - Tilopay seleccionado
+- extendedWaitUntil:
+    visible: "Método de pago"
+    timeout: 3000
+- tapOn:
+    text: "Continuar"
+
+# Resumen
+- extendedWaitUntil:
+    visible: "Resumen del pedido"
+    timeout: 3000
+- takeScreenshot: "05_summary"
+
+- swipe:
+    direction: UP
+    duration: 400
+- takeScreenshot: "06_summary_bottom"
+
+# Tap Pagar (confirmar pedido)
+- tapOn:
+    point: "50%,95%"
+- takeScreenshot: "07_after_pagar"
+
+# Esperar pantalla de confirmación (¡Pedido Creado!)
+- waitForAnimationToEnd:
+    timeout: 25000
+- takeScreenshot: "08_order_confirmation"
+
+# Tap "Pagar ahora" → abre PaymentScreen con bridge Tilopay
+- tapOn:
+    text: "Pagar ahora"
+
+# Esperar que cargue el bridge (PaymentScreen AppBar dice "Pago seguro")
+- extendedWaitUntil:
+    visible: "Pago seguro"
+    timeout: 15000
+
+- takeScreenshot: "09_payment_screen"
+
+# Esperar que cargue el formulario del bridge
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: "10_payment_bridge_loaded"
+
+# FIN: Test llega al formulario de pago embedded (no podemos completar el pago real)

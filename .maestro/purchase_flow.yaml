@@ -1,0 +1,194 @@
+appId: com.blackdogpanama.blackdog_app
+name: "Flujo completo de compra - BlackDog App"
+tags:
+  - e2e
+  - purchase
+  - checkout
+
+env:
+  TEST_EMAIL: "fertruckx3113@gmail.com"
+  TEST_PASSWORD: "arauz3113"
+
+---
+
+# ============================================================
+# PASO 1: Abrir app y login si es necesario
+# ============================================================
+- launchApp
+
+- waitForAnimationToEnd
+
+# Login solo si no está logueado
+- runFlow:
+    when:
+      visible: "Iniciar sesión"
+    commands:
+      - tapOn:
+          text: "Correo electrónico"
+      - inputText: ${TEST_EMAIL}
+      - tapOn:
+          text: "Contraseña"
+      - inputText: ${TEST_PASSWORD}
+      - hideKeyboard
+      - tapOn:
+          text: "Iniciar sesión"
+
+- extendedWaitUntil:
+    visible: "Buscar comida, juguetes, accesorios..."
+    timeout: 15000
+
+- takeScreenshot: "01_home_loaded"
+
+# ============================================================
+# PASO 2: Navegar al catálogo desde Home
+# ============================================================
+- tapOn:
+    text: "Ver todo"
+    index: 0
+
+- extendedWaitUntil:
+    visible: "Catalogo"
+    timeout: 5000
+
+- takeScreenshot: "02_catalog_screen"
+
+# ============================================================
+# PASO 3: Agregar un producto al carrito
+# ============================================================
+- tapOn:
+    text: "Agregar"
+    index: 0
+
+- takeScreenshot: "03_product_added_snackbar"
+
+# ============================================================
+# PASO 4: Ir al carrito
+# ============================================================
+# Intentar via snackbar "Ver"
+- tapOn:
+    text: "Ver"
+    optional: true
+
+# Si no hay snackbar, usar el bottom nav o cart badge
+- runFlow:
+    when:
+      notVisible: "Carrito"
+    commands:
+      - tapOn:
+          point: "93%,6%"
+
+- extendedWaitUntil:
+    visible: "Carrito"
+    timeout: 5000
+
+- takeScreenshot: "04_cart_screen"
+
+# ============================================================
+# PASO 5: Proceder al checkout
+# ============================================================
+- scrollUntilVisible:
+    element:
+      text: ".*Proceder al Checkout.*"
+    direction: DOWN
+
+- tapOn:
+    text: ".*Proceder al Checkout.*"
+
+- extendedWaitUntil:
+    visible: "Método de entrega"
+    timeout: 5000
+
+- takeScreenshot: "05_checkout_step0_delivery"
+
+# ============================================================
+# PASO 6: Checkout Step 0 - Seleccionar sucursal (pickup ya seleccionado)
+# ============================================================
+# "Recoger en tienda" ya viene seleccionado por defecto
+# Seleccionar la primera sucursal con stock (tap por coordenada en la card)
+- tapOn:
+    point: "50%,57%"
+
+- takeScreenshot: "06_checkout_pickup_selected"
+
+- tapOn:
+    text: "Continuar"
+
+# ============================================================
+# PASO 7: Checkout Step 1 - Método de pago
+# ============================================================
+- extendedWaitUntil:
+    visible: "Método de pago"
+    timeout: 3000
+
+- takeScreenshot: "07_checkout_step1_payment"
+
+# Tap en "Pago en tienda" (segunda card, ~45% de la pantalla)
+- tapOn:
+    point: "50%,45%"
+
+- tapOn:
+    text: "Continuar"
+
+# ============================================================
+# PASO 8: Checkout Step 2 - Resumen del pedido
+# ============================================================
+- extendedWaitUntil:
+    visible: "Resumen del pedido"
+    timeout: 3000
+
+- takeScreenshot: "08_checkout_step2_summary"
+
+# Flutter text no es visible para Maestro, verificamos con screenshots
+- scrollUntilVisible:
+    element:
+      text: ".*Confirmar Pedido.*"
+    direction: DOWN
+
+- takeScreenshot: "09_checkout_summary_bottom"
+
+# ============================================================
+# PASO 9: Confirmar pedido
+# ============================================================
+- scrollUntilVisible:
+    element:
+      text: ".*Confirmar Pedido.*"
+    direction: DOWN
+    centerElement: true
+
+- takeScreenshot: "09b_before_confirm_tap"
+
+- tapOn:
+    text: ".*Confirmar Pedido.*"
+
+# Esperar a que la API cree la orden
+- waitForAnimationToEnd:
+    timeout: 20000
+
+- takeScreenshot: "10_after_confirm"
+
+# En este punto debería estar en la pantalla de confirmación
+# o en la pantalla de pago. Tap en "Seguir comprando" o "Inicio"
+- tapOn:
+    text: ".*Seguir comprando.*"
+    optional: true
+
+- runFlow:
+    when:
+      notVisible: "Buscar comida, juguetes, accesorios..."
+    commands:
+      # Tap en tab "Inicio" en bottom nav
+      - tapOn:
+          text: "Inicio"
+          optional: true
+      - runFlow:
+          when:
+            notVisible: "Buscar comida, juguetes, accesorios..."
+          commands:
+            - tapOn:
+                point: "10%,97%"
+
+- takeScreenshot: "11_final_state"
+
+# ============================================================
+# FIN - Flujo completo de compra exitoso
+# ============================================================
