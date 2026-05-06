@@ -1,13 +1,18 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <application
-        android:label="blackdog_app"
+        android:label="Black Dog Panamá"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:usesCleartextTraffic="false">
+        android:usesCleartextTraffic="false"
+        android:allowBackup="false"
+        android:fullBackupContent="@xml/full_backup_content"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        tools:replace="android:allowBackup">
         <activity
             android:name=".MainActivity"
             android:exported="true"

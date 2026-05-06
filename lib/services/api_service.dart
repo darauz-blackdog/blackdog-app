@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:http_certificate_pinning/http_certificate_pinning.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/env.dart';
@@ -13,6 +14,22 @@ class ApiService {
       receiveTimeout: const Duration(seconds: 15),
       headers: {'Content-Type': 'application/json'},
     ));
+
+    // Certificate pinning (opt-in). When API_CERT_PINS is set at build time
+    // (comma-separated SHA-256 SPKI pins), Dio rejects connections whose
+    // server cert doesn't match any listed pin — defends against MITM with
+    // a forged CA. Always ship a backup pin so a single rotation doesn't
+    // brick the app.
+    final pins = Env.apiCertPins
+        .split(',')
+        .map((p) => p.trim())
+        .where((p) => p.isNotEmpty)
+        .toList();
+    if (pins.isNotEmpty) {
+      _dio.interceptors.add(
+        CertificatePinningInterceptor(allowedSHAFingerprints: pins),
+      );
+    }
 
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {

@@ -1,26 +1,64 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config/env.dart';
 import 'config/routes.dart';
 import 'providers/location_provider.dart';
 import 'providers/theme_provider.dart';
+import 'services/secure_local_storage.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
+  // All async startup work — including the runApp call — must execute inside
+  // runZonedGuarded so any uncaught Dart errors are captured by Sentry.
+  await runZonedGuarded(_bootstrap, (error, stack) {
+    Sentry.captureException(error, stackTrace: stack);
+  });
+}
+
+Future<void> _bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   Env.assertConfigured();
 
+  // Forward Flutter framework errors to Sentry, then keep default console
+  // logging in debug builds.
+  FlutterError.onError = (details) {
+    Sentry.captureException(details.exception, stackTrace: details.stack);
+    if (kDebugMode) FlutterError.presentError(details);
+  };
+
+  // Async/platform errors that escape Dart zones (e.g. thrown from a callback
+  // registered with the engine) are routed here.
+  PlatformDispatcher.instance.onError = (error, stack) {
+    Sentry.captureException(error, stackTrace: stack);
+    return true;
+  };
+
   await Supabase.initialize(
     url: Env.supabaseUrl,
     anonKey: Env.supabaseAnonKey,
+    authOptions: FlutterAuthClientOptions(
+      localStorage: SecureLocalStorage(),
+    ),
   );
 
-  runApp(const ProviderScope(child: BlackDogApp()));
+  if (Env.sentryDsn.isNotEmpty) {
+    await SentryFlutter.init((options) {
+      options.dsn = Env.sentryDsn;
+      options.environment = Env.sentryEnvironment;
+      options.tracesSampleRate = 0.2;
+      options.attachStacktrace = true;
+      options.sendDefaultPii = false;
+    }, appRunner: () => runApp(const ProviderScope(child: BlackDogApp())));
+  } else {
+    runApp(const ProviderScope(child: BlackDogApp()));
+  }
 }
 
 class BlackDogApp extends ConsumerStatefulWidget {

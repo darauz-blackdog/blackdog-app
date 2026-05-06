@@ -1,0 +1,4 @@
+storePassword=TU_STORE_PASSWORD
+keyPassword=TU_KEY_PASSWORD
+keyAlias=blackdog-upload
+storeFile=/ruta/absoluta/blackdog-upload.jks

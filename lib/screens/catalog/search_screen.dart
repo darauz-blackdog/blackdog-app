@@ -10,7 +10,6 @@ import '../../providers/products_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/responsive.dart';
 import '../../utils/responsive_grid.dart';
-import '../../utils/snackbar_utils.dart';
 import '../../widgets/product_card.dart';
 
 /// Debounced search query provider
@@ -123,10 +122,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                 await ref.read(cartProvider.notifier).addItem(product.id);
                               } catch (e) {
                                 if (context.mounted) {
-                                  showAppSnackBar(const SnackBar(
-                                    content: Text('Error al agregar'),
-                                    duration: Duration(seconds: 3),
-                                  ));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Error al agregar'),
+                                      duration: Duration(seconds: 3),
+                                    ),
+                                  );
                                 }
                               }
                             },

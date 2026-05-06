@@ -129,7 +129,7 @@ class _AboutScreenState extends State<AboutScreen> {
               icon: Icons.chat_outlined,
               title: 'WhatsApp',
               subtitle: 'Chatea con nosotros',
-              onTap: () => _launchUrl('https://wa.me/50760000000'),
+              onTap: () => _launchUrl('https://wa.me/50760553232'),
             ),
           ),
           FadeInUp(

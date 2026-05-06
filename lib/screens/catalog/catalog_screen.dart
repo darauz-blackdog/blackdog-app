@@ -13,7 +13,6 @@ import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/responsive.dart';
 import '../../utils/responsive_grid.dart';
-import '../../utils/snackbar_utils.dart';
 import '../../widgets/cart_badge.dart';
 import '../../widgets/category_icon_box.dart';
 import '../../widgets/fade_in_up.dart';
@@ -283,10 +282,12 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                               await ref.read(cartProvider.notifier).addItem(product.id);
                             } catch (e) {
                               if (context.mounted) {
-                                showAppSnackBar(const SnackBar(
-                                  content: Text('Error al agregar'),
-                                  duration: Duration(seconds: 3),
-                                ));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Error al agregar'),
+                                    duration: Duration(seconds: 3),
+                                  ),
+                                );
                               }
                             }
                           },

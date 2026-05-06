@@ -149,7 +149,7 @@ class PaymentResultView extends StatelessWidget {
 
   static Future<void> _openWhatsAppSupport() async {
     final uri = Uri.parse(
-      'https://wa.me/50769990000?text=Hola,%20necesito%20ayuda%20con%20mi%20pago',
+      'https://wa.me/50760553232?text=Hola,%20necesito%20ayuda%20con%20mi%20pago',
     );
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);

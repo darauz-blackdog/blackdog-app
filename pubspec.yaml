@@ -36,6 +36,12 @@ dependencies:
   shared_preferences: ^2.5.3
   flutter_secure_storage: ^9.2.4
 
+  # Crash reporting
+  sentry_flutter: ^8.13.2
+
+  # TLS pinning (Dio interceptor)
+  http_certificate_pinning: ^3.0.1
+
   # Maps
   flutter_map: ^7.0.2
   latlong2: ^0.9.1

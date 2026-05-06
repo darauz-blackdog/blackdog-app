@@ -11,6 +11,7 @@ import '../../providers/orders_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/service_providers.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/payment_host_whitelist.dart';
 
 /// Unified payment screen that embeds the HTML Bridge for Tilopay SDK V2
 /// and Yappy Button V2. Communicates via JavaScriptChannel 'FlutterBridge'.
@@ -50,6 +51,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       '$_vpsBase/checkout/?method=${widget.paymentMethod}'
       '&amount=${widget.amount.toStringAsFixed(2)}'
       '${_orderNumber != null ? "&order_number=$_orderNumber" : ""}';
+
+  bool _isAllowedHost(String url) =>
+      PaymentHostWhitelist.isAllowed(url, bridgeOrigin: _vpsBase);
 
   @override
   void initState() {
@@ -104,6 +108,11 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(NavigationDelegate(
+        onNavigationRequest: (request) {
+          return _isAllowedHost(request.url)
+              ? NavigationDecision.navigate
+              : NavigationDecision.prevent;
+        },
         onPageFinished: (url) {
           if (!mounted) return;
           _callInitPayment(sdkToken: sdkToken, yappyMerchantId: yappyMerchantId);
@@ -132,7 +141,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             final uri = Uri.parse(url);
             final code = uri.queryParameters['code'];
             if (code == '1') {
-              _handleSuccess();
+              // Tilopay's return URL is signed-but-unverified at the WebView
+              // layer. Verify against the API before navigating.
+              _verifyAndHandleSuccess();
             } else if (uri.queryParameters.containsKey('code')) {
               setState(() {
                 _processing = false;
@@ -174,8 +185,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         if (yappyMerchantId != null) 'merchant_id': yappyMerchantId,
       };
 
-      final configJson = jsonEncode(config).replaceAll("'", "\\'");
-      await _controller?.runJavaScript("initPayment($configJson)");
+      // jsonEncode produces valid JS object literal; no escape needed.
+      await _controller?.runJavaScript('initPayment(${jsonEncode(config)})');
     } catch (e) {
       // Non-fatal — bridge will show its own loading error
     }
@@ -211,7 +222,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       case 'success':
         _fallbackTimer?.cancel();
         _pollTimer?.cancel();
-        _handleSuccess();
+        // Never trust the bridge's success message blindly — verify against
+        // the API before navigating to the confirmation screen. A compromised
+        // WebView could otherwise mark unpaid orders as paid.
+        _verifyAndHandleSuccess();
         break;
 
       case 'error':
@@ -235,11 +249,47 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     try {
       final api = ref.read(apiServiceProvider);
       final result = await api.createYappyV2Order(widget.orderId, phone);
-      final json = jsonEncode(result).replaceAll("'", "\\'");
-      await _controller?.runJavaScript("setYappyPayment($json)");
+      // jsonEncode produces a valid JS literal; passing as a JSON-quoted string
+      // avoids any escape-injection in setYappyPayment.
+      await _controller?.runJavaScript('setYappyPayment(${jsonEncode(result)})');
     } catch (e) {
-      final msg = e.toString().replaceAll("'", " ").replaceAll('"', ' ');
-      await _controller?.runJavaScript("setYappyError('$msg')");
+      // Wrap in jsonEncode so the JS receives a properly-quoted string literal,
+      // immune to apostrophes / quotes / newlines / unicode escape attacks.
+      await _controller?.runJavaScript('setYappyError(${jsonEncode(e.toString())})');
+    }
+  }
+
+  // ── Verify success against API before navigating ─────────────
+
+  Future<void> _verifyAndHandleSuccess() async {
+    if (!mounted) return;
+    setState(() => _processing = true);
+    try {
+      final api = ref.read(apiServiceProvider);
+      // Try up to 3 times — webhook may be a beat behind the bridge message.
+      for (int i = 0; i < 3; i++) {
+        final result = await api.getPaymentStatus(widget.orderId);
+        if (result['payment_status'] == 'paid') {
+          _handleSuccess();
+          return;
+        }
+        await Future.delayed(const Duration(seconds: 2));
+      }
+      // Bridge claimed success but API disagrees — surface as error and let
+      // the fallback poll keep watching.
+      if (!mounted) return;
+      setState(() {
+        _processing = false;
+        _errorMessage = 'No pudimos confirmar tu pago. Si el cargo aparece en tu cuenta, revisa "Mis Pedidos".';
+      });
+      _startFallbackTimer();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _processing = false;
+        _errorMessage = 'No pudimos verificar el pago. Revisa "Mis Pedidos" en unos segundos.';
+      });
+      _startFallbackTimer();
     }
   }
 
